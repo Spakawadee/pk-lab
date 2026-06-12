@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>การให้ยาซ้ำและการปรับขนาดยา</title>
+
+<!--
+  ===========================================================================
+  การให้ยาซ้ำและการปรับขนาดยา.html — หัวข้อ "การให้ยาซ้ำและการปรับขนาดยา"
+  แยกออกมาจาก pk-lab.html เป็นไฟล์เดียวจบ เปิดทำงานได้ด้วยตัวเอง (ไม่พึ่ง pk-lab.html)
+  ประกอบด้วย: เนื้อหา HTML ของหัวข้อ + CSS ที่จำเป็น (ชุดเดียวกับ pk-lab.html)
+              + สคริปต์เครื่องมือ steady state / repeat dosing (vancomycin) + สคริปต์ quiz
+  ===========================================================================
+-->
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mitr:wght@400;500;600&family=Sarabun:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --ink:#2A2150; --sub:#6B6486; --card:#ffffff;
+    --reach:#F43F5E; --feces:#B59A82; --gut:#34D399; --liver:#F5A524;
+    --indigo:#6366F1; --purple:#A855F7; --teal:#0EA5A4;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; color:var(--ink);
+    font-family:'Sarabun',system-ui,sans-serif; line-height:1.75;
+    background:linear-gradient(160deg,#FDF4FF 0%,#EFFBFF 100%);
+    background-attachment:fixed;
+  }
+  .wrap{max-width:780px; margin:0 auto; padding:28px 18px 64px;}
+  h1,h2,h3{font-family:'Mitr',sans-serif; font-weight:600; line-height:1.35; color:var(--ink);}
+  a{color:var(--indigo); text-decoration:none;}
+  a:hover{text-decoration:underline;}
+
+  /* ---- การ์ดปฏิบัติการ ---- */
+  .lab{background:var(--card); border-radius:28px; padding:26px 24px;
+    margin:22px 0; box-shadow:0 10px 30px #2a21500d; border:1px solid #EFE7F7;}
+  .lab-head{display:flex; align-items:center; gap:14px; margin-bottom:6px;}
+  .lab-num{flex:none; width:42px; height:42px; border-radius:14px; display:grid; place-items:center;
+    font-family:'Mitr',sans-serif; font-weight:600; color:#fff; font-size:1.15rem;
+    background:linear-gradient(135deg,var(--indigo),var(--purple));}
+  .lab-head h2{font-size:1.35rem; margin:0;}
+  .lab-sub{color:var(--sub); font-size:.92rem; margin:2px 0 0;}
+
+  /* ---- ความรู้พื้นฐาน ---- */
+  .know{margin-top:16px; padding-left:16px; border-left:4px solid #EADCF7;}
+  .know h3{font-size:1.02rem; margin:18px 0 6px; color:var(--indigo);}
+  .know p{margin:.4em 0;}
+  .know ul{margin:.3em 0; padding-left:1.2em;}
+  .know li{margin:.25em 0;}
+
+  .callout{background:#FFFDF5; border:1px solid #F3E9C8; border-radius:18px;
+    padding:14px 16px; margin:16px 0; font-size:.92rem; color:#6b6486;}
+  .callout b{color:var(--ink);}
+
+  /* ---- กล่องเครื่องมือ ---- */
+  .tool{margin-top:20px; border:1px solid #E5EEF0; border-radius:24px; overflow:hidden;
+    background:linear-gradient(160deg,#FDF4FF 0%,#EFFBFF 100%);}
+  .tool-label{font-family:'Mitr',sans-serif; font-size:.85rem; font-weight:500;
+    color:var(--teal); padding:12px 16px 0;}
+
+  /* ===== กล่องพารามิเตอร์ (สไลเดอร์) ===== */
+  .fp-gates{display:grid; grid-template-columns:1fr; gap:8px; margin-bottom:12px;}
+  @media(min-width:560px){ .fp-gates{grid-template-columns:1fr 1fr 1fr;} }
+  .fp-gate{background:#fff; border:1px solid; border-radius:16px; padding:12px;}
+  .fp-gate-head{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:4px;}
+  .fp-gate-head small{color:var(--sub); margin-left:4px; font-size:.78rem;}
+  .fp-pill{font-family:ui-monospace,monospace; font-weight:700; color:#fff; padding:1px 8px; border-radius:8px; font-size:.95rem;}
+  .fp-gate input[type=range]{width:100%; cursor:pointer;}
+  .fp-help{font-size:.76rem; color:var(--sub); margin:6px 0 0;}
+  .fp-foot{background:#FFFDF5; border:1px solid #F3E9C8; border-radius:16px; padding:12px;
+    font-size:.76rem; line-height:1.6; color:var(--sub);}
+  .fp-foot b{color:var(--ink);}
+
+  /* ===== แบบทบทวนตัวเอง (self-check quiz) ===== */
+  .quiz{margin-top:22px; background:#FBF9FE; border:1px solid #EADCF7; border-radius:22px; padding:18px 18px 16px;}
+  .quiz-head{display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;}
+  .quiz-head h3{margin:0; font-size:1.05rem; color:var(--purple);}
+  .quiz-score{font-family:'Mitr',sans-serif; font-weight:500; font-size:.92rem; color:var(--indigo);}
+  .quiz-note{font-size:.8rem; color:var(--sub); margin:4px 0 12px;}
+  .q{background:#fff; border:1px solid #EFE7F7; border-radius:16px; padding:14px 16px; margin:12px 0;}
+  .q-text{font-weight:600; margin:0;}
+  .q-kind{display:inline-block; font-size:.72rem; font-weight:600; padding:1px 8px; border-radius:8px;
+    background:#A855F71a; color:var(--purple); margin-left:6px; vertical-align:middle;}
+  .q-opts{display:flex; flex-direction:column; gap:8px; margin-top:12px;}
+  .opt{text-align:left; border:1.5px solid #E3DCEF; background:#fff; border-radius:12px;
+    padding:9px 13px; cursor:pointer; font-family:'Sarabun',sans-serif; font-size:.92rem; color:var(--ink);
+    transition:border-color .15s ease, background .15s ease;}
+  .opt:hover:not(:disabled){border-color:var(--purple);}
+  .opt:disabled{cursor:default;}
+  .opt.correct{border-color:#34D399; background:#ECFDF5; font-weight:600;}
+  .opt.wrong{border-color:#F43F5E; background:#FFF1F2;}
+  .fb{margin-top:10px; font-size:.86rem; border-radius:12px; padding:10px 12px; line-height:1.6;}
+  .fb.ok{background:#ECFDF5; color:#0f7a52;}
+  .fb.no{background:#FFF1F2; color:#b81c43;}
+  .fb b{color:inherit;}
+  .quiz-reset{margin-top:6px; border:1.5px solid var(--purple); background:#fff; color:var(--purple);
+    border-radius:12px; padding:7px 16px; font-family:'Sarabun',sans-serif; font-weight:600; font-size:.88rem; cursor:pointer;}
+  .quiz-reset:hover{background:var(--purple); color:#fff;}
+
+  /* ---- เครื่องมือ: ปุ่ม / กราฟ / อ่านค่า / สถานะ ---- */
+  .pk2-btns{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px;}
+  .pk2-btn{background:#fff; border:1.5px solid #EADCF7; border-radius:999px; padding:7px 15px;
+    font-family:'Mitr',sans-serif; font-weight:500; font-size:.9rem; color:var(--ink); cursor:pointer; transition:all .18s ease;}
+  .pk2-btn:hover{transform:translateY(-1px); box-shadow:0 4px 12px #6366f122;}
+  .pk2-plot{background:#fff; border:1px solid #EEE6F7; border-radius:16px; padding:8px;}
+  .pk2-cap{font-size:.78rem; color:var(--sub); text-align:center; margin:4px 0 0;}
+  .pk2-readouts{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:12px 0 6px;}
+  .pk2-cell{background:#fff; border:1px solid #EEE6F7; border-radius:12px; padding:8px 6px; text-align:center;}
+  .pk2-cell .v{font-family:'Mitr',sans-serif; font-weight:600; font-size:1.02rem; color:var(--ink); line-height:1.2;}
+  .pk2-cell .k{font-size:.72rem; color:var(--sub); margin-top:2px;}
+  .pk2-status{font-size:.85rem; margin:6px 0 2px; font-weight:600;}
+  @media(max-width:520px){ .pk2-readouts{grid-template-columns:repeat(2,1fr);} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <section class="lab" id="lab3" data-tab="การให้ยาซ้ำและการปรับขนาดยา">
+    <div class="lab-head">
+      <div class="lab-num" style="background:linear-gradient(135deg,#F5A524,#F43F5E); font-size:1.0rem;">SS</div>
+      <div>
+        <h2>การให้ยาซ้ำและการปรับขนาดยา</h2>
+        <p class="lab-sub">V<sub>d</sub> · t½ · ผลของไตทำงานบกพร่อง · steady state และการปรับขนาดยา</p>
+      </div>
+    </div>
+
+    <div class="know">
+      <p><b>เป้าหมาย:</b> เพื่อให้เข้าใจปริมาตรการกระจายตัว (V<sub>d</sub>), ค่าครึ่งชีวิต (t½) และ clearance (CL),
+      ผลของไตทำงานบกพร่องต่อระดับยา, ภาวะ steady state เมื่อให้ยาซ้ำ และการปรับขนาดยาให้อยู่ในช่วงการรักษา</p>
+
+      <h3>ปริมาตรการกระจายตัว (V<sub>d</sub>)</h3>
+      <p>V<sub>d</sub> = ขนาดยา / ความเข้มข้นเริ่มต้น (C₀) เป็นปริมาตรสมมติที่บอกแนวโน้มการกระจายตัวของยา
+      เมื่อเทียบกับปริมาตรน้ำในร่างกาย (คนหนัก 70 kg): พลาสมา ~3 L, ของเหลวภายนอกเซลล์ (ECF) ~15 L,
+      น้ำในร่างกายทั้งหมด (TBW) ~42 L หาก V<sub>d</sub> มากกว่า TBW แสดงว่ายากระจายออกนอกกระแสเลือดมาก
+      (จับเนื้อเยื่อหรือละลายในไขมัน)</p>
+
+      <h3>ครึ่งชีวิต (t½), clearance และไต</h3>
+      <p>t½ = 0.693 × V<sub>d</sub> / CL ยาที่ถูกกำจัดทางไตเป็นหลัก เมื่อการทำงานของไตลดลง CL จะลดลง
+      ทำให้ t½ ยาวขึ้น ระดับยาจึงลดลงช้าและสะสมสูงขึ้น เป็นเหตุผลที่ผู้ป่วยที่การทำงานของไตบกพร่องมักมีระดับยาสูงกว่า
+      ผู้ป่วยที่ไตปกติเมื่อได้รับขนาดยาเท่ากัน</p>
+
+      <h3>การให้ยาซ้ำและ steady state</h3>
+      <p>เมื่อให้ยาซ้ำด้วยขนาดและช่วงห่างคงที่ ระดับยาจะค่อย ๆ สะสมเข้าสู่ steady state ที่ประมาณ 5 เท่าของ t½
+      (ที่ 5×t½ สะสมประมาณ 97%) เวลาที่ใช้เข้าสู่ steady state ขึ้นกับ t½ เท่านั้น ไม่ขึ้นกับขนาดยา
+      ในทางกลับกัน เมื่อหยุดยาก็ใช้เวลาประมาณ 5×t½ เช่นกันในการกำจัดยาออกเกือบหมด (ที่ 5×t½ ยาถูกกำจัดประมาณ 97%)</p>
+      <p>เมื่อให้ยาซ้ำ ระดับยาในเลือดจะขึ้น–ลงเป็นฟันเลื่อยในแต่ละมื้อ โดยมี <b>ระดับสูงสุด (peak)</b>
+      คือระดับยาหลังให้ยาแต่ละครั้ง และ <b>ระดับต่ำสุดก่อนมื้อถัดไป</b> เรียกว่า <b>trough</b>
+      (อ่านว่า "ทรอฟ") ซึ่งเป็นจุดต่ำสุดของระดับยาก่อนจะให้ยามื้อต่อไป ในทางคลินิกมักใช้ค่า trough
+      ในการประเมินว่ายาได้ผลและปลอดภัยหรือไม่</p>
+
+      <h3>ช่วงการรักษาและการปรับขนาดยา</h3>
+      <p>ควรคงระดับยาไว้ระหว่าง MEC และ MTC สำหรับยาที่มีเภสัชจลนศาสตร์เชิงเส้น (linear) เมื่อปรับขนาดยา
+      ระดับยาที่ steady state จะเปลี่ยนตามสัดส่วน (เช่น ลดขนาดยาครึ่งหนึ่ง ระดับยาลดลงครึ่งหนึ่ง)
+      ในผู้ป่วยที่การทำงานของไตบกพร่องจึงมักต้องลดขนาดยาหรือขยายช่วงห่างการให้ยา เพื่อไม่ให้ยาสะสมเกิน MTC</p>
+      <p>โดยชนิดของระดับยาที่ควรอยู่ในช่วงของการรักษานั้นจะขึ้นกับคุณสมบัติของยา โดยทั่วไปจะหมายถึงให้ทั้ง <b>peak</b> และ <b>trough</b> อยู่ในช่วงการรักษา แต่สำหรับยาบางชนิด เช่น vancomycin ซึ่งทั้งประสิทธิภาพและพิษของยาสัมพันธ์กับระดับยาที่ trough ดังนั้น trough level จึงควรอยู่ในช่วงของการรักษา โดยไม่จำเป็นต้องพิจารณา peak ของยา นอกจากนี้ในปัจจุบันกำหนดให้พิจารณาใช้ค่า AUC₂₄ แทนค่า trough ในการปรับขนาดยา vancomycin</p>
+
+      <h3>ยาตัวอย่างในเครื่องมือ</h3>
+      <p>vancomycin เป็นยาฆ่าเชื้อที่ถูกขับทางไตเป็นหลัก (>80% ในรูปไม่เปลี่ยนแปลง) มีช่วงการรักษาแคบ โดยเมื่อไตปกติ ยา vancomycin มีค่า V<sub>d</sub> ≈ 0.7 L/kg (~49 L), CL ≈ 5 L/h (≈ 0.07 L/kg/h),
+      t½ ≈ 6–7 ชม. แต่ในผู้ป่วยที่ไตทำงานบกพร่องค่า CL ของยาจะลดลง ค่า t½ จะยาวขึ้นมาก</p>
+      <p>ช่วงในการรักษา: trough เป้าหมายของยา vancomycin 10–20 mg/L โดยระดับ trough ที่สูงเกิน 20 mg/L อย่างต่อเนื่องเพิ่มความเสี่ยงต่อพิษต่อไต</p>
+      <p>หมายเหตุ: แนวทางปัจจุบัน (ASHP/IDSA 2020) แนะนำให้ใช้เป้าหมาย <b>AUC₂₄/MIC = 400–600 mg·ชม./L</b>
+      (เมื่อ MIC = 1 mg/L) เป็นหลักในการปรับขนาดยา แทนการดูค่า trough เพียงอย่างเดียว เครื่องมือนี้จึงแสดง
+      ค่า AUC₂₄ และมีตัวช่วยปรับขนาดยาให้เข้าสู่ช่วง AUC₂₄ เป้าหมายด้วย</p>
+    </div>
+
+    <div class="callout">
+      <b>ประเด็นที่ควรสังเกตขณะใช้เครื่องมือ</b>
+      <ul style="margin:6px 0 0; padding-left:1.2em;">
+        <li>โหมด "ให้ครั้งเดียว": เลื่อน V<sub>d</sub> สังเกตว่า C₀ เปลี่ยน (V<sub>d</sub> = ขนาดยา / C₀) และดูค่า t½</li>
+        <li>ลดค่า CL (เลียนแบบไตทำงานบกพร่อง) สังเกตว่า t½ ยาวขึ้นและระดับยาลดลงช้า/สูงขึ้น (อธิบายว่าทำไมผู้ป่วยที่การทำงานของไตบกพร่องระดับยาสูงกว่า)</li>
+        <li>โหมด "ให้ยาซ้ำ": ดูเวลาเข้าสู่ steady state = 5×t½ และลดค่า CL แล้วดูระดับยาสะสมไต่ขึ้นเกิน MTC</li>
+        <li>ลดขนาดยาครึ่งหนึ่ง สังเกตว่าระดับยาที่ steady state ลดลงครึ่งหนึ่ง (linear PK)</li>
+        <li>เปิด "หยุดยาหลังเข้าสู่ steady state" เพื่อดูว่ายาถูกกำจัดเกือบหมดใน ~5×t½</li>
+      </ul>
+    </div>
+
+    <div class="tool">
+      <div class="tool-label">เครื่องมือโต้ตอบ — ปรับค่าแล้วสังเกตผล</div>
+      <div class="pk3" id="pk3-widget">
+        <div class="pk2-btns" id="pk3-mode"></div>
+
+        <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:8px;">
+          <span style="font-size:.85rem; color:var(--sub);">แกน Y:</span>
+          <div class="pk2-btns" id="pk3-scale" style="margin:0;"></div>
+        </div>
+
+        <div class="pk2-plot">
+          <svg id="pk3-svg" viewBox="0 0 560 360" style="width:100%; height:auto; font-family:'Mitr','Sarabun',sans-serif;"></svg>
+          <p class="pk2-cap">เส้นทึบ = ระดับยาในเลือด · เส้นประ = MEC/MTC · แถบสี = ช่วงการรักษา</p>
+        </div>
+
+        <div class="pk2-readouts">
+          <div class="pk2-cell"><div class="v" id="pk3-thalf">–</div><div class="k">t½ (ชม.)</div></div>
+          <div class="pk2-cell"><div class="v" id="pk3-cl">–</div><div class="k">CL เทียบไตปกติ</div></div>
+          <div class="pk2-cell"><div class="v" id="pk3-c">–</div><div class="k" id="pk3-lblc">C₀ (mg/L)</div></div>
+          <div class="pk2-cell"><div class="v" id="pk3-tss">–</div><div class="k">เวลาถึง SS (ชม.)</div></div>
+          <div class="pk2-cell"><div class="v" id="pk3-cmax">–</div><div class="k">ระดับสูงสุด (peak)</div></div>
+          <div class="pk2-cell"><div class="v" id="pk3-cmin">–</div><div class="k">ระดับต่ำสุดก่อนมื้อถัดไป (trough)</div></div>
+          <div class="pk2-cell"><div class="v" id="pk3-auc">–</div><div class="k">AUC₂₄ (mg·ชม./L)</div></div>
+          <div class="pk2-cell" style="grid-column:span 2;"><div class="v" id="pk3-aucdose">–</div><div class="k">ขนาดยา/วัน เพื่อ AUC₂₄ = 500</div></div>
+        </div>
+        <p class="pk2-status" id="pk3-vdnote"></p>
+        <p class="pk2-status" id="pk3-status"></p>
+        <p class="pk2-status" id="pk3-aucnote"></p>
+
+        <div class="fp-gates">
+          <div class="fp-gate" style="border-color:#6366f144;">
+            <div class="fp-gate-head"><span><b>Maintenance dose</b><small>MD</small></span><span class="fp-pill" id="pk3-dose-val" style="background:#6366F1;">1250</span></div>
+            <input type="range" id="pk3-dose" min="250" max="2000" step="50" value="1250" style="accent-color:#6366F1;">
+            <p class="fp-help">ขนาดยาต่อครั้ง (mg)</p>
+          </div>
+          <div class="fp-gate" style="border-color:#34D39944;">
+            <div class="fp-gate-head"><span><b>V<sub>d</sub></b><small>การกระจายตัว</small></span><span class="fp-pill" id="pk3-vd-val" style="background:#34D399;">49</span></div>
+            <input type="range" id="pk3-vd" min="5" max="100" step="1" value="49" style="accent-color:#34D399;">
+            <p class="fp-help">ปริมาตรการกระจายตัว (L) — เทียบ พลาสมา ~3 · ECF ~15 · TBW ~42</p>
+          </div>
+          <div class="fp-gate" id="pk3-gate-tau" style="border-color:#A855F744;">
+            <div class="fp-gate-head"><span><b>τ</b><small>ช่วงห่างการให้ยา</small></span><span class="fp-pill" id="pk3-tau-val" style="background:#A855F7;">12</span></div>
+            <input type="range" id="pk3-tau" min="6" max="48" step="2" value="12" style="accent-color:#A855F7;">
+            <p class="fp-help">ระยะห่างระหว่างมื้อยา (ชม.) — ใช้กับโหมดให้ยาซ้ำ</p>
+          </div>
+          <div class="fp-gate" style="border-color:#F5A52444;">
+            <div class="fp-gate-head"><span><b>CL</b><small>การขจัดยา</small></span><span class="fp-pill" id="pk3-cls-val" style="background:#F5A524;">5</span></div>
+            <input type="range" id="pk3-cls" min="0.5" max="6" step="0.25" value="5" style="accent-color:#F5A524;">
+            <p class="fp-help">การขจัดยา vancomycin (L/h) — น้อยลง = ไตทำงานบกพร่อง</p>
+          </div>
+          <div class="fp-gate" id="pk3-gate-ld" style="border-color:#F43F5E44; display:none;">
+            <div class="fp-gate-head"><span><b>Loading dose</b><small>LD</small></span><span class="fp-pill" id="pk3-ld-val" style="background:#F43F5E;">1750</span></div>
+            <input type="range" id="pk3-ld" min="500" max="3000" step="50" value="1750" style="accent-color:#F43F5E;">
+            <p class="fp-help">ขนาดยามื้อแรก (mg) — 20–35 mg/kg (≈25–30) สูงสุด 3000</p>
+          </div>
+        </div>
+
+        <label id="pk3-ld-wrap" style="display:flex; align-items:center; gap:8px; font-size:.88rem; color:var(--ink); margin:8px 0 0;">
+          <input type="checkbox" id="pk3-ld-on" style="accent-color:#F43F5E;"> เพิ่ม Loading dose (มื้อแรกให้ขนาดสูงกว่า เพื่อถึงเป้าหมายเร็วขึ้น)
+        </label>
+        <p class="pk2-status" id="pk3-ldnote"></p>
+
+        <label id="pk3-washout-wrap" style="display:flex; align-items:center; gap:8px; font-size:.88rem; color:var(--ink); margin:4px 0 0;">
+          <input type="checkbox" id="pk3-washout" style="accent-color:#F43F5E;"> หยุดยาหลังเข้าสู่ steady state (ดูการกำจัดยาใน ~5×t½)
+        </label>
+
+        <div class="fp-foot">
+          <p style="margin:0 0 6px;"><b>ค่าคงที่ที่ใช้ในแบบจำลอง:</b> vancomycin CL ปกติ ≈ 5 L/h (ปรับค่า CL ได้ด้วยสไลเดอร์; CL ต่ำ = ไตทำงานบกพร่อง),
+          MEC ≈ 10 mg/L, MTC ≈ 20 mg/L (อิงระดับ trough ที่ไม่ควรเกิน 20) · AUC₂₄ เป้าหมาย 400–600 mg·ชม./L
+          (MIC = 1 mg/L) · แบบจำลอง one-compartment IV (bolus) ซึ่งเป็นการลดทอนเพื่อการสอน
+          (จริง ๆ ให้แบบหยดเข้าหลอดเลือดและเป็นโมเดลสองคอมพาร์ตเมนต์)</p>
+          <p style="margin:0 0 6px;"><b>ที่มาของค่า:</b> V<sub>d</sub> ≈ 0.7 L/kg, ขับทางไต >80%, t½ ปกติ ~6–7 ชม.<sup>1</sup> ·
+          t½ สัมพันธ์กับ eGFR (t½ ยาวขึ้นเมื่อ eGFR ต่ำ)<sup>2</sup> · ช่วงในการรักษา (trough level) 10–20 mg/L, trough >20 mg/L
+          เพิ่มเสี่ยงพิษต่อไต และเป้าหมาย AUC₂₄/MIC = 400–600<sup>3,4</sup> · loading dose 20–35 mg/kg (≈25–30) สูงสุด 3000 mg เพื่อถึงเป้าหมายเร็วในผู้ป่วยวิกฤต<sup>4</sup> — ค่าทั้งหมดมีความแปรปรวนระหว่างบุคคลสูง</p>
+          <p style="margin:0;"><b>เอกสารอ้างอิง</b><br>
+          1. Matzke GR, Zhanel GG, Guay DR. Clinical pharmacokinetics of vancomycin. Clin Pharmacokinet. 1986;11(4):257–282. <a href="https://pubmed.ncbi.nlm.nih.gov/3530582/" target="_blank" rel="noopener">[PubMed]</a> <a href="https://doi.org/10.2165/00003088-198611040-00001" target="_blank" rel="noopener">[DOI]</a><br>
+          2. Šíma M, Hartinger J, Grus T, Slanař O. Initial dosing of intermittent vancomycin in adults: estimation of dosing interval in relation to dose and renal function. Eur J Hosp Pharm. 2021;28(5):276–279. <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC8403779/" target="_blank" rel="noopener">[PMC ฉบับเต็ม]</a> <a href="https://doi.org/10.1136/ejhpharm-2019-002013" target="_blank" rel="noopener">[DOI]</a><br>
+          3. Rybak M, Lomaestro B, Rotschafer JC, et al. Therapeutic monitoring of vancomycin in adult patients: a consensus review of the ASHP, IDSA, and SIDP. Am J Health Syst Pharm. 2009;66(1):82–98. <a href="https://pubmed.ncbi.nlm.nih.gov/19106348/" target="_blank" rel="noopener">[PubMed]</a> <a href="https://doi.org/10.2146/ajhp080434" target="_blank" rel="noopener">[DOI]</a><br>
+          4. Rybak MJ, Le J, Lodise TP, et al. Therapeutic monitoring of vancomycin for serious MRSA infections: a revised consensus guideline and review by the ASHP, IDSA, PIDS, and SIDP. Am J Health Syst Pharm. 2020;77(11):835–864. <a href="https://pubmed.ncbi.nlm.nih.gov/32191793/" target="_blank" rel="noopener">[PubMed]</a> <a href="https://doi.org/10.1093/ajhp/zxaa036" target="_blank" rel="noopener">[DOI]</a></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ---------- แบบทบทวนตัวเอง (self-check) ---------- -->
+    <div class="quiz" id="quiz3">
+      <div class="quiz-head">
+        <h3>ทบทวนตัวเอง</h3>
+        <span class="quiz-score" id="quiz3-score">ตอบแล้ว 0/0 ข้อ</span>
+      </div>
+      <p class="quiz-note">ตอบเพื่อเช็กความเข้าใจของตัวเอง เฉลยขึ้นทันทีพร้อมคำอธิบาย</p>
+      <div id="quiz3-body"></div>
+      <button class="quiz-reset" id="quiz3-reset">เริ่มทำใหม่</button>
+    </div>
+  </section>
+
+</div>
+
+<!-- ========================================================================
+     สคริปต์เครื่องมือ — การกระจายตัว/ครึ่งชีวิต/ให้ยาซ้ำ (one-compartment IV)
+     ค่ายา/พารามิเตอร์แก้ได้ที่ตัวแปร P3 ด้านล่าง
+     ======================================================================== -->
+<script>
+(function(){
+  "use strict";
+
+  var P3 = { CL0:5.0, MEC:10, MTC:20, aucTarget:500 };
+  var mode = "multiple";
+  var yscale = "linear";   // "linear" | "log"
+
+  var svg    = document.getElementById("pk3-svg");
+  var modeBox= document.getElementById("pk3-mode");
+  var scaleBox=document.getElementById("pk3-scale");
+  var doseIn = document.getElementById("pk3-dose");
+  var vdIn   = document.getElementById("pk3-vd");
+  var tauIn  = document.getElementById("pk3-tau");
+  var clIn   = document.getElementById("pk3-cls");
+  var washIn = document.getElementById("pk3-washout");
+  var gateTau= document.getElementById("pk3-gate-tau");
+  var washWrap=document.getElementById("pk3-washout-wrap");
+  var ldOnIn = document.getElementById("pk3-ld-on");
+  var ldIn   = document.getElementById("pk3-ld");
+  var ldGate = document.getElementById("pk3-gate-ld");
+  var ldWrap = document.getElementById("pk3-ld-wrap");
+  var ldNote = document.getElementById("pk3-ldnote");
+  if(!svg || !modeBox || !doseIn || !vdIn || !tauIn || !clIn) return;
+
+  function vals(){
+    var dose=parseFloat(doseIn.value), vd=parseFloat(vdIn.value),
+        tau=parseFloat(tauIn.value), effCL=parseFloat(clIn.value);
+    var ke = effCL/vd, thalf = 0.693/ke;
+    var renalPct = effCL/P3.CL0*100;   // CL เทียบค่าปกติ (ใช้แสดงความสัมพันธ์กับการทำงานของไต)
+    var ldOn = !!(ldOnIn && ldOnIn.checked);
+    var ld = ldIn ? parseFloat(ldIn.value) : dose;
+    return { dose:dose, vd:vd, tau:tau, effCL:effCL, ke:ke, thalf:thalf, renalPct:renalPct, ldOn:ldOn, ld:ld };
+  }
+  function contrib(te, dose, q){ return te<0 ? 0 : (dose/q.vd)*Math.exp(-q.ke*te); }
+  function single(te, q){ return contrib(te, q.dose, q); }
+  function tStopOf(q){ return washIn && washIn.checked ? Math.ceil((5*q.thalf)/q.tau)*q.tau : Infinity; }
+  function conc(t, q, tStop){
+    if(mode==="single") return single(t,q);
+    var c=0, n=0;
+    for(var td=0; td<=t+1e-9; td+=q.tau){
+      if(td<=tStop+1e-9){
+        var d = (n===0 && q.ldOn) ? q.ld : q.dose;   // มื้อแรกเป็น Loading dose ถ้าเปิด
+        c += contrib(t-td, d, q);
+      }
+      n++;
+    }
+    return c;
+  }
+  function horizonOf(q, tStop){
+    var h;
+    if(mode==="single") h = Math.max(5.5*q.thalf, 4);
+    else h = (tStop!==Infinity) ? tStop + 5.5*q.thalf : Math.max(6*q.thalf, 4*q.tau);
+    return Math.min(h, 480);
+  }
+  function niceTimeStep(h){
+    var cand=[2,4,6,12,24,48,96,168];
+    for(var i=0;i<cand.length;i++){ if(h/cand[i] <= 8) return cand[i]; }
+    return cand[cand.length-1];
+  }
+
+  function buildSVG(q){
+    var L=58,R=544,T=18,B=320;
+    var tStop=tStopOf(q), H=horizonOf(q,tStop);
+    // ตัวอย่างเส้นกราฟ + หาค่าสูงสุด
+    var N=360, samp=[], cmaxCurve=0;
+    for(var i=0;i<=N;i++){ var t=(i/N)*H; var c=conc(t,q,tStop); samp.push([t,c]); if(c>cmaxCurve) cmaxCurve=c; }
+    var yMaxC = Math.max(P3.MTC*1.3, cmaxCurve*1.12, 25);
+    yMaxC = Math.ceil(yMaxC/5)*5;
+    var yStep = Math.ceil(yMaxC/5/5)*5; if(yStep<5) yStep=5;
+    function xOf(t){ return L + (t/H)*(R-L); }
+
+    // แกน Y: เลือกได้ระหว่าง linear และ log (semi-log)
+    var LOGMIN=0.1; // ค่าต่ำสุดของแกน log (mg/L)
+    var logTop=Math.ceil(Math.log(yMaxC)/Math.LN10), logBot=Math.log(LOGMIN)/Math.LN10;
+    function yOf(c){
+      if(yscale==="log"){
+        var cc=Math.max(c, LOGMIN);
+        var lg=Math.log(cc)/Math.LN10;
+        return B - ((lg-logBot)/(logTop-logBot))*(B-T);
+      }
+      return B - (Math.min(c,yMaxC)/yMaxC)*(B-T);
+    }
+    var s="";
+
+    // แถบช่วงการรักษา
+    s += '<rect x="'+L+'" y="'+yOf(P3.MTC).toFixed(1)+'" width="'+(R-L)+'" height="'+(yOf(P3.MEC)-yOf(P3.MTC)).toFixed(1)+'" fill="#34D399" opacity="0.10"/>';
+    // แกน
+    s += '<line x1="'+L+'" y1="'+B+'" x2="'+R+'" y2="'+B+'" stroke="#C9BEE0" stroke-width="1.2"/>';
+    s += '<line x1="'+L+'" y1="'+T+'" x2="'+L+'" y2="'+B+'" stroke="#C9BEE0" stroke-width="1.2"/>';
+    // กริด+ป้ายแกน y
+    if(yscale==="log"){
+      for(var p=logBot; p<=logTop+1e-9; p++){
+        var base=Math.pow(10,p);
+        for(var m=1;m<10;m++){ var cv=base*m; if(cv<LOGMIN-1e-9||cv>Math.pow(10,logTop)+1e-9) continue;
+          var yy=yOf(cv), major=(m===1);
+          s += '<line x1="'+L+'" y1="'+yy.toFixed(1)+'" x2="'+R+'" y2="'+yy.toFixed(1)+'" stroke="#EEE9F6" stroke-width="'+(major?1:0.5)+'"/>';
+          if(major) s += '<text x="'+(L-6)+'" y="'+(yy+4).toFixed(1)+'" text-anchor="end" font-size="10" fill="#6B6486">'+(cv<1?cv:Math.round(cv))+'</text>';
+        }
+      }
+    } else {
+      for(var c2=0;c2<=yMaxC;c2+=yStep){ var yy2=yOf(c2);
+        s += '<line x1="'+L+'" y1="'+yy2.toFixed(1)+'" x2="'+R+'" y2="'+yy2.toFixed(1)+'" stroke="#EEE9F6" stroke-width="1"/>';
+        s += '<text x="'+(L-6)+'" y="'+(yy2+4).toFixed(1)+'" text-anchor="end" font-size="10" fill="#6B6486">'+c2+'</text>';
+      }
+    }
+    // ป้ายแกน x
+    var xStep=niceTimeStep(H);
+    for(var t2=0;t2<=H+1e-6;t2+=xStep){ var xx=xOf(t2);
+      s += '<text x="'+xx.toFixed(1)+'" y="'+(B+15)+'" text-anchor="middle" font-size="10" fill="#6B6486">'+Math.round(t2)+'</text>';
+    }
+    s += '<text x="'+((L+R)/2)+'" y="'+(B+32)+'" text-anchor="middle" font-size="11" fill="#2A2150">เวลา (ชั่วโมง)</text>';
+    s += '<text transform="rotate(-90 16 '+((T+B)/2)+')" x="16" y="'+((T+B)/2)+'" text-anchor="middle" font-size="11" fill="#2A2150">ระดับยา (mg/L)'+(yscale==="log"?" — log":"")+'</text>';
+
+    // เส้น MEC/MTC
+    var yMEC=yOf(P3.MEC), yMTC=yOf(P3.MTC);
+    s += '<line x1="'+L+'" y1="'+yMEC.toFixed(1)+'" x2="'+R+'" y2="'+yMEC.toFixed(1)+'" stroke="#0f9d6b" stroke-width="1.4" stroke-dasharray="6 4"/>';
+    s += '<text x="'+(R-2)+'" y="'+(yMEC-4).toFixed(1)+'" text-anchor="end" font-size="10" font-weight="600" fill="#0f9d6b">MEC '+P3.MEC+'</text>';
+    s += '<line x1="'+L+'" y1="'+yMTC.toFixed(1)+'" x2="'+R+'" y2="'+yMTC.toFixed(1)+'" stroke="#b81c43" stroke-width="1.4" stroke-dasharray="6 4"/>';
+    s += '<text x="'+(R-2)+'" y="'+(yMTC-4).toFixed(1)+'" text-anchor="end" font-size="10" font-weight="600" fill="#b81c43">MTC '+P3.MTC+'</text>';
+
+    // เส้น Css เฉลี่ย (โหมดให้ซ้ำ ไม่หยุดยา)
+    if(mode==="multiple" && tStop===Infinity){
+      var css=q.dose/(q.effCL*q.tau);
+      if(css<=yMaxC){ var yc=yOf(css);
+        s += '<line x1="'+L+'" y1="'+yc.toFixed(1)+'" x2="'+R+'" y2="'+yc.toFixed(1)+'" stroke="#6B6486" stroke-width="1" stroke-dasharray="2 3"/>';
+        s += '<text x="'+(L+4)+'" y="'+(yc-4).toFixed(1)+'" font-size="10" fill="#6B6486">Css เฉลี่ย</text>';
+      }
+    }
+    // เส้นหยุดยา
+    if(tStop!==Infinity && tStop<=H){ var xs=xOf(tStop);
+      s += '<line x1="'+xs.toFixed(1)+'" y1="'+T+'" x2="'+xs.toFixed(1)+'" y2="'+B+'" stroke="#F43F5E" stroke-width="1" stroke-dasharray="4 3" opacity="0.7"/>';
+      s += '<text x="'+(xs+3).toFixed(1)+'" y="'+(T+10)+'" font-size="10" fill="#F43F5E">หยุดยา</text>';
+    }
+    // ---------- แรเงาพื้นที่ AUC ใน 1 ช่วงการให้ยา (τ) ----------
+    // แสดงเฉพาะโหมดให้ซ้ำ + แกน Y ปกติ (พื้นที่ในแกน log ไม่ได้สัดส่วนกับ AUC)
+    if(mode==="multiple" && yscale==="linear"){
+      var tEndA = Math.min(H, tStop);
+      var ssDose = Math.ceil((5*q.thalf)/q.tau);   // มื้อแรกที่ถือว่าเข้าสู่ steady state
+      var aStart = ssDose*q.tau, aEnd = aStart + q.tau;
+      if(aEnd > tEndA + 1e-9){                       // ถ้าเลยขอบกราฟ ใช้ช่วงเต็มสุดท้ายที่มองเห็น
+        var kmax = Math.floor(tEndA/q.tau + 1e-9);
+        if(kmax>=1){ aEnd = kmax*q.tau; aStart = aEnd - q.tau; } else { aStart = -1; }
+      }
+      if(aStart>=0 && aEnd<=tEndA+1e-9){
+        var poly = "M"+xOf(aStart).toFixed(1)+" "+B.toFixed(1)+" ";
+        var MA=48;
+        for(var ja=0; ja<=MA; ja++){ var ta=aStart+(ja/MA)*(aEnd-aStart);
+          poly += "L"+xOf(ta).toFixed(1)+" "+yOf(conc(ta,q,tStop)).toFixed(1)+" "; }
+        poly += "L"+xOf(aEnd).toFixed(1)+" "+B.toFixed(1)+" Z";
+        s += '<path d="'+poly+'" fill="#6366F1" opacity="0.22" stroke="none"/>';
+        s += '<line x1="'+xOf(aStart).toFixed(1)+'" y1="'+B+'" x2="'+xOf(aStart).toFixed(1)+'" y2="'+T+'" stroke="#6366F1" stroke-width="0.8" stroke-dasharray="3 3" opacity="0.5"/>';
+        s += '<line x1="'+xOf(aEnd).toFixed(1)+'" y1="'+B+'" x2="'+xOf(aEnd).toFixed(1)+'" y2="'+T+'" stroke="#6366F1" stroke-width="0.8" stroke-dasharray="3 3" opacity="0.5"/>';
+        var xmidA=(xOf(aStart)+xOf(aEnd))/2;
+        s += '<text x="'+xmidA.toFixed(1)+'" y="'+(B-6)+'" text-anchor="middle" font-size="10" font-weight="600" fill="#4f46e5">AUC 1 รอบ (τ)</text>';
+      }
+    }
+
+    // เส้นกราฟ
+    var path="";
+    for(var k=0;k<samp.length;k++){ path += (k===0?"M":"L") + xOf(samp[k][0]).toFixed(1) + " " + yOf(samp[k][1]).toFixed(1) + " "; }
+    s += '<path d="'+path+'" fill="none" stroke="#6366F1" stroke-width="2.4" stroke-linejoin="round"/>';
+
+    // จุด Loading dose (มื้อแรก) เมื่อเปิด LD
+    if(mode==="multiple" && q.ldOn){ var cLD=q.ld/q.vd;
+      s += '<circle cx="'+xOf(0).toFixed(1)+'" cy="'+yOf(cLD).toFixed(1)+'" r="4" fill="#F43F5E"/>';
+      s += '<text x="'+(xOf(0)+6).toFixed(1)+'" y="'+(yOf(cLD)-4).toFixed(1)+'" font-size="10" font-weight="600" fill="#b81c43">LD</text>';
+    }
+
+    // จุด C0 (โหมดครั้งเดียว)
+    if(mode==="single"){ var c0=q.dose/q.vd;
+      s += '<circle cx="'+xOf(0).toFixed(1)+'" cy="'+yOf(c0).toFixed(1)+'" r="4.5" fill="#6366F1"/>';
+      s += '<text x="'+(xOf(0)+6).toFixed(1)+'" y="'+(yOf(c0)-4).toFixed(1)+'" font-size="10" fill="#6366F1">C₀</text>';
+    }
+    return s;
+  }
+
+  function fmt(x,d){ return x.toFixed(d); }
+
+  function recompute(){
+    var q=vals();
+    svg.innerHTML = buildSVG(q);
+
+    var c0=q.dose/q.vd, css=q.dose/(q.effCL*q.tau);
+    var cmaxss=(q.dose/q.vd)/(1-Math.exp(-q.ke*q.tau));
+    var cminss=cmaxss*Math.exp(-q.ke*q.tau);
+
+    document.getElementById("pk3-thalf").textContent = fmt(q.thalf,1);
+    document.getElementById("pk3-cl").textContent    = Math.round(q.renalPct) + "%";
+    document.getElementById("pk3-dose-val").textContent = Math.round(q.dose);
+    document.getElementById("pk3-vd-val").textContent   = Math.round(q.vd);
+    document.getElementById("pk3-tau-val").textContent  = Math.round(q.tau);
+    document.getElementById("pk3-cls-val").textContent  = (Math.round(q.effCL*100)/100);
+    if(document.getElementById("pk3-ld-val")) document.getElementById("pk3-ld-val").textContent = Math.round(q.ld);
+
+    if(mode==="single"){
+      document.getElementById("pk3-lblc").textContent = "C₀ (mg/L)";
+      document.getElementById("pk3-c").textContent    = fmt(c0,1);
+      document.getElementById("pk3-tss").textContent  = "–";
+      document.getElementById("pk3-cmax").textContent = "–";
+      document.getElementById("pk3-cmin").textContent = "–";
+    } else {
+      document.getElementById("pk3-lblc").textContent = "Css เฉลี่ย (mg/L)";
+      document.getElementById("pk3-c").textContent    = fmt(css,1);
+      document.getElementById("pk3-tss").textContent  = Math.round(5*q.thalf);
+      document.getElementById("pk3-cmax").textContent = fmt(cmaxss,1);
+      document.getElementById("pk3-cmin").textContent = fmt(cminss,1);
+    }
+
+    // AUC24 ที่ steady state = ขนาดยาต่อวัน / CL ; ขนาดยา/วัน เพื่อ AUC เป้าหมาย = AUCtarget × CL
+    var dailyDose = q.dose * (24/q.tau);
+    var auc24 = dailyDose / q.effCL;            // mg·h/L
+    var targetDaily = P3.aucTarget * q.effCL;   // mg/วัน เพื่อ AUC24 = 500
+    document.getElementById("pk3-auc").textContent = (mode==="single") ? "–" : Math.round(auc24);
+    document.getElementById("pk3-aucdose").textContent =
+      (mode==="single") ? "–" : (Math.round(targetDaily) + " mg/วัน");
+
+    // ข้อความอธิบายที่มาของ AUC₂₄ (เชื่อมกับพื้นที่แรเงาในกราฟ)
+    var aucNote=document.getElementById("pk3-aucnote");
+    if(mode==="multiple" && yscale==="linear"){
+      var aucTau = q.dose/q.effCL;   // พื้นที่ใต้กราฟ 1 ช่วง τ ที่ steady state = dose/CL
+      aucNote.textContent = "พื้นที่แรเงา = AUC ใน 1 ช่วงการให้ยา (τ=" + Math.round(q.tau)
+        + " ชม.) ≈ " + Math.round(aucTau) + " mg·ชม./L → AUC₂₄ = " + Math.round(aucTau)
+        + " × (24/" + Math.round(q.tau) + ") = " + Math.round(auc24) + " mg·ชม./L";
+      aucNote.style.color = "#4f46e5";
+    } else if(mode==="multiple"){
+      aucNote.textContent = "สลับไปแกน Y ปกติ (linear) เพื่อดูพื้นที่ AUC แบบแรเงา (พื้นที่ในแกน log ไม่ได้สัดส่วนกับ AUC)";
+      aucNote.style.color = "#6B6486";
+    } else {
+      aucNote.textContent = "";
+    }
+
+    // หมายเหตุ Vd
+    var vn=document.getElementById("pk3-vdnote");
+    if(q.vd<=16) vn.textContent = "Vd ≈ ของเหลวภายนอกเซลล์ (ECF ~15 L) — กระจายนอกเซลล์เป็นหลัก";
+    else if(q.vd<=42) vn.textContent = "Vd อยู่ระหว่าง ECF (~15 L) และน้ำในร่างกายทั้งหมด (TBW ~42 L) — กระจายทั้งนอกและในเซลล์";
+    else vn.textContent = "Vd มากกว่าน้ำในร่างกายทั้งหมด (~42 L) — ยาจับเนื้อเยื่อหรือละลายในไขมัน";
+    vn.style.color = "#6B6486";
+
+    // สถานะการรักษา (พิจารณาที่ระดับต่ำสุดก่อนมื้อถัดไป = trough = Cmin,ss)
+    var st=document.getElementById("pk3-status");
+    if(mode==="single"){
+      st.textContent = "โหมดให้ครั้งเดียว: สังเกตความสัมพันธ์ Vd–C₀ และค่า t½ (ลดค่า CL เพื่อดู t½ ยาวขึ้น)";
+      st.style.color = "#6B6486";
+    } else if(cminss > P3.MTC){
+      st.textContent = "⚠ ระดับต่ำสุดก่อนมื้อถัดไป (trough) เกิน MTC — เสี่ยงพิษ ควรลดขนาดยาหรือขยายช่วงห่างการให้ยา"; st.style.color="#b81c43";
+    } else if(cminss < P3.MEC){
+      st.textContent = "ระดับต่ำสุดก่อนมื้อถัดไป (trough) ต่ำกว่า MEC — อาจไม่ได้ผลในการรักษา"; st.style.color="#6B6486";
+    } else {
+      st.textContent = "ระดับต่ำสุดก่อนมื้อถัดไป (trough) อยู่ในช่วงการรักษา (ระหว่าง MEC และ MTC)"; st.style.color="#0f9d6b";
+    }
+
+    // หมายเหตุ Loading dose
+    if(ldNote){
+      if(mode==="multiple" && q.ldOn){
+        var ldIdeal = q.dose/(1-Math.exp(-q.ke*q.tau));
+        ldNote.innerHTML = "Loading dose ขึ้นกับ <b>V<sub>d</sub></b> (LD = V<sub>d</sub> × ความเข้มข้นเป้าหมาย) — ค่าที่ทำให้ระดับถึง steady state ทันทีตั้งแต่มื้อแรก ≈ <b>"
+          + Math.round(ldIdeal) + " mg</b> · ถ้าไม่ให้ LD ต้องรอ ~5×t½ = " + Math.round(5*q.thalf) + " ชม. จึงถึง steady state";
+        ldNote.style.color = "#b81c43";
+      } else {
+        ldNote.textContent = "";
+      }
+    }
+  }
+
+  function setMode(m){
+    mode = m;
+    Array.prototype.forEach.call(modeBox.children, function(b){
+      var on = (b.getAttribute("data-mode")===m);
+      b.style.background = on ? "#2A2150" : "#fff";
+      b.style.color = on ? "#fff" : "#2A2150";
+    });
+    var multi = (m==="multiple");
+    gateTau.style.display = multi ? "" : "none";
+    washWrap.style.display = multi ? "flex" : "none";
+    if(ldWrap) ldWrap.style.display = multi ? "flex" : "none";
+    if(ldGate) ldGate.style.display = (multi && ldOnIn && ldOnIn.checked) ? "" : "none";
+    recompute();
+  }
+
+  function setScale(sname){
+    yscale = sname;
+    if(scaleBox) Array.prototype.forEach.call(scaleBox.children, function(b){
+      var on = (b.getAttribute("data-scale")===sname);
+      b.style.background = on ? "#2A2150" : "#fff";
+      b.style.color = on ? "#fff" : "#2A2150";
+    });
+    recompute();
+  }
+
+  // ปุ่มโหมด
+  [["single","ให้ครั้งเดียว (single)"],["multiple","ให้ยาซ้ำ (multiple)"]].forEach(function(m){
+    var b=document.createElement("button"); b.className="pk2-btn"; b.type="button";
+    b.setAttribute("data-mode", m[0]); b.textContent=m[1];
+    b.style.borderColor="#2A2150"; b.style.color="#2A2150";
+    b.addEventListener("click", function(){ setMode(m[0]); });
+    modeBox.appendChild(b);
+  });
+
+  // ปุ่มสลับแกน Y (normal / log)
+  [["linear","ปกติ (linear)"],["log","log (semi-log)"]].forEach(function(sc){
+    var b=document.createElement("button"); b.className="pk2-btn"; b.type="button";
+    b.setAttribute("data-scale", sc[0]); b.textContent=sc[1];
+    b.style.borderColor="#2A2150"; b.style.color="#2A2150";
+    b.style.padding="5px 12px"; b.style.fontSize=".82rem";
+    b.addEventListener("click", function(){ setScale(sc[0]); });
+    scaleBox.appendChild(b);
+  });
+
+  [doseIn,vdIn,tauIn,clIn].forEach(function(el){ el.addEventListener("input", recompute); });
+  if(washIn) washIn.addEventListener("change", recompute);
+  function syncLD(){
+    if(ldGate) ldGate.style.display = (mode==="multiple" && ldOnIn && ldOnIn.checked) ? "" : "none";
+    recompute();
+  }
+  if(ldOnIn) ldOnIn.addEventListener("change", syncLD);
+  if(ldIn) ldIn.addEventListener("input", recompute);
+
+  function init(){ setScale("linear"); setMode("multiple"); }
+  if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();
+</script>
+
+<!-- ========================================================================
+     สคริปต์แบบทบทวนตัวเอง (self-check) ของปฏิบัติการการให้ยาซ้ำ
+     ======================================================================== -->
+<script>
+(function(){
+  "use strict";
+
+  var QUESTIONS = [
+    { q:"ยา Y ขนาดเท่ากันในผู้ป่วยที่ไตปกติและผู้ป่วยที่การทำงานของไตบกพร่อง เพราะเหตุใดผู้ป่วยที่การทำงานของไตบกพร่องจึงมีระดับยาสูงกว่า?",
+      kind:"เลือกตอบ",
+      options:["CL ลดลง t½ ยาวขึ้น ยาจึงสะสม","Vd มากขึ้น","ดูดซึมมากขึ้น"],
+      answer:0,
+      why:"ยาที่ขับทางไต เมื่อไตทำงานบกพร่อง CL ลดลง ทำให้ t½ ยาวขึ้นและยาถูกกำจัดช้าลง จึงสะสมและมีระดับสูงกว่า — ลดค่า CL (สไลเดอร์ CL) ในเครื่องมือเพื่อสังเกต" },
+
+    { q:"Vd ของยาคำนวณจากข้อใด (หลังให้ยาทางหลอดเลือดดำครั้งเดียว)?",
+      kind:"เลือกตอบ",
+      options:["ขนาดยา ÷ C₀","C₀ ÷ ขนาดยา","CL × t½"],
+      answer:0,
+      why:"Vd = ขนาดยา / ความเข้มข้นเริ่มต้น (C₀) — เลื่อน Vd ในเครื่องมือจะเห็น C₀ เปลี่ยนแบบผกผัน" },
+
+    { q:"เวลาที่ระดับยาเข้าสู่ steady state ขึ้นกับสิ่งใด?",
+      kind:"เลือกตอบ",
+      options:["ค่าครึ่งชีวิต (t½) เท่านั้น (~5×t½)","ขนาดยา","ช่วงห่างการให้ยาเท่านั้น"],
+      answer:0,
+      why:"เวลาเข้าสู่ steady state ≈ 5×t½ ขึ้นกับ t½ เท่านั้น การเพิ่มหรือลดขนาดยาไม่ทำให้ถึง steady state เร็วหรือช้าลง" },
+
+    { q:"ยาที่มีเภสัชจลนศาสตร์เชิงเส้น (linear) ถ้าลดขนาดยาลงครึ่งหนึ่ง ระดับยาที่ steady state จะเป็นอย่างไร?",
+      kind:"ทำนายผล",
+      options:["ลดลงครึ่งหนึ่ง","ลดลงเหลือ 1 ใน 4","ไม่เปลี่ยน"],
+      answer:0,
+      why:"ยา linear PK ระดับยาที่ steady state แปรผันตรงกับขนาดยา ลดขนาดครึ่งหนึ่งระดับยาจึงลดลงครึ่งหนึ่ง — ลองเลื่อนขนาดยาในเครื่องมือ" },
+
+    { q:"vancomycin มีช่วงในการรักษา (trough level) 10–20 mg/L หากผู้ป่วยที่การทำงานของไตบกพร่องจน trough เกิน 20 mg/L ต่อเนื่อง สื่อถึงอะไร?",
+      kind:"เลือกตอบ",
+      options:["เสี่ยงพิษต่อไต ควรปรับลดขนาด/ขยายช่วงห่าง","ขนาดยายังต่ำเกินไป","ปกติ ไม่ต้องปรับ"],
+      answer:0,
+      why:"trough ที่สูงเกิน 20 mg/L อย่างต่อเนื่องเพิ่มความเสี่ยงพิษต่อไต ในผู้ป่วยที่การทำงานของไตบกพร่องจึงควรลดขนาดยาหรือขยายช่วงห่างการให้ยา" },
+
+    { q:"หลังหยุดยา ใช้เวลาประมาณเท่าใดจึงกำจัดยาออกเกือบหมด (~97%)?",
+      kind:"เลือกตอบ",
+      options:["~5 เท่าของ t½","~1 เท่าของ t½","~10 เท่าของ t½"],
+      answer:0,
+      why:"ที่เวลา 5×t½ ยาถูกกำจัดไปประมาณ 97% เช่นเดียวกับเวลาที่ใช้เข้าสู่ steady state — เปิด \"หยุดยา\" ในเครื่องมือเพื่อสังเกต" }
+  ];
+
+  var state = [];
+  function reset(){ state = QUESTIONS.map(function(){ return null; }); render(); }
+  function choose(qi, oi){ if(state[qi] !== null) return; state[qi] = oi; render(); }
+
+  function render(){
+    var body = document.getElementById("quiz3-body");
+    body.innerHTML = "";
+    QUESTIONS.forEach(function(item, qi){
+      var answered = state[qi] !== null;
+      var card = document.createElement("div"); card.className = "q";
+      var qText = document.createElement("p"); qText.className = "q-text";
+      qText.innerHTML = (qi+1) + ". " + item.q + ' <span class="q-kind">' + item.kind + '</span>';
+      card.appendChild(qText);
+      var opts = document.createElement("div"); opts.className = "q-opts";
+      item.options.forEach(function(text, oi){
+        var b = document.createElement("button"); b.className = "opt"; b.textContent = text;
+        if(answered){ b.disabled = true;
+          if(oi === item.answer) b.classList.add("correct");
+          else if(oi === state[qi]) b.classList.add("wrong");
+        } else { b.addEventListener("click", function(){ choose(qi, oi); }); }
+        opts.appendChild(b);
+      });
+      card.appendChild(opts);
+      if(answered){
+        var correct = (state[qi] === item.answer);
+        var fb = document.createElement("div"); fb.className = "fb " + (correct ? "ok" : "no");
+        fb.innerHTML = (correct ? "✓ <b>ถูกต้อง!</b> " : "✗ <b>ยังไม่ใช่</b> ") + item.why;
+        card.appendChild(fb);
+      }
+      body.appendChild(card);
+    });
+    var answeredCount = state.filter(function(s){ return s !== null; }).length;
+    var correctCount = state.filter(function(s,i){ return s === QUESTIONS[i].answer; }).length;
+    document.getElementById("quiz3-score").textContent =
+      "ตอบแล้ว " + answeredCount + "/" + QUESTIONS.length + " ข้อ · ถูก " + correctCount + " ข้อ";
+  }
+  function init(){ document.getElementById("quiz3-reset").addEventListener("click", reset); reset(); }
+  if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();
+</script>
+
+</body>
+</html>

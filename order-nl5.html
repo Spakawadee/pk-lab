@@ -1,0 +1,200 @@
+<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Zero/First order & Linear/Nonlinear PK</title>
+<style>
+:root{--ink:#2A2150;--sub:#6B6486;--line:#C9BEE0}
+*{box-sizing:border-box}body{font-family:'Sarabun',system-ui,sans-serif;color:var(--ink);max-width:840px;margin:0 auto;padding:18px;line-height:1.6}
+h1{font-size:1.25rem;margin:0 0 4px}h2{font-size:1.02rem;margin:20px 0 6px}p{margin:6px 0}
+.card{border:1px solid var(--line);border-radius:12px;padding:14px;margin:10px 0;background:#FCFBFE}
+.btns{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 8px}
+button{border:1.6px solid var(--ink);background:#fff;color:var(--ink);border-radius:8px;padding:6px 13px;font:inherit;font-size:.84rem;cursor:pointer}
+button.on{background:var(--ink);color:#fff}
+.row{display:flex;align-items:center;gap:10px;margin:8px 0}
+input[type=range]{flex:1;accent-color:#6366F1}
+.pill{background:#6366F1;color:#fff;border-radius:999px;padding:2px 11px;font-size:.8rem;font-weight:700}
+.note{font-size:.83rem;color:var(--sub)}
+.refs{font-size:.78rem;color:var(--sub);line-height:1.5}
+.refs b{color:var(--ink)}
+svg{width:100%;height:auto}
+.k{display:inline-block;width:11px;height:11px;border-radius:2px;vertical-align:-1px;margin:0 3px 0 10px}
+small{color:var(--sub)}
+.quiz-q{margin:0 0 16px}
+.quiz-q>p.q{font-weight:600;margin:0 0 6px}
+.qopt{display:block;width:100%;text-align:left;border:1.5px solid var(--line);background:#fff;border-radius:8px;padding:9px 13px;font:inherit;font-size:.88rem;cursor:pointer;color:var(--ink);margin:4px 0}
+.qopt:hover:not(:disabled){border-color:#6366F1}
+.qopt:disabled{cursor:default}
+.qopt.correct{background:#DCFCE7;border-color:#16A34A;font-weight:600}
+.qopt.wrong{background:#FEE2E2;border-color:#DC2626}
+.qexp{display:none;font-size:.83rem;color:var(--sub);background:#F5F3FB;border-radius:8px;padding:8px 11px;margin:6px 0 0}
+.qexp.show{display:block}
+</style></head><body>
+<h1>ลำดับการกำจัดยา และเภสัชจลนศาสตร์เชิงเส้น/ไม่เชิงเส้น</h1>
+<p class="note">เห็นภาพ concept: zero-order vs first-order elimination · linear vs nonlinear pharmacokinetics</p>
+
+<div class="card">
+<p><b>First-order:</b> อัตราการกำจัดยา<b>แปรตามความเข้มข้น</b> → กำจัด "สัดส่วนคงที่" (% ต่อเวลา) · t½ คงที่ · ยาส่วนใหญ่</p>
+<p><b>Zero-order:</b> อัตราการกำจัดยา<b>คงที่</b> ไม่ขึ้นกับความเข้มข้น → กำจัด "ปริมาณคงที่" (mg/ชม.) · เกิดเมื่อระบบกำจัด (เอนไซม์) อิ่มตัว · เช่น ethanol, phenytoin ขนาดสูง</p>
+</div>
+
+<h2>1) รูปการลดลงของระดับยา (หลังฉีด IV ครั้งเดียว)</h2>
+<div class="card">
+<div class="btns" id="aord"></div>
+<div class="btns" id="ascl"></div>
+<svg id="asvg" viewBox="0 0 560 290"></svg>
+<p class="note" id="anote"></p>
+</div>
+
+<h2>2) ขนาดยา/วัน เทียบกับระดับยาที่ steady state</h2>
+<div class="card">
+<div class="btns" id="bdrug"></div>
+<p class="note" id="bdesc"></p>
+<div class="row"><span>ขนาดยา/วัน</span><input id="bdose" type="range" min="50" max="470" step="10" value="300"><span class="pill" id="bdv">300</span><small>mg/วัน</small></div>
+<svg id="bsvg" viewBox="0 0 560 290"></svg>
+<p class="note" id="bnote"></p>
+</div>
+
+<h2>3) แบบฝึกตรวจสอบความเข้าใจ</h2>
+<div class="card">
+<div id="quiz"></div>
+<p id="quiz-score" class="note" style="font-weight:600;margin-top:10px"></p>
+</div>
+
+<div class="card refs">
+<b>ตัวอย่างยาจริง:</b> <b>phenytoin</b> = nonlinear คลาสสิก (เอนไซม์ที่ตับอิ่มตัวในช่วงการรักษา) · <b>levetiracetam</b> = linear (ขับทางไต ไม่ผ่านเมแทบอลิซึมที่ตับ ระดับยาแปรตรงกับขนาดยา ช่วง 500–5000 mg) · <b>ethanol</b> = zero-order แท้
+<br><br>
+<b>ค่าพารามิเตอร์ที่ใช้สร้างเส้นโค้ง (ผู้ใหญ่ ~70 kg):</b> phenytoin V<sub>max</sub> ≈ 490 mg/วัน (≈7 mg/kg/วัน), K<sub>m</sub> ≈ 6 mg/L — อยู่ในช่วงที่มีรายงาน (V<sub>max</sub> 6.9–8.5 mg/kg/วัน, K<sub>m</sub> 6.4–6.7 mg/L; เอกสารอ้างอิง 1–2) ซึ่งมีความแปรปรวนระหว่างบุคคลสูง · levetiracetam CL ≈ 0.9 mL/min/kg; ช่วงอ้างอิงสำหรับ TDM ≈ 12–46 mg/L (levetiracetam ไม่มีช่วงการรักษาที่นิยามตายตัว ใช้เพื่อการอ้างอิง; เอกสารอ้างอิง 5)
+<br><br>
+<b>เอกสารอ้างอิง</b><br>
+1. el-Sayed YM, Islam SI. Phenytoin Michaelis-Menten pharmacokinetics in Saudi patients. Int J Clin Pharmacol Ther Toxicol. 1989;27(4):173-8. PMID: 2714918.<br>
+2. Ismail R, Rahman AFA. Michaelis-Menten pharmacokinetics of phenytoin in adult Malaysian patients. J Clin Pharm Ther. 1990;15(6):411-7. doi:10.1111/j.1365-2710.1990.tb00405.x. PMID: 2089048.<br>
+3. Radtke RA. Pharmacokinetics of levetiracetam. Epilepsia. 2001;42(Suppl 4):24-7. doi:10.1046/j.1528-1157.2001.0420s4024.x. PMID: 11564121.<br>
+4. Keppra (levetiracetam) [prescribing information]. Smyrna (GA): UCB, Inc.; 2009.<br>
+5. Patsalos PN, Berry DJ, Bourgeois BFD, Cloyd JC, Glauser TA, Johannessen SI, et al. Antiepileptic drugs—best practice guidelines for therapeutic drug monitoring: a position paper by the subcommission on therapeutic drug monitoring, ILAE Commission on Therapeutic Strategies. Epilepsia. 2008;49(7):1239-76. doi:10.1111/j.1528-1167.2008.01561.x.
+</div>
+
+<script>
+(function(){
+"use strict";
+// ---------- มุมมอง 1: zero vs first order ----------
+var aord="first", ascl="lin";
+var aS=document.getElementById("asvg");
+function drawA(){
+  var L=52,R=540,T=14,B=250,C0=20,K0=2.2,k=0.35,H=12;
+  var samp=[],cmax=0;
+  for(var i=0;i<=240;i++){var t=i/240*H,c;
+    if(aord==="first")c=C0*Math.exp(-k*t); else c=Math.max(0,C0-K0*t);
+    samp.push([t,c]); if(c>cmax)cmax=c;}
+  var ymax=Math.max(cmax*1.1,5),LOG=0.3;
+  function xo(t){return L+t/H*(R-L);}
+  function yo(c){ if(ascl==="log"){var cc=Math.max(c,LOG);return B-(Math.log(cc/LOG)/Math.log(ymax/LOG))*(B-T);} return B-Math.min(c,ymax)/ymax*(B-T);}
+  var s='<line x1="'+L+'" y1="'+B+'" x2="'+R+'" y2="'+B+'" stroke="#C9BEE0"/><line x1="'+L+'" y1="'+T+'" x2="'+L+'" y2="'+B+'" stroke="#C9BEE0"/>';
+  if(ascl==="log"){[0.3,1,3,10,30].forEach(function(v){if(v>ymax)return;var y=yo(v);s+='<line x1="'+L+'" y1="'+y.toFixed(1)+'" x2="'+R+'" y2="'+y.toFixed(1)+'" stroke="#EEE9F6"/><text x="'+(L-6)+'" y="'+(y+4).toFixed(1)+'" text-anchor="end" font-size="10" fill="#6B6486">'+v+'</text>';});}
+  else{for(var g=0;g<=ymax;g+=5){var y=yo(g);s+='<line x1="'+L+'" y1="'+y.toFixed(1)+'" x2="'+R+'" y2="'+y.toFixed(1)+'" stroke="#EEE9F6"/><text x="'+(L-6)+'" y="'+(y+4).toFixed(1)+'" text-anchor="end" font-size="10" fill="#6B6486">'+g+'</text>';}}
+  for(var tx=0;tx<=H;tx+=2){s+='<text x="'+xo(tx).toFixed(1)+'" y="'+(B+15)+'" text-anchor="middle" font-size="10" fill="#6B6486">'+tx+'</text>';}
+  s+='<text x="'+((L+R)/2)+'" y="'+(B+30)+'" text-anchor="middle" font-size="11" fill="#2A2150">เวลา (ชม.)</text>';
+  s+='<text transform="rotate(-90 14 '+((T+B)/2)+')" x="14" y="'+((T+B)/2)+'" text-anchor="middle" font-size="11" fill="#2A2150">ระดับยา (mg/L)'+(ascl==="log"?" — log":"")+'</text>';
+  var p="";for(var j=0;j<samp.length;j++){p+=(j===0?"M":"L")+xo(samp[j][0]).toFixed(1)+" "+yo(samp[j][1]).toFixed(1)+" ";}
+  s+='<path d="'+p+'" fill="none" stroke="#6366F1" stroke-width="2.6"/>';
+  aS.innerHTML=s;
+  var an=document.getElementById("anote");
+  if(aord==="first") an.innerHTML='<b>First-order:</b> ลดลงแบบ exponential — บน semi-log เป็น<b>เส้นตรง</b> · ทุกช่วงเวลาระดับยาลดลงเป็น<b>สัดส่วน</b>เท่าเดิม (t½ คงที่)';
+  else an.innerHTML='<b>Zero-order:</b> ลดลงแบบ<b>เส้นตรง</b>บนสเกลปกติ — ลดลง<b>ปริมาณเท่ากัน</b>ทุกชั่วโมง · บน semi-log จะ<b>ไม่</b>เป็นเส้นตรง · t½ ไม่คงที่';
+}
+[["first","First-order (ยาส่วนใหญ่)"],["zero","Zero-order (อิ่มตัว)"]].forEach(function(o){
+  var b=document.createElement("button");b.textContent=o[1];b.onclick=function(){aord=o[0];upA();};b.dataset.k=o[0];document.getElementById("aord").appendChild(b);});
+[["lin","ปกติ (linear)"],["log","log (semi-log)"]].forEach(function(o){
+  var b=document.createElement("button");b.textContent=o[1];b.onclick=function(){ascl=o[0];upA();};b.dataset.k=o[0];document.getElementById("ascl").appendChild(b);});
+function upA(){
+  Array.prototype.forEach.call(document.getElementById("aord").children,function(b){b.className=b.dataset.k===aord?"on":"";});
+  Array.prototype.forEach.call(document.getElementById("ascl").children,function(b){b.className=b.dataset.k===ascl?"on":"";});
+  drawA();
+}
+// ---------- มุมมอง 2: linear vs nonlinear ----------
+var bS=document.getElementById("bsvg"),bd=document.getElementById("bdose");
+var DRUGS={
+ phenytoin:{nm:"phenytoin (nonlinear)",ty:"nl",mn:50,Rmax:470,step:10,ymax:40,lo:10,hi:20,band:"10–20",d0:300,col:"#F43F5E",
+   css:function(R){return R>=490?Infinity:R*6/(490-R);},slope:6/490,
+   desc:"phenytoin — เอนไซม์ที่ตับอิ่มตัวในช่วงการรักษา จึงเป็น nonlinear (เส้นโค้งงอขึ้น)"},
+ leve:{nm:"levetiracetam (linear)",ty:"lin",mn:250,Rmax:3500,step:50,ymax:50,lo:12,hi:46,band:"12–46",d0:1500,col:"#2563EB",
+   css:function(R){return R/91;},
+   desc:"levetiracetam — ขับทางไต ไม่ผ่านเมแทบอลิซึมที่ตับ ระบบกำจัดไม่อิ่มตัว จึงเป็น linear (เส้นตรง)"}
+};
+var cur="phenytoin";
+function tickStep(Rmax){return Rmax<=600?100:(Rmax<=2000?500:1000);}
+function drawB(){
+  var D=DRUGS[cur],L=52,R=540,T=14,B=250,Rmax=D.Rmax,ymax=D.ymax;
+  function xo(r){return L+r/Rmax*(R-L);}
+  function yo(c){return B-Math.min(c,ymax)/ymax*(B-T);}
+  var s='<rect x="'+L+'" y="'+yo(D.hi).toFixed(1)+'" width="'+(R-L)+'" height="'+(yo(D.lo)-yo(D.hi)).toFixed(1)+'" fill="#34D399" opacity="0.12"/>';
+  s+='<line x1="'+L+'" y1="'+B+'" x2="'+R+'" y2="'+B+'" stroke="#C9BEE0"/><line x1="'+L+'" y1="'+T+'" x2="'+L+'" y2="'+B+'" stroke="#C9BEE0"/>';
+  var yst=Math.ceil(ymax/5/5)*5; if(yst<5)yst=5;
+  for(var g=0;g<=ymax;g+=yst){var y=yo(g);s+='<line x1="'+L+'" y1="'+y.toFixed(1)+'" x2="'+R+'" y2="'+y.toFixed(1)+'" stroke="#EEE9F6"/><text x="'+(L-6)+'" y="'+(y+4).toFixed(1)+'" text-anchor="end" font-size="10" fill="#6B6486">'+g+'</text>';}
+  var xst=tickStep(Rmax);
+  for(var rx=0;rx<=Rmax;rx+=xst){s+='<text x="'+xo(rx).toFixed(1)+'" y="'+(B+15)+'" text-anchor="middle" font-size="10" fill="#6B6486">'+rx+'</text>';}
+  s+='<text x="'+((L+R)/2)+'" y="'+(B+30)+'" text-anchor="middle" font-size="11" fill="#2A2150">ขนาดยา/วัน (mg)</text>';
+  s+='<text transform="rotate(-90 14 '+((T+B)/2)+')" x="14" y="'+((T+B)/2)+'" text-anchor="middle" font-size="11" fill="#2A2150">Css (mg/L)</text>';
+  s+='<text x="'+(R-4)+'" y="'+(yo(D.hi)-3).toFixed(1)+'" text-anchor="end" font-size="9" fill="#0f9d6b">ช่วงอ้างอิง '+D.band+'</text>';
+  if(D.ty==="nl"){var pl="";for(var r=0;r<=Rmax;r+=10){pl+=(r===0?"M":"L")+xo(r).toFixed(1)+" "+yo(D.slope*r).toFixed(1)+" ";}
+    s+='<path d="'+pl+'" fill="none" stroke="#6B6486" stroke-width="1.6" stroke-dasharray="6 4"/>';}
+  var pp="",started=false,prev=null,dr=Rmax/400;
+  for(var r2=0;r2<=Rmax+1e-6;r2+=dr){var c=D.css(r2);
+    if(!isFinite(c)||c>ymax){
+      if(started&&prev){var f=(ymax-prev.c)/(c-prev.c);var rc=prev.r+(r2-prev.r)*f;
+        pp+="L"+xo(rc).toFixed(1)+" "+T+" ";}
+      break;}
+    pp+=(started?"L":"M")+xo(r2).toFixed(1)+" "+yo(c).toFixed(1)+" ";prev={r:r2,c:c};started=true;}
+  s+='<path d="'+pp+'" fill="none" stroke="'+D.col+'" stroke-width="2.6"/>';
+  var Rv=parseFloat(bd.value),cv=D.css(Rv);
+  s+='<line x1="'+xo(Rv).toFixed(1)+'" y1="'+B+'" x2="'+xo(Rv).toFixed(1)+'" y2="'+T+'" stroke="'+D.col+'" stroke-width="0.8" stroke-dasharray="3 3" opacity="0.5"/>';
+  if(isFinite(cv)&&cv<=ymax)s+='<circle cx="'+xo(Rv).toFixed(1)+'" cy="'+yo(cv).toFixed(1)+'" r="5" fill="'+D.col+'"/>';
+  bS.innerHTML=s;
+  document.getElementById("bdv").textContent=Math.round(Rv);
+  var bn=document.getElementById("bnote"),cTxt=isFinite(cv)?cv.toFixed(1)+" mg/L":"พุ่งสูงมาก (อิ่มตัว)";
+  if(D.ty==="nl") bn.innerHTML='<span class="k" style="background:'+D.col+'"></span>phenytoin: '+Math.round(Rv)+' mg/วัน → Css ≈ '+cTxt+' '
+    +'<span class="k" style="background:#6B6486"></span>เส้นประ = ถ้าเป็นเชิงเส้น · <b>เพิ่มขนาดยานิดเดียวใกล้จุดอิ่มตัว → Css พุ่งเกินช่วงอ้างอิงจนเป็นพิษ (nonlinear)</b>';
+  else bn.innerHTML='<span class="k" style="background:'+D.col+'"></span>levetiracetam: '+Math.round(Rv)+' mg/วัน → Css ≈ '+cTxt+' · <b>เส้นตรง — เพิ่มขนาดยา 2 เท่า Css เพิ่ม 2 เท่า เป็นสัดส่วนตรง (linear)</b>';
+}
+[["phenytoin"],["leve"]].forEach(function(o){var k=o[0];
+  var b=document.createElement("button");b.textContent=DRUGS[k].nm;b.dataset.k=k;
+  b.onclick=function(){selDrug(k);};document.getElementById("bdrug").appendChild(b);});
+function selDrug(k){cur=k;var D=DRUGS[k];
+  bd.min=D.mn;bd.max=D.Rmax;bd.step=D.step;bd.value=D.d0;
+  Array.prototype.forEach.call(document.getElementById("bdrug").children,function(b){b.className=b.dataset.k===k?"on":"";});
+  document.getElementById("bdesc").textContent=D.desc;
+  drawB();
+}
+bd.addEventListener("input",drawB);
+upA();selDrug("phenytoin");
+// ---------- แบบฝึก interactive ----------
+var QUIZ=[
+{q:"ยาที่กำจัดแบบ first-order ระดับยาลดลงอย่างไร?",o:["ลดลงปริมาณเท่ากันทุกชั่วโมง (เช่น 5 mg/L ต่อชั่วโมง)","ลดลงเป็นสัดส่วน (%) เท่ากันทุกหน่วยเวลา","ลดลงเร็วขึ้นเรื่อย ๆ ตามเวลา","คงที่ไม่เปลี่ยนแปลง"],a:1,e:"first-order: อัตราการกำจัดแปรตามความเข้มข้น จึงลดลงเป็นสัดส่วนคงที่ (% ต่อเวลา) และ t½ คงที่"},
+{q:"กราฟความเข้มข้น–เวลาแบบใดกลายเป็นเส้นตรงเมื่อพล็อตบนแกน semi-log?",o:["zero-order","first-order","ทั้งสองแบบ","ไม่มีแบบใด"],a:1,e:"first-order ลดแบบ exponential → บน semi-log เป็นเส้นตรง ส่วน zero-order เป็นเส้นตรงบนสเกลปกติ"},
+{q:"การกำจัดแบบ zero-order มักเกิดจากสาเหตุใด?",o:["ยาจับโปรตีนในเลือดมาก","ระบบกำจัด (เอนไซม์) ถูกใช้จนอิ่มตัว","ยาขับออกทางไตเร็ว","ยามีปริมาตรการกระจายสูง"],a:1,e:"เมื่อความเข้มข้นสูงพอจนเอนไซม์อิ่มตัว อัตราการกำจัดจะคงที่ (zero-order) ไม่เพิ่มตามความเข้มข้นอีก"},
+{q:"ทำไม phenytoin จึงเป็น nonlinear ในขนาดยาที่ใช้รักษาจริง?",o:["เพราะขับออกทางไตทั้งหมด","เพราะระบบเมแทบอลิซึมอิ่มตัวที่ระดับยาในช่วงการรักษา","เพราะดูดซึมไม่ดี","เพราะจับโปรตีนน้อย"],a:1,e:"phenytoin มีเอนไซม์ที่อิ่มตัวได้ในช่วงความเข้มข้นที่ใช้รักษา จึงเปลี่ยนพฤติกรรมเป็น nonlinear"},
+{q:"ผู้ป่วยได้ phenytoin อยู่ใกล้จุดอิ่มตัว ถ้าเพิ่มขนาดยาขึ้นเล็กน้อยจะเกิดอะไร?",o:["Css เพิ่มเป็นสัดส่วนตรง","Css แทบไม่เปลี่ยนแปลง","Css พุ่งสูงผิดสัดส่วน เสี่ยงเป็นพิษ","Css ลดลง"],a:2,e:"ใกล้จุดอิ่มตัวเส้นโค้งชันมาก เพิ่มขนาดยานิดเดียว Css พุ่งเกินช่วงการรักษา จึงต้องปรับขนาดอย่างระมัดระวัง"},
+{q:"ยา linear PK (เช่น levetiracetam) เมื่อเพิ่มขนาดยาเป็น 2 เท่า ระดับยาที่ steady state จะ...",o:["เพิ่มเป็น ~2 เท่า","เพิ่มมากกว่า 2 เท่า","เพิ่มน้อยกว่า 2 เท่า","ไม่เปลี่ยนแปลง"],a:0,e:"linear PK: ระดับยาแปรตรงกับขนาดยา เพิ่มขนาด 2 เท่า Css เพิ่มประมาณ 2 เท่า ทำนายได้ง่าย"}
+];
+var qEl=document.getElementById("quiz"),qDone=0,qCorrect=0;
+QUIZ.forEach(function(item,qi){
+  var wrap=document.createElement("div");wrap.className="quiz-q";
+  var qp=document.createElement("p");qp.className="q";qp.innerHTML="<b>"+(qi+1)+".</b> "+item.q;wrap.appendChild(qp);
+  var ex=document.createElement("div");ex.className="qexp";ex.innerHTML="<b>เฉลย:</b> "+item.e;
+  item.o.forEach(function(opt,oi){
+    var btn=document.createElement("button");btn.className="qopt";btn.textContent=opt;
+    btn.onclick=function(){
+      if(wrap.getAttribute("data-done"))return;
+      wrap.setAttribute("data-done","1");qDone++;
+      var opts=wrap.querySelectorAll(".qopt");
+      for(var bi=0;bi<opts.length;bi++){opts[bi].disabled=true;
+        if(bi===item.a)opts[bi].classList.add("correct");
+        else if(bi===oi)opts[bi].classList.add("wrong");}
+      if(oi===item.a)qCorrect++;
+      ex.classList.add("show");qScore();
+    };
+    wrap.appendChild(btn);
+  });
+  wrap.appendChild(ex);qEl.appendChild(wrap);
+});
+function qScore(){document.getElementById("quiz-score").textContent="ตอบแล้ว "+qDone+"/"+QUIZ.length+" ข้อ · ถูก "+qCorrect+" ข้อ";}
+})();
+</script>
+</body></html>

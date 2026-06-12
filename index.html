@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>คลังปฏิบัติการเภสัชจลนศาสตร์</title>
+
+<!--
+  ===========================================================================
+  index.html — "เปลือก" (shell) แบบแท็บ สำหรับโครงแบบหลายไฟล์
+  เปลือกนี้ "ชี้หา" ไฟล์หัวข้อข้าง ๆ ด้วย <iframe src="..."> (ไม่ได้ฝังเนื้อหาไว้ในตัว)
+  แต่ละหัวข้อจึงเป็นไฟล์ของตัวเอง แก้ตรง ๆ ได้ และทำงานแยกขาดจากกัน (โค้ด JS ไม่ชนกัน)
+
+  โครงโฟลเดอร์ (ทุกไฟล์ต้องอยู่ในโฟลเดอร์เดียวกัน):
+    pk-lab-site/
+      ├─ index.html      ← ไฟล์นี้ (เปลือกแท็บ)
+      ├─ pk-lab.html     ← หัวข้อที่ 1
+      └─ order-nl5.html  ← หัวข้อที่ 2
+
+  ▶ วิธีเพิ่มหัวข้อใหม่ (ทำใน Claude Code จะง่ายสุด):
+     1) วางไฟล์ .html หัวข้อใหม่ลงในโฟลเดอร์นี้ (เช่น new-topic.html)
+     2) เพิ่ม 1 บรรทัดในลิสต์ TABS ด้านล่าง:
+          { id:"xxx", label:"ชื่อแท็บสั้น ๆ", full:"ชื่อเต็มไว้โชว์ตอนชี้เมาส์", file:"new-topic.html" }
+     แค่นี้เสร็จ ไม่ต้อง build อะไรเพิ่ม
+
+  ▶ วิธีนำขึ้นเว็บฟรี:
+     • GitHub Pages : สร้าง repo แล้วอัปโหลด "ทั้งโฟลเดอร์" (3 ไฟล์), เปิด Pages ใน Settings — แนะนำสำหรับ iPad
+     • Netlify Drop : เข้า app.netlify.com/drop แล้วลาก "ทั้งโฟลเดอร์" วาง
+     หมายเหตุ: ต้องเปิดผ่านเว็บ (http/https) หรือ local server — การดับเบิลคลิกเปิดไฟล์ตรง ๆ
+     บางเบราว์เซอร์อาจบล็อก iframe ที่โหลดไฟล์ข้าง ๆ
+  ===========================================================================
+-->
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mitr:wght@400;500;600&family=Sarabun:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --ink:#2A2150; --sub:#6B6486; --indigo:#6366F1; --purple:#A855F7;
+    --bg1:#FDF4FF; --bg2:#EFFBFF; --line:#E7DEF4;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%; margin:0;}
+  body{
+    color:var(--ink);
+    font-family:'Sarabun',system-ui,sans-serif;
+    background:linear-gradient(160deg,var(--bg1) 0%,var(--bg2) 100%);
+    display:flex; flex-direction:column; height:100dvh;
+  }
+  header{
+    flex:0 0 auto;
+    background:rgba(255,255,255,.82);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line);
+  }
+  .brand{
+    font-family:'Mitr',sans-serif; font-weight:600;
+    font-size:1.02rem; color:var(--ink);
+    padding:12px 16px 2px;
+  }
+  .brand small{ font-weight:400; color:var(--sub); font-size:.78rem; }
+  .tabbar{
+    display:flex; gap:8px; overflow-x:auto;
+    padding:8px 12px 12px; -webkit-overflow-scrolling:touch;
+  }
+  .tabbar::-webkit-scrollbar{ height:0; }
+  .tab-btn{
+    flex:0 0 auto;
+    font-family:'Mitr',sans-serif; font-size:.92rem; font-weight:500;
+    color:var(--sub); background:#fff;
+    border:1px solid var(--line); border-radius:999px;
+    padding:8px 16px; cursor:pointer;
+    transition:all .15s ease;
+    white-space:nowrap;
+  }
+  .tab-btn:hover{ color:var(--indigo); border-color:var(--indigo); }
+  .tab-btn.active{
+    color:#fff; background:var(--indigo); border-color:var(--indigo);
+    box-shadow:0 4px 14px rgba(99,102,241,.32);
+  }
+  .stage{ flex:1 1 auto; position:relative; }
+  .stage iframe{
+    position:absolute; inset:0;
+    width:100%; height:100%;
+    border:0; background:#fff;
+  }
+  .stage iframe.hidden{ display:none; }
+  .loading{
+    position:absolute; inset:0; display:flex;
+    align-items:center; justify-content:center;
+    color:var(--sub); font-family:'Mitr',sans-serif; font-size:.95rem;
+  }
+</style>
+</head>
+<body>
+  <header>
+    <div class="brand">📚 คลังปฏิบัติการเภสัชจลนศาสตร์ <small>— เลือกหัวข้อจากแท็บด้านล่าง</small></div>
+    <nav class="tabbar" id="tabbar" role="tablist"></nav>
+  </header>
+
+  <main class="stage" id="stage">
+    <div class="loading" id="loading">กำลังโหลด…</div>
+  </main>
+
+<script>
+  // ===== รายการแท็บ — แก้ตรงนี้เพื่อเพิ่ม/ลบ/จัดลำดับหัวข้อ =====
+  var TABS = [
+    { id:"order", label:"Zero/First-order PK", full:"ลำดับการกำจัดยา และเภสัชจลนศาสตร์เชิงเส้น/ไม่เชิงเส้น",                         file:"order-nl5.html" },
+    { id:"vd",    label:"ปริมาตรการกระจายตัว (Vd)", full:"Vd · ยากระจายไปอยู่ที่ไหนในร่างกาย เทียบกับปริมาตรของเหลว (70 kg)",        file:"vd.html" },
+    { id:"cl",    label:"การขจัดยา (CL)", full:"การขจัดยา (clearance, CL) · CL = Q×E · Css = R₀/CL · maintenance dose",               file:"CL%20%E0%B8%81%E0%B8%B2%E0%B8%A3%E0%B8%82%E0%B8%88%E0%B8%B1%E0%B8%94%E0%B8%A2%E0%B8%B2.html" },
+    { id:"hl",    label:"ครึ่งชีวิต (t½)", full:"ครึ่งชีวิต (t½) · t½ = 0.693×Vd/CL · บันไดครึ่งชีวิต · 5×t½ เหลือ ~3%",                file:"t%C2%BD%20%E0%B8%84%E0%B9%88%E0%B8%B2%E0%B8%84%E0%B8%A3%E0%B8%B6%E0%B9%88%E0%B8%87%E0%B8%8A%E0%B8%B5%E0%B8%A7%E0%B8%B4%E0%B8%95.html" },
+    { id:"abs",   label:"การดูดซึม และชีวประสิทธิผล", full:"กราฟความเข้มข้น–เวลา · อัตราเร็ว/ปริมาณการดูดซึม · F · MEC/MTC · onset/duration", file:"absorption.html" },
+    { id:"fp",    label:"First-pass metabolism", full:"First-pass metabolism และชีวประสิทธิผลของยาที่รับประทาน (fa · Fg · Fh · F)",   file:"First-pass%20metabolism.html" },
+    { id:"ss",    label:"การให้ยาซ้ำและการปรับขนาดยา", full:"การให้ยาซ้ำ · steady state (5×t½) · peak/trough · ไตบกพร่อง · AUC₂₄ vancomycin", file:"%E0%B8%81%E0%B8%B2%E0%B8%A3%E0%B9%83%E0%B8%AB%E0%B9%89%E0%B8%A2%E0%B8%B2%E0%B8%8B%E0%B9%89%E0%B8%B3%E0%B9%81%E0%B8%A5%E0%B8%B0%E0%B8%81%E0%B8%B2%E0%B8%A3%E0%B8%9B%E0%B8%A3%E0%B8%B1%E0%B8%9A%E0%B8%82%E0%B8%99%E0%B8%B2%E0%B8%94%E0%B8%A2%E0%B8%B2.html" },
+    { id:"tmpl",  label:"หัวข้อใหม่ (ตัวอย่าง)", full:"หน้าตัวอย่างเปล่า สำหรับเริ่มหัวข้อใหม่",                                       file:"template.html" }
+  ];
+  // =============================================================
+
+  var stage   = document.getElementById('stage');
+  var tabbar  = document.getElementById('tabbar');
+  var loading = document.getElementById('loading');
+  var frames  = {};   // เก็บ iframe ที่สร้างแล้ว (lazy: สร้างเมื่อกดแท็บครั้งแรก)
+
+  function show(id){
+    TABS.forEach(function(t){
+      var f = frames[t.id];
+      if (t.id === id){
+        if (!f){                       // โหลดแบบ lazy — เพิ่งสร้าง iframe ตอนกดครั้งแรก
+          f = document.createElement('iframe');
+          f.setAttribute('title', t.full);
+          f.src = t.file;              // ชี้หาไฟล์หัวข้อข้าง ๆ
+          frames[t.id] = f;
+          stage.appendChild(f);
+        }
+        f.classList.remove('hidden');
+        if (loading) { loading.style.display = 'none'; }
+      } else if (f){
+        f.classList.add('hidden');
+      }
+    });
+    var btns = tabbar.children;
+    for (var i=0;i<btns.length;i++){
+      btns[i].classList.toggle('active', btns[i].getAttribute('data-id') === id);
+    }
+  }
+
+  TABS.forEach(function(t, i){
+    var b = document.createElement('button');
+    b.className = 'tab-btn' + (i===0 ? ' active' : '');
+    b.setAttribute('data-id', t.id);
+    b.setAttribute('role', 'tab');
+    b.textContent = t.label;
+    b.title = t.full;
+    b.onclick = function(){ show(t.id); };
+    tabbar.appendChild(b);
+  });
+
+  show(TABS[0].id);   // เปิดแท็บแรกอัตโนมัติ
+</script>
+</body>
+</html>

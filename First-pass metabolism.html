@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>First-pass metabolism และชีวประสิทธิผลของยาที่รับประทาน</title>
+
+<!--
+  ===========================================================================
+  First-pass metabolism.html — หัวข้อ "First-pass metabolism และชีวประสิทธิผลของยาที่รับประทาน"
+  แยกออกมาจาก pk-lab.html เป็นไฟล์เดียวจบ เปิดทำงานได้ด้วยตัวเอง (ไม่พึ่ง pk-lab.html)
+  ประกอบด้วย: เนื้อหา HTML ของหัวข้อ + CSS ที่จำเป็น (ชุดเดียวกับ pk-lab.html)
+              + สคริปต์เครื่องมือ First-Pass Explorer + สคริปต์แบบทบทวนตัวเอง (quiz)
+  ===========================================================================
+-->
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mitr:wght@400;500;600&family=Sarabun:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --ink:#2A2150; --sub:#6B6486; --card:#ffffff;
+    --reach:#F43F5E; --feces:#B59A82; --gut:#34D399; --liver:#F5A524;
+    --indigo:#6366F1; --purple:#A855F7; --teal:#0EA5A4;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; color:var(--ink);
+    font-family:'Sarabun',system-ui,sans-serif; line-height:1.75;
+    background:linear-gradient(160deg,#FDF4FF 0%,#EFFBFF 100%);
+    background-attachment:fixed;
+  }
+  .wrap{max-width:780px; margin:0 auto; padding:28px 18px 64px;}
+  h1,h2,h3{font-family:'Mitr',sans-serif; font-weight:600; line-height:1.35; color:var(--ink);}
+  a{color:var(--indigo); text-decoration:none;}
+  a:hover{text-decoration:underline;}
+
+  /* ---- การ์ดปฏิบัติการ ---- */
+  .lab{background:var(--card); border-radius:28px; padding:26px 24px;
+    margin:22px 0; box-shadow:0 10px 30px #2a21500d; border:1px solid #EFE7F7;}
+  .lab-head{display:flex; align-items:center; gap:14px; margin-bottom:6px;}
+  .lab-num{flex:none; width:42px; height:42px; border-radius:14px; display:grid; place-items:center;
+    font-family:'Mitr',sans-serif; font-weight:600; color:#fff; font-size:1.15rem;
+    background:linear-gradient(135deg,var(--indigo),var(--purple));}
+  .lab-head h2{font-size:1.35rem; margin:0;}
+  .lab-sub{color:var(--sub); font-size:.92rem; margin:2px 0 0;}
+
+  /* ---- ความรู้พื้นฐาน ---- */
+  .know{margin-top:16px; padding-left:16px; border-left:4px solid #EADCF7;}
+  .know h3{font-size:1.02rem; margin:18px 0 6px; color:var(--indigo);}
+  .know p{margin:.4em 0;}
+  .know ul{margin:.3em 0; padding-left:1.2em;}
+  .know li{margin:.25em 0;}
+  .tag{display:inline-block; padding:1px 8px; border-radius:8px; font-weight:600; font-size:.92em;}
+  .tag.feces{background:#B59A8222; color:#8a7256;}
+  .tag.gut{background:#34D39922; color:#0f9d6b;}
+  .tag.liver{background:#F5A52422; color:#b07d09;}
+  .tag.reach{background:#F43F5E22; color:#F43F5E;}
+
+  .callout{background:#FFFDF5; border:1px solid #F3E9C8; border-radius:18px;
+    padding:14px 16px; margin:16px 0; font-size:.92rem; color:#6b6486;}
+  .callout b{color:var(--ink);}
+
+  /* ---- กล่องเครื่องมือ ---- */
+  .tool{margin-top:20px; border:1px solid #E5EEF0; border-radius:24px; overflow:hidden;
+    background:linear-gradient(160deg,#FDF4FF 0%,#EFFBFF 100%);}
+  .tool-label{font-family:'Mitr',sans-serif; font-size:.85rem; font-weight:500;
+    color:var(--teal); padding:12px 16px 0;}
+
+  /* ===== สไตล์ของ widget First-Pass ===== */
+  .fp{max-width:480px; margin:0 auto; padding:12px 14px 18px;}
+  .fp-btns{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px;}
+  .fp-btns button{border:2px solid; border-radius:16px; padding:8px 12px; font-size:.88rem;
+    font-weight:600; font-family:'Sarabun',sans-serif; cursor:pointer; background:#fff;
+    transition:all .2s ease;}
+  .fp-btns button:hover{transform:translateY(-2px);}
+  .fp-card{background:#fff; border:1px solid #EADCF7; border-radius:22px; padding:16px; margin-bottom:14px;}
+  .fp-card-top{display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;}
+  .fp-card-label{font-size:.88rem; color:var(--sub);}
+  .fp-badge{font-size:.76rem; padding:3px 10px; border-radius:999px; font-weight:600;}
+  .fp-F{font-family:ui-monospace,monospace; font-weight:600; font-size:2.6rem; color:var(--reach); line-height:1; margin-top:4px;}
+  .fp-note{font-size:.8rem; color:var(--sub); margin:8px 0 0;}
+  .fp-diagram{background:#fff; border:1px solid #E5EEF0; border-radius:22px; padding:12px; margin-bottom:12px;}
+  .fp-cap{font-size:.78rem; text-align:center; color:var(--sub); margin:6px 0 0;}
+  .fp-gates-title{font-size:.9rem; font-weight:600; margin:0 0 8px;}
+  .fp-gates{display:grid; grid-template-columns:1fr; gap:8px; margin-bottom:12px;}
+  @media(min-width:560px){ .fp-gates{grid-template-columns:1fr 1fr 1fr;} }
+  .fp-gate{background:#fff; border:1px solid; border-radius:16px; padding:12px;}
+  .fp-gate-head{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:4px;}
+  .fp-gate-head small{color:var(--sub); margin-left:4px; font-size:.78rem;}
+  .fp-pill{font-family:ui-monospace,monospace; font-weight:700; color:#fff; padding:1px 8px; border-radius:8px; font-size:.95rem;}
+  .fp-gate input[type=range]{width:100%; cursor:pointer;}
+  .fp-help{font-size:.76rem; color:var(--sub); margin:6px 0 0;}
+  .fp-eq{background:#FAFAFE; border-radius:14px; padding:10px 12px; margin-bottom:12px;
+    font-family:ui-monospace,monospace; font-size:.9rem; color:var(--sub);
+    display:flex; flex-wrap:wrap; align-items:center; gap:4px 8px;}
+  .fp-eq .lbl{font-family:'Sarabun',sans-serif; font-size:.78rem;}
+  .fp-foot{background:#FFFDF5; border:1px solid #F3E9C8; border-radius:16px; padding:12px;
+    font-size:.76rem; line-height:1.6; color:var(--sub);}
+  .fp-foot b{color:var(--ink);}
+
+  /* ===== แบบทบทวนตัวเอง (self-check quiz) ===== */
+  .quiz{margin-top:22px; background:#FBF9FE; border:1px solid #EADCF7; border-radius:22px; padding:18px 18px 16px;}
+  .quiz-head{display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;}
+  .quiz-head h3{margin:0; font-size:1.05rem; color:var(--purple);}
+  .quiz-score{font-family:'Mitr',sans-serif; font-weight:500; font-size:.92rem; color:var(--indigo);}
+  .quiz-note{font-size:.8rem; color:var(--sub); margin:4px 0 12px;}
+  .q{background:#fff; border:1px solid #EFE7F7; border-radius:16px; padding:14px 16px; margin:12px 0;}
+  .q-text{font-weight:600; margin:0;}
+  .q-kind{display:inline-block; font-size:.72rem; font-weight:600; padding:1px 8px; border-radius:8px;
+    background:#A855F71a; color:var(--purple); margin-left:6px; vertical-align:middle;}
+  .q-opts{display:flex; flex-direction:column; gap:8px; margin-top:12px;}
+  .opt{text-align:left; border:1.5px solid #E3DCEF; background:#fff; border-radius:12px;
+    padding:9px 13px; cursor:pointer; font-family:'Sarabun',sans-serif; font-size:.92rem; color:var(--ink);
+    transition:border-color .15s ease, background .15s ease;}
+  .opt:hover:not(:disabled){border-color:var(--purple);}
+  .opt:disabled{cursor:default;}
+  .opt.correct{border-color:#34D399; background:#ECFDF5; font-weight:600;}
+  .opt.wrong{border-color:#F43F5E; background:#FFF1F2;}
+  .fb{margin-top:10px; font-size:.86rem; border-radius:12px; padding:10px 12px; line-height:1.6;}
+  .fb.ok{background:#ECFDF5; color:#0f7a52;}
+  .fb.no{background:#FFF1F2; color:#b81c43;}
+  .fb b{color:inherit;}
+  .quiz-reset{margin-top:6px; border:1.5px solid var(--purple); background:#fff; color:var(--purple);
+    border-radius:12px; padding:7px 16px; font-family:'Sarabun',sans-serif; font-weight:600; font-size:.88rem; cursor:pointer;}
+  .quiz-reset:hover{background:var(--purple); color:#fff;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <section class="lab" id="lab1" data-tab="First-pass metabolism">
+    <div class="lab-head">
+      <div class="lab-num" style="font-size:1.0rem;">FP</div>
+      <div>
+        <h2>First-pass metabolism และชีวประสิทธิผลของยาที่รับประทาน</h2>
+        <p class="lab-sub">เส้นทางของยาก่อนเข้าสู่ระบบไหลเวียนโลหิต</p>
+      </div>
+    </div>
+
+    <!-- ---------- ความรู้พื้นฐาน ---------- -->
+    <div class="know">
+      <p><b>เป้าหมาย:</b> เพื่อให้เข้าใจว่าเหตุใดยาที่รับประทานจึงเข้าสู่ระบบไหลเวียนโลหิตในปริมาณน้อยกว่าขนาดที่รับประทาน และยาถูกเปลี่ยนแปลงหรือกำจัดที่อวัยวะใดได้บ้างก่อนเข้าสู่ระบบไหลเวียนโลหิต</p>
+
+      <h3>เส้นทางของยาที่รับประทาน</h3>
+      <p>เมื่อรับประทานยา ยาจะถูกดูดซึมจากทางเดินอาหารเข้าสู่เส้นเลือด mesenteric ซึ่งรวมกันเป็น portal vein
+      และเข้าสู่ตับก่อน จากนั้นจึงเข้าสู่ระบบไหลเวียนโลหิตและกระจายไปยังส่วนต่าง ๆ ของร่างกาย
+      ในเส้นทางนี้ยาบางส่วนอาจไม่ถูกดูดซึมหรือถูกเปลี่ยนแปลง ทำให้ปริมาณยาที่เข้าสู่ระบบไหลเวียนโลหิตลดลง</p>
+
+      <h3>First-pass metabolism (first-pass loss) คืออะไร</h3>
+      <p>First-pass metabolism หรือ first-pass loss (presystemic metabolism / presystemic elimination)
+      คือการที่ยาถูกเปลี่ยนแปลงหรือสูญเสียไประหว่างทางผ่านทางเดินอาหารและตับ ก่อนเข้าสู่ระบบไหลเวียนโลหิตหลัก
+      ภายหลังรับประทานยา มีผลลดชีวประสิทธิผล (bioavailability) ของยาได้อย่างมาก</p>
+      <p>การสูญเสียเกิดต่อเนื่องกันเป็นลำดับ ได้แก่ การเปลี่ยนแปลงใน lumen ของทางเดินอาหาร (ช่องในทางเดินอาหาร)
+      (โดยเอนไซม์หรือ normal flora), การเปลี่ยนแปลงที่ผนังลำไส้เล็ก (intestinal first-pass metabolism โดยเอนไซม์ phase I/II
+      เช่น CYP3A4) และการเปลี่ยนแปลงที่ตับ (hepatic first-pass metabolism) ปริมาณยาที่เข้าสู่ระบบไหลเวียนโลหิต
+      จึงเท่ากับผลคูณของสัดส่วนที่รอดจากแต่ละด่าน</p>
+      <p>เมื่อพิจารณาตำแหน่งในทางเดินอาหาร first-pass metabolism เกิดได้ทั้งที่กระเพาะอาหาร
+      (เช่น เอนไซม์ alcohol dehydrogenase เปลี่ยนแปลง ethanol) และที่ลำไส้เล็ก (พบได้มากและกว้างขวาง)
+      แต่เกิดที่ลำไส้ใหญ่ได้น้อย ซึ่งส่วนใหญ่เป็นการเปลี่ยนแปลงโดยจุลชีพ</p>
+
+      <h3>ตำแหน่งที่ปริมาณยาลดลง</h3>
+      <ul>
+        <li><span class="tag feces">ไม่ถูกดูดซึม</span> ดูดซึมจากทางเดินอาหารไม่สมบูรณ์ ส่วนที่เหลือถูกขับออกทางอุจจาระ</li>
+        <li><span class="tag gut">ถูกกำจัดที่ผนังลำไส้เล็ก</span> ด้วยเอนไซม์ในผนังทางเดินอาหาร เช่น CYP3A4 (intestinal first-pass metabolism)</li>
+        <li><span class="tag liver">ถูกกำจัดที่ตับ</span> hepatic first-pass metabolism</li>
+        <li><span class="tag reach">เข้าสู่ระบบไหลเวียนโลหิต</span> ยาที่ผ่านเข้าสู่ระบบไหลเวียนโลหิตจะกระจายตัวไปบริเวณต่าง ๆ รวมทั้งบริเวณที่ออกฤทธิ์ได้ โดยค่าชีวประสิทธิผล (bioavailability, F) แสดงถึงสัดส่วนหรือร้อยละของยาที่ผ่านเข้าสู่ระบบไหลเวียนโลหิตเมื่อเปรียบเทียบกับขนาดยาที่ให้</li>
+      </ul>
+      <p>ยาที่ให้ทางหลอดเลือดดำมี F = 100% เนื่องจากไม่ผ่าน first-pass metabolism (first-pass loss)</p>
+
+      <h3>ความสำคัญทางคลินิก</h3>
+      <p>ยาที่มี first-pass metabolism สูงต้องบริหารขนาดยาทางการรับประทานสูงกว่าทางหลอดเลือดดำมาก
+      เช่น propranolol HCl ขนาดรับประทานสำหรับลดความดันโลหิต (40–120 mg) สูงกว่าขนาดที่ให้ทางหลอดเลือดดำ
+      (1–3 mg) มาก และยาที่มี first-pass metabolism สูงมาก เช่น lidocaine (F ~ 3%) จึงไม่สามารถบริหารโดยการรับประทานได้
+      นอกจากนี้ first-pass metabolism ยังเป็นเหตุผลของอันตรกิริยาบางอย่าง เช่น น้ำ grapefruit ยับยั้ง CYP3A4 ที่ผนังลำไส้เล็ก
+      ทำให้ชีวประสิทธิผลของยาบางชนิดเพิ่มขึ้น</p>
+
+      <h3>ยาตัวอย่างในเครื่องมือ</h3>
+      <ul>
+        <li><b>Propranolol</b> — ถูกกำจัดที่ตับเป็นหลัก (F ≈ 25%)</li>
+        <li><b>Midazolam</b> — ถูกกำจัดทั้งที่ผนังลำไส้เล็กและตับ (F ≈ 30%)</li>
+        <li><b>ยาสมมุติ</b> — ดูดซึมเข้าสู่ผนังทางเดินอาหารไม่สมบูรณ์ (F<sub>a</sub> &lt; 1)</li>
+      </ul>
+    </div>
+
+    <div class="callout">
+      <b>ประเด็นที่ควรสังเกตขณะใช้เครื่องมือ</b>
+      <ul style="margin:6px 0 0; padding-left:1.2em;">
+        <li>เลือก Propranolol แล้วสังเกตว่าท่อยาแคบลงที่อวัยวะใด และมีลูกศรแสดงการสูญเสียกี่ตำแหน่ง</li>
+        <li>เปรียบเทียบกับ Midazolam ว่าแตกต่างกันอย่างไร</li>
+        <li>ปรับค่า Fh ของ Propranolol ขึ้นเป็นประมาณ 0.90 (เสมือนตับเปลี่ยนแปลงยาน้อยลง) แล้วสังเกตค่า F ที่เปลี่ยนไป</li>
+        <li>เลือก "ยาสมมุติ" เพื่อสังเกตการสูญเสียที่ด่านการดูดซึมเมื่อ F<sub>a</sub> &lt; 1</li>
+      </ul>
+    </div>
+
+    <!-- ---------- เครื่องมือโต้ตอบ ---------- -->
+    <div class="tool">
+      <div class="tool-label">เครื่องมือโต้ตอบ — ปรับค่าแล้วสังเกตผล</div>
+      <div class="fp" id="fp-widget">
+        <div class="fp-btns" id="fp-btns"></div>
+
+        <div class="fp-card">
+          <div class="fp-card-top">
+            <span class="fp-card-label">ปริมาณยาที่เข้าสู่ระบบไหลเวียนโลหิต = ชีวประสิทธิผล (F)</span>
+            <span class="fp-badge" id="fp-badge"></span>
+          </div>
+          <div class="fp-F" id="fp-F">25.0%</div>
+          <p class="fp-note" id="fp-note"></p>
+        </div>
+
+        <div class="fp-diagram">
+          <svg id="fp-svg" viewBox="0 0 360 460" style="width:100%; height:auto; font-family:'Mitr','Sarabun',sans-serif;"></svg>
+          <p class="fp-cap">ความกว้างของท่อ = ปริมาณยาที่เหลือ · ลูกศรชี้ออก = ตำแหน่งและปริมาณยาที่สูญเสีย</p>
+        </div>
+
+        <p class="fp-gates-title">ปรับค่าแต่ละด่าน</p>
+        <div class="fp-gates">
+          <div class="fp-gate" style="border-color:#B59A8244;">
+            <div class="fp-gate-head"><span><b>F<sub>a</sub></b><small>ดูดซึม</small></span><span class="fp-pill" id="fp-fa-val" style="background:#B59A82;">100%</span></div>
+            <input type="range" id="fp-fa" min="0" max="1" step="0.01" value="1" style="accent-color:#B59A82;">
+            <p class="fp-help">สัดส่วนที่ดูดซึมจากทางเดินอาหาร (ส่วนที่เหลือออกทางอุจจาระ)</p>
+          </div>
+          <div class="fp-gate" style="border-color:#34D39944;">
+            <div class="fp-gate-head"><span><b>Fg</b><small>ผนังลำไส้เล็ก</small></span><span class="fp-pill" id="fp-Fg-val" style="background:#34D399;">100%</span></div>
+            <input type="range" id="fp-Fg" min="0" max="1" step="0.01" value="1" style="accent-color:#34D399;">
+            <p class="fp-help">สัดส่วนที่ผ่านผนังลำไส้เล็กโดยไม่ถูกกำจัด</p>
+          </div>
+          <div class="fp-gate" style="border-color:#F5A52444;">
+            <div class="fp-gate-head"><span><b>Fh</b><small>ตับ</small></span><span class="fp-pill" id="fp-Fh-val" style="background:#F5A524;">26%</span></div>
+            <input type="range" id="fp-Fh" min="0" max="1" step="0.01" value="0.26" style="accent-color:#F5A524;">
+            <p class="fp-help">สัดส่วนที่ผ่านตับโดยไม่ถูกกำจัด</p>
+          </div>
+        </div>
+
+        <div class="fp-eq" id="fp-eq"></div>
+
+        <div class="fp-foot">
+          <p style="margin:0 0 6px;"><b>ข้อสังเกต:</b> ยาจริงทั้ง Propranolol และ Midazolam ดูดซึมจากช่องในทางเดินอาหารเข้าสู่ผนังทางเดินอาหารเกือบ 100% (F<sub>a</sub>≈1) จึงแทบไม่ปรากฏลูกศรที่ "อุจจาระ" — เลือก <b>ยาสมมุติ</b> เพื่อแสดงกรณีที่ F<sub>a</sub> &lt; 1</p>
+          <p style="margin:0 0 6px;"><b>ที่มาของค่า:</b> Propranolol F≈25%<sup>1</sup>, E<sub>h</sub>≈0.74–0.79<sup>2</sup> · Midazolam E<sub>g</sub>≈0.43 (intestinal extraction), E<sub>h</sub>≈0.44<sup>3,4</sup></p>
+          <p style="margin:0;"><b>เอกสารอ้างอิง</b><br>
+          1. US FDA. Inderal (propranolol hydrochloride) prescribing information.<br>
+          2. Weiss YA, Safar ME, Lehner JP, Levenson JA, Simon A, Alexandre JM. (+)-Propranolol clearance, an estimation of hepatic blood flow in man. Br J Clin Pharmacol. 1978;5(5):457–460. <a href="https://pubmed.ncbi.nlm.nih.gov/656285/" target="_blank" rel="noopener">PMID 656285</a>. <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC1429344/" target="_blank" rel="noopener">[PMC]</a> <a href="https://doi.org/10.1111/j.1365-2125.1978.tb01655.x" target="_blank" rel="noopener">[DOI]</a><br>
+          3. Thummel KE, O’Shea D, Paine MF, Shen DD, Kunze KL, Perkins JD, Wilkinson GR. Oral first-pass elimination of midazolam involves both gastrointestinal and hepatic CYP3A-mediated metabolism. Clin Pharmacol Ther. 1996;59(5):491–502. <a href="https://pubmed.ncbi.nlm.nih.gov/8646820/" target="_blank" rel="noopener">PMID 8646820</a>. <a href="https://doi.org/10.1016/S0009-9236(96)90177-0" target="_blank" rel="noopener">[DOI]</a><br>
+          4. Paine MF, Shen DD, Kunze KL, Perkins JD, Marsh CL, McVicar JP, Barr DM, Gillies BS, Thummel KE. First-pass metabolism of midazolam by the human intestine. Clin Pharmacol Ther. 1996;60(1):14–24. <a href="https://pubmed.ncbi.nlm.nih.gov/8689807/" target="_blank" rel="noopener">PMID 8689807</a>. <a href="https://doi.org/10.1016/S0009-9236(96)90162-9" target="_blank" rel="noopener">[DOI]</a></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ---------- แบบทบทวนตัวเอง (self-check) ---------- -->
+    <div class="quiz" id="quiz1">
+      <div class="quiz-head">
+        <h3>ทบทวนตัวเอง</h3>
+        <span class="quiz-score" id="quiz1-score">ตอบแล้ว 0/0 ข้อ</span>
+      </div>
+      <p class="quiz-note">ตอบเพื่อเช็กความเข้าใจของตัวเอง เฉลยขึ้นทันทีพร้อมคำอธิบาย</p>
+      <div id="quiz1-body"></div>
+      <button class="quiz-reset" id="quiz1-reset">เริ่มทำใหม่</button>
+    </div>
+  </section>
+
+</div>
+
+<!-- ========================================================================
+     สคริปต์ของเครื่องมือ First-Pass Explorer (เขียนด้วย JavaScript ทั้งหมด)
+     ค่ายาแก้ได้ที่ตัวแปร PRESETS ด้านล่าง
+     ======================================================================== -->
+<script>
+(function(){
+  "use strict";
+
+  var C = { reach:"#F43F5E", feces:"#B59A82", gut:"#34D399", liver:"#F5A524", ink:"#2A2150", sub:"#6B6486" };
+
+  var PRESETS = {
+    propranolol: { label:"Propranolol", color:"#6366F1", fa:1.0, Fg:1.0, Fh:0.26,
+      tag:"ถูกกำจัดที่ตับเป็นหลัก",
+      note:"ดูดซึมเกือบสมบูรณ์ · แทบไม่ถูกกำจัดที่ผนังลำไส้เล็ก · ถูกกำจัดเกือบทั้งหมดที่ตับ (hepatic first-pass metabolism เป็นหลัก)" },
+    midazolam: { label:"Midazolam", color:"#A855F7", fa:1.0, Fg:0.57, Fh:0.56,
+      tag:"ถูกกำจัดทั้งลำไส้เล็กและตับ",
+      note:"ดูดซึมเกือบสมบูรณ์ แต่ถูกกำจัดทั้งที่ผนังลำไส้เล็ก (~43%) และที่ตับ (~44%) แสดงว่าผนังลำไส้เล็กเป็นอวัยวะ first-pass metabolism ได้เช่นกัน" },
+    hypo: { label:"ยาสมมุติ", color:"#0EA5A4", fa:0.74, Fg:1.0, Fh:0.46,
+      tag:"ดูดซึมไม่สมบูรณ์ (Fa<1)",
+      note:"ยาสมมุติที่ดูดซึมไม่สมบูรณ์ สำหรับแสดงการสูญเสียที่ด่านการดูดซึม (ออกทางอุจจาระ) เนื่องจากยาจริงทั้งสองชนิดข้างต้นดูดซึมเกือบสมบูรณ์ จึงไม่ปรากฏการสูญเสียที่ด่านนี้" }
+  };
+
+  var state = { active:"propranolol", fa:1.0, Fg:1.0, Fh:0.26 };
+
+  var CX = 132, MAXW = 80;
+  function w(f){ return f*MAXW; }
+  function xL(f){ return CX - w(f)/2; }
+  function xR(f){ return CX + w(f)/2; }
+  function pctTxt(x){ return Math.round(x*100) + "%"; }
+  function pct1(x){ return (x*100).toFixed(1); }
+
+  // ---- สร้าง SVG ของแผนภาพ ----
+  function buildSVG(){
+    var fa = state.fa, Fg = state.Fg, Fh = state.Fh;
+    var F = fa*Fg*Fh, remC = fa*Fg;
+    var r1 = 1-fa, r2 = fa*(1-Fg), r3 = fa*Fg*(1-Fh);
+    var yTop=34, yG1=118, yG2=198, yG3=320, yBot=436;
+
+    var leftPts = [[xL(1),yTop],[xL(1),yG1],[xL(fa),yG1],[xL(fa),yG2],[xL(remC),yG2],[xL(remC),yG3],[xL(F),yG3],[xL(F),yBot]];
+    var rightPts = [[xR(F),yBot],[xR(F),yG3],[xR(remC),yG3],[xR(remC),yG2],[xR(fa),yG2],[xR(fa),yG1],[xR(1),yG1],[xR(1),yTop]];
+    var all = leftPts.concat(rightPts);
+    var pipePath = "M" + all.map(function(p){ return p[0].toFixed(1)+" "+p[1].toFixed(1); }).join(" L ") + " Z";
+
+    var streamColor = (state.active !== "custom") ? PRESETS[state.active].color : "#64748B";
+
+    var branches = [
+      { y:yG1, fpre:1,    removed:r1, color:C.feces, tcolor:"#8a7256", l1:"ไม่ถูกดูดซึม",  l2:"ออกทางอุจจาระ" },
+      { y:yG2, fpre:fa,   removed:r2, color:C.gut,   tcolor:"#0f9d6b", l1:"ถูกกำจัดที่",   l2:"ผนังลำไส้เล็ก" },
+      { y:yG3, fpre:remC, removed:r3, color:C.liver, tcolor:"#b07d09", l1:"ถูกกำจัดที่ตับ", l2:"hepatic first-pass" }
+    ];
+    var xEnd = 188;
+    var branchSVG = branches.map(function(b){
+      if(b.removed <= 0.012) return "";
+      var sw = Math.max(b.removed*MAXW, 3).toFixed(1);
+      return '<g>'
+        + '<path d="M'+xR(b.fpre).toFixed(1)+' '+b.y+' L'+xEnd+' '+b.y+'" stroke="'+b.color+'" stroke-width="'+sw+'" stroke-linecap="butt"/>'
+        + '<polygon points="'+xEnd+','+(b.y-7)+' '+(xEnd+12)+','+b.y+' '+xEnd+','+(b.y+7)+'" fill="'+b.color+'"/>'
+        + '<text x="'+(xEnd+17)+'" y="'+(b.y-2)+'" font-size="12" font-weight="600" fill="'+b.tcolor+'">'+b.l1+'</text>'
+        + '<text x="'+(xEnd+17)+'" y="'+(b.y+12)+'" font-size="11" fill="'+b.tcolor+'">'+b.l2+' · '+pctTxt(b.removed)+'</text>'
+        + '</g>';
+    }).join("");
+
+    var remLabels = [
+      { y:74,  f:1,    txt:"100%",        big:true },
+      { y:158, f:fa,   txt:pctTxt(fa) },
+      { y:260, f:remC, txt:pctTxt(remC) },
+      { y:400, f:F,    txt:pctTxt(F),     big:true, color:C.reach }
+    ];
+    var remSVG = remLabels.map(function(m){
+      return '<text x="'+(xL(m.f)-8).toFixed(1)+'" y="'+m.y+'" text-anchor="end" font-size="'+(m.big?15:12)+'" font-weight="'+(m.big?700:600)+'" fill="'+(m.color||C.ink)+'">'+m.txt+'</text>';
+    }).join("");
+
+    return ''
+      + '<rect x="8" y="28" width="186" height="178" rx="14" fill="'+C.gut+'" opacity="0.10"/>'
+      + '<rect x="8" y="300" width="186" height="64" rx="14" fill="'+C.liver+'" opacity="0.12"/>'
+      + '<rect x="8" y="406" width="186" height="40" rx="12" fill="'+C.reach+'" opacity="0.10"/>'
+      + '<text x="20" y="117" transform="rotate(-90 20 117)" text-anchor="middle" font-size="13" font-weight="600" fill="#0f9d6b">ลำไส้เล็ก</text>'
+      + '<text x="20" y="332" transform="rotate(-90 20 332)" text-anchor="middle" font-size="13" font-weight="600" fill="#b07d09">ตับ</text>'
+      + '<text x="20" y="426" transform="rotate(-90 20 426)" text-anchor="middle" font-size="11" font-weight="600" fill="'+C.reach+'">เลือด</text>'
+      + '<text x="20" y="253" transform="rotate(-90 20 253)" text-anchor="middle" font-size="10" fill="'+C.sub+'">portal vein</text>'
+      + '<path d="'+pipePath+'" fill="'+streamColor+'" opacity="0.92"/>'
+      + branchSVG
+      + remSVG;
+  }
+
+  // ---- อัปเดตหน้าจอทั้งหมด ----
+  function render(){
+    var fa = state.fa, Fg = state.Fg, Fh = state.Fh;
+    var F = fa*Fg*Fh;
+    var p = (state.active !== "custom") ? PRESETS[state.active] : null;
+
+    document.getElementById("fp-svg").innerHTML = buildSVG();
+    document.getElementById("fp-F").textContent = pct1(F) + "%";
+
+    var badge = document.getElementById("fp-badge");
+    if(p){ badge.style.display="inline-block"; badge.textContent = p.label + " · " + p.tag;
+      badge.style.background = p.color + "22"; badge.style.color = p.color; }
+    else { badge.style.display="none"; }
+
+    document.getElementById("fp-note").textContent = p ? p.note : "";
+
+    document.getElementById("fp-fa-val").textContent = pctTxt(fa);
+    document.getElementById("fp-Fg-val").textContent = pctTxt(Fg);
+    document.getElementById("fp-Fh-val").textContent = pctTxt(Fh);
+    document.getElementById("fp-fa").value = fa;
+    document.getElementById("fp-Fg").value = Fg;
+    document.getElementById("fp-Fh").value = Fh;
+
+    document.getElementById("fp-eq").innerHTML =
+        '<span class="lbl">การคำนวณ F:</span>'
+      + '<b style="color:'+C.ink+'">F</b> ='
+      + '<span style="color:'+C.feces+';font-weight:700">'+fa.toFixed(2)+'</span> ×'
+      + '<span style="color:'+C.gut+';font-weight:700">'+Fg.toFixed(2)+'</span> ×'
+      + '<span style="color:'+C.liver+';font-weight:700">'+Fh.toFixed(2)+'</span>'
+      + '= <b style="color:'+C.reach+'">'+F.toFixed(3)+'</b>';
+
+    // สไตล์ปุ่มยา
+    var btns = document.querySelectorAll("#fp-btns button");
+    btns.forEach(function(btn){
+      var key = btn.getAttribute("data-key");
+      var pr = PRESETS[key];
+      var on = (state.active === key);
+      btn.style.borderColor = pr.color;
+      btn.style.background = on ? pr.color : "#fff";
+      btn.style.color = on ? "#fff" : pr.color;
+      btn.style.boxShadow = on ? ("0 4px 14px " + pr.color + "55") : "none";
+    });
+  }
+
+  function apply(key){
+    var p = PRESETS[key];
+    state.active = key; state.fa = p.fa; state.Fg = p.Fg; state.Fh = p.Fh;
+    render();
+  }
+
+  function init(){
+    // สร้างปุ่มยา
+    var btnWrap = document.getElementById("fp-btns");
+    Object.keys(PRESETS).forEach(function(key){
+      var b = document.createElement("button");
+      b.setAttribute("data-key", key);
+      b.textContent = PRESETS[key].label;
+      b.addEventListener("click", function(){ apply(key); });
+      btnWrap.appendChild(b);
+    });
+
+    // สไลเดอร์
+    function bind(id, prop){
+      document.getElementById(id).addEventListener("input", function(e){
+        state.active = "custom";
+        state[prop] = parseFloat(e.target.value);
+        render();
+      });
+    }
+    bind("fp-fa","fa"); bind("fp-Fg","Fg"); bind("fp-Fh","Fh");
+
+    render();
+  }
+
+  if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();
+</script>
+
+<!-- ========================================================================
+     สคริปต์แบบทบทวนตัวเอง (self-check) ของปฏิบัติการ First-pass metabolism
+     ======================================================================== -->
+<script>
+(function(){
+  "use strict";
+
+  var QUESTIONS = [
+    { q:"ยาตัวใดถูกกำจัดที่ \"ตับ\" เป็นหลัก (first-pass metabolism ที่ตับเด่นชัด)?",
+      kind:"เลือกตอบ",
+      options:["Propranolol","Midazolam","ถูกกำจัดที่ตับเท่ากันทั้งสองตัว"],
+      answer:0,
+      why:"Propranolol ดูดซึมเกือบสมบูรณ์และแทบไม่ถูกกำจัดที่ผนังลำไส้เล็ก แต่ถูกกำจัดเกือบทั้งหมดที่ตับ (Fh≈0.26) ส่วน Midazolam ถูกกำจัดทั้งที่ผนังลำไส้เล็กและตับ" },
+
+    { q:"ถ้าปรับให้ค่า Fh \"เพิ่มขึ้น\" (ตับกำจัดยาน้อยลง) ค่า F จะเป็นอย่างไร?",
+      kind:"ทำนายผล",
+      options:["เพิ่มขึ้น","ลดลง","ไม่เปลี่ยน"],
+      answer:0,
+      why:"F = F<sub>a</sub> × Fg × Fh เมื่อ Fh มากขึ้น (ยาผ่านตับโดยไม่ถูกกำจัดมากขึ้น) ค่า F จึงมากขึ้น สามารถปรับค่า Fh ในเครื่องมือเพื่อสังเกตได้" },
+
+    { q:"ยาที่มี first-pass metabolism สูง เมื่อบริหารโดยการรับประทาน ต้องใช้ขนาดยาสูงกว่าการให้ทางหลอดเลือดดำ",
+      kind:"ถูก/ผิด",
+      options:["จริง","เท็จ"],
+      answer:0,
+      why:"จริง เนื่องจากยาที่รับประทานส่วนใหญ่ถูกกำจัดก่อนเข้าสู่ระบบไหลเวียนโลหิต จึงต้องให้ขนาดสูงกว่าเพื่อให้ได้ระดับยาออกฤทธิ์เทียบเท่ากับการให้ทางหลอดเลือดดำ" },
+
+    { q:"น้ำ grapefruit ยับยั้งเอนไซม์ CYP3A4 ที่ผนังลำไส้เล็ก จะมีผลต่อยาที่ถูกกำจัดที่ผนังลำไส้เล็กอย่างไร?",
+      kind:"เลือกตอบ",
+      options:["F เพิ่มขึ้น ระดับยาในเลือดสูงขึ้น","F ลดลง ระดับยาในเลือดต่ำลง","ไม่มีผลต่อ F"],
+      answer:0,
+      why:"การยับยั้งเอนไซม์ที่ผนังลำไส้เล็กทำให้ Fg เพิ่มขึ้น ส่งผลให้ F เพิ่มขึ้นและระดับยาในเลือดสูงขึ้น จึงอาจเกิดอาการไม่พึงประสงค์หรือพิษได้" },
+
+    { q:"ชีวประสิทธิผล (F) ของยาที่ให้ทางหลอดเลือดดำ (IV) มีค่าประมาณเท่าใด?",
+      kind:"เลือกตอบ",
+      options:["100%","50%","ขึ้นกับชนิดยา"],
+      answer:0,
+      why:"การให้ยาทางหลอดเลือดดำนำยาเข้าสู่ระบบไหลเวียนโลหิตโดยตรง ไม่ผ่าน first-pass metabolism จึงถือว่า F = 100% (ใช้เป็นค่าอ้างอิงสำหรับเทียบกับยาที่รับประทาน)" },
+
+    { q:"First-pass metabolism ในทางเดินอาหารเกิดได้น้อยที่สุดที่ตำแหน่งใด?",
+      kind:"เลือกตอบ",
+      options:["กระเพาะอาหาร","ลำไส้เล็ก","ลำไส้ใหญ่"],
+      answer:2,
+      why:"First-pass metabolism เกิดได้ทั้งที่กระเพาะอาหาร (เช่น เอนไซม์ alcohol dehydrogenase เปลี่ยนแปลง ethanol) และที่ลำไส้เล็ก (พบมากและกว้างขวาง) แต่ที่ลำไส้ใหญ่เกิดได้น้อย ซึ่งส่วนใหญ่เป็นการเปลี่ยนแปลงโดยจุลชีพ" },
+
+    { q:"First-pass loss เป็นการสูญเสียยาที่เกิดต่อเนื่องเป็นลำดับ ที่ตำแหน่งใดบ้าง?",
+      kind:"เลือกตอบ",
+      options:["lumen ของทางเดินอาหาร → ผนังลำไส้เล็ก → ตับ","ที่ตับเท่านั้น","ที่ไตและปอด"],
+      answer:0,
+      why:"First-pass loss (presystemic metabolism) เป็นการสูญเสียยาต่อเนื่องเป็นลำดับ ตั้งแต่ใน lumen ของทางเดินอาหาร ผนังลำไส้เล็ก และตับ ก่อนยาเข้าสู่ระบบไหลเวียนโลหิต ปริมาณยาที่เข้าสู่ระบบไหลเวียนโลหิตจึงเท่ากับผลคูณของสัดส่วนที่รอดจากแต่ละด่าน" }
+  ];
+
+  var state = [];   // เก็บคำตอบที่เลือกของแต่ละข้อ (null = ยังไม่ตอบ)
+
+  function reset(){
+    state = QUESTIONS.map(function(){ return null; });
+    render();
+  }
+
+  function choose(qi, oi){
+    if(state[qi] !== null) return;   // ตอบแล้วล็อก
+    state[qi] = oi;
+    render();
+  }
+
+  function render(){
+    var body = document.getElementById("quiz1-body");
+    body.innerHTML = "";
+
+    QUESTIONS.forEach(function(item, qi){
+      var answered = state[qi] !== null;
+
+      var card = document.createElement("div");
+      card.className = "q";
+
+      var qText = document.createElement("p");
+      qText.className = "q-text";
+      qText.innerHTML = (qi+1) + ". " + item.q + ' <span class="q-kind">' + item.kind + '</span>';
+      card.appendChild(qText);
+
+      var opts = document.createElement("div");
+      opts.className = "q-opts";
+      item.options.forEach(function(text, oi){
+        var b = document.createElement("button");
+        b.className = "opt";
+        b.textContent = text;
+        if(answered){
+          b.disabled = true;
+          if(oi === item.answer) b.classList.add("correct");
+          else if(oi === state[qi]) b.classList.add("wrong");
+        } else {
+          b.addEventListener("click", function(){ choose(qi, oi); });
+        }
+        opts.appendChild(b);
+      });
+      card.appendChild(opts);
+
+      if(answered){
+        var correct = (state[qi] === item.answer);
+        var fb = document.createElement("div");
+        fb.className = "fb " + (correct ? "ok" : "no");
+        fb.innerHTML = (correct ? "✓ <b>ถูกต้อง!</b> " : "✗ <b>ยังไม่ใช่</b> ") + item.why;
+        card.appendChild(fb);
+      }
+
+      body.appendChild(card);
+    });
+
+    // ตัวนับ (ดูเองในเครื่อง ไม่ส่งไปไหน)
+    var answeredCount = state.filter(function(s){ return s !== null; }).length;
+    var correctCount = state.filter(function(s, i){ return s === QUESTIONS[i].answer; }).length;
+    document.getElementById("quiz1-score").textContent =
+      "ตอบแล้ว " + answeredCount + "/" + QUESTIONS.length + " ข้อ · ถูก " + correctCount + " ข้อ";
+  }
+
+  function init(){
+    document.getElementById("quiz1-reset").addEventListener("click", reset);
+    reset();
+  }
+
+  if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();
+</script>
+
+</body>
+</html>

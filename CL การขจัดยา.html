@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>การขจัดยา (clearance, CL)</title>
+
+<!--
+  ===========================================================================
+  CL การขจัดยา.html — หัวข้อ "การขจัดยา (clearance, CL)"
+  แยกออกมาจาก pk-lab.html เป็นไฟล์เดียวจบ เปิดทำงานได้ด้วยตัวเอง (ไม่พึ่ง pk-lab.html)
+  ประกอบด้วย: เนื้อหา HTML ของหัวข้อ + CSS ที่จำเป็น (ชุดเดียวกับ pk-lab.html)
+              + สคริปต์เครื่องมือ 2 ตัว (CL แบบเห็นภาพ + Css/AUC จากการหยดต่อเนื่อง) + สคริปต์ quiz
+  ===========================================================================
+-->
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mitr:wght@400;500;600&family=Sarabun:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --ink:#2A2150; --sub:#6B6486; --card:#ffffff;
+    --reach:#F43F5E; --feces:#B59A82; --gut:#34D399; --liver:#F5A524;
+    --indigo:#6366F1; --purple:#A855F7; --teal:#0EA5A4;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; color:var(--ink);
+    font-family:'Sarabun',system-ui,sans-serif; line-height:1.75;
+    background:linear-gradient(160deg,#FDF4FF 0%,#EFFBFF 100%);
+    background-attachment:fixed;
+  }
+  .wrap{max-width:780px; margin:0 auto; padding:28px 18px 64px;}
+  h1,h2,h3{font-family:'Mitr',sans-serif; font-weight:600; line-height:1.35; color:var(--ink);}
+  a{color:var(--indigo); text-decoration:none;}
+  a:hover{text-decoration:underline;}
+
+  /* ---- การ์ดปฏิบัติการ ---- */
+  .lab{background:var(--card); border-radius:28px; padding:26px 24px;
+    margin:22px 0; box-shadow:0 10px 30px #2a21500d; border:1px solid #EFE7F7;}
+  .lab-head{display:flex; align-items:center; gap:14px; margin-bottom:6px;}
+  .lab-num{flex:none; width:42px; height:42px; border-radius:14px; display:grid; place-items:center;
+    font-family:'Mitr',sans-serif; font-weight:600; color:#fff; font-size:1.15rem;
+    background:linear-gradient(135deg,var(--indigo),var(--purple));}
+  .lab-head h2{font-size:1.35rem; margin:0;}
+  .lab-sub{color:var(--sub); font-size:.92rem; margin:2px 0 0;}
+
+  /* ---- ความรู้พื้นฐาน ---- */
+  .know{margin-top:16px; padding-left:16px; border-left:4px solid #EADCF7;}
+  .know h3{font-size:1.02rem; margin:18px 0 6px; color:var(--indigo);}
+  .know p{margin:.4em 0;}
+  .know ul{margin:.3em 0; padding-left:1.2em;}
+  .know li{margin:.25em 0;}
+
+  .callout{background:#FFFDF5; border:1px solid #F3E9C8; border-radius:18px;
+    padding:14px 16px; margin:16px 0; font-size:.92rem; color:#6b6486;}
+  .callout b{color:var(--ink);}
+
+  /* ---- กล่องเครื่องมือ ---- */
+  .tool{margin-top:20px; border:1px solid #E5EEF0; border-radius:24px; overflow:hidden;
+    background:linear-gradient(160deg,#FDF4FF 0%,#EFFBFF 100%);}
+  .tool-label{font-family:'Mitr',sans-serif; font-size:.85rem; font-weight:500;
+    color:var(--teal); padding:12px 16px 0;}
+
+  /* ===== กล่องพารามิเตอร์ (สไลเดอร์) ===== */
+  .fp-gates{display:grid; grid-template-columns:1fr; gap:8px; margin-bottom:12px;}
+  @media(min-width:560px){ .fp-gates{grid-template-columns:1fr 1fr 1fr;} }
+  .fp-gate{background:#fff; border:1px solid; border-radius:16px; padding:12px;}
+  .fp-gate-head{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:4px;}
+  .fp-gate-head small{color:var(--sub); margin-left:4px; font-size:.78rem;}
+  .fp-pill{font-family:ui-monospace,monospace; font-weight:700; color:#fff; padding:1px 8px; border-radius:8px; font-size:.95rem;}
+  .fp-gate input[type=range]{width:100%; cursor:pointer;}
+  .fp-help{font-size:.76rem; color:var(--sub); margin:6px 0 0;}
+  .fp-foot{background:#FFFDF5; border:1px solid #F3E9C8; border-radius:16px; padding:12px;
+    font-size:.76rem; line-height:1.6; color:var(--sub);}
+  .fp-foot b{color:var(--ink);}
+
+  /* ===== แบบทบทวนตัวเอง (self-check quiz) ===== */
+  .quiz{margin-top:22px; background:#FBF9FE; border:1px solid #EADCF7; border-radius:22px; padding:18px 18px 16px;}
+  .quiz-head{display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;}
+  .quiz-head h3{margin:0; font-size:1.05rem; color:var(--purple);}
+  .quiz-score{font-family:'Mitr',sans-serif; font-weight:500; font-size:.92rem; color:var(--indigo);}
+  .quiz-note{font-size:.8rem; color:var(--sub); margin:4px 0 12px;}
+  .q{background:#fff; border:1px solid #EFE7F7; border-radius:16px; padding:14px 16px; margin:12px 0;}
+  .q-text{font-weight:600; margin:0;}
+  .q-kind{display:inline-block; font-size:.72rem; font-weight:600; padding:1px 8px; border-radius:8px;
+    background:#A855F71a; color:var(--purple); margin-left:6px; vertical-align:middle;}
+  .q-opts{display:flex; flex-direction:column; gap:8px; margin-top:12px;}
+  .opt{text-align:left; border:1.5px solid #E3DCEF; background:#fff; border-radius:12px;
+    padding:9px 13px; cursor:pointer; font-family:'Sarabun',sans-serif; font-size:.92rem; color:var(--ink);
+    transition:border-color .15s ease, background .15s ease;}
+  .opt:hover:not(:disabled){border-color:var(--purple);}
+  .opt:disabled{cursor:default;}
+  .opt.correct{border-color:#34D399; background:#ECFDF5; font-weight:600;}
+  .opt.wrong{border-color:#F43F5E; background:#FFF1F2;}
+  .fb{margin-top:10px; font-size:.86rem; border-radius:12px; padding:10px 12px; line-height:1.6;}
+  .fb.ok{background:#ECFDF5; color:#0f7a52;}
+  .fb.no{background:#FFF1F2; color:#b81c43;}
+  .fb b{color:inherit;}
+  .quiz-reset{margin-top:6px; border:1.5px solid var(--purple); background:#fff; color:var(--purple);
+    border-radius:12px; padding:7px 16px; font-family:'Sarabun',sans-serif; font-weight:600; font-size:.88rem; cursor:pointer;}
+  .quiz-reset:hover{background:var(--purple); color:#fff;}
+
+  /* ---- เครื่องมือ: ปุ่มยา / กราฟ / อ่านค่า ---- */
+  .pk2-btns{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px;}
+  .pk2-btn{background:#fff; border:1.5px solid #EADCF7; border-radius:999px; padding:7px 15px;
+    font-family:'Mitr',sans-serif; font-weight:500; font-size:.9rem; color:var(--ink); cursor:pointer; transition:all .18s ease;}
+  .pk2-btn:hover{transform:translateY(-1px); box-shadow:0 4px 12px #6366f122;}
+  .pk2-plot{background:#fff; border:1px solid #EEE6F7; border-radius:16px; padding:8px;}
+  .pk2-cap{font-size:.78rem; color:var(--sub); text-align:center; margin:4px 0 0;}
+  .pk2-readouts{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:12px 0 6px;}
+  .pk2-cell{background:#fff; border:1px solid #EEE6F7; border-radius:12px; padding:8px 6px; text-align:center;}
+  .pk2-cell .v{font-family:'Mitr',sans-serif; font-weight:600; font-size:1.02rem; color:var(--ink); line-height:1.2;}
+  .pk2-cell .k{font-size:.72rem; color:var(--sub); margin-top:2px;}
+  @media(max-width:520px){ .pk2-readouts{grid-template-columns:repeat(2,1fr);} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <section class="lab" id="labcl" data-tab="CL · การขจัดยา">
+    <div class="lab-head">
+      <div class="lab-num" style="background:linear-gradient(135deg,#6366F1,#F43F5E); font-size:1.05rem;">CL</div>
+      <div>
+        <h2>การขจัดยา (clearance, CL)</h2>
+        <p class="lab-sub">ปริมาตรเลือดที่ถูกทำให้ปราศจากยาต่อหน่วยเวลา · ตัวกำหนด Css,avg และ AUC · พื้นฐานการคำนวณ maintenance dose</p>
+      </div>
+    </div>
+
+    <div class="know">
+      <p><b>เป้าหมาย:</b> เพื่อให้เข้าใจ "ความหมายของการขจัดยา (clearance, CL)" ตามคำจำกัดความแบบเห็นภาพ — ว่า CL 5 L/h แปลว่าอะไร — และเห็นว่า CL เป็นตัวกำหนดระดับยาเฉลี่ยที่ steady state (Css,avg) และ AUC ซึ่งใช้คำนวณ maintenance dose</p>
+
+      <h3>CL คืออะไร</h3>
+      <p>การขจัดยา (clearance, CL) คือ <b>ปริมาตรของเลือดที่ถูกทำให้ปราศจากยาในหนึ่งหน่วยเวลา</b> มีหน่วยเป็นปริมาตรต่อเวลา (เช่น L/h) นิยามมาจากความสัมพันธ์
+      <br><b>อัตราการกำจัดยา (mg/h) = CL × C</b> &nbsp;⇒&nbsp; CL = อัตราการกำจัดยา ÷ ความเข้มข้น</p>
+      <p><b>อ่านค่าเป็นภาพ:</b> ถ้า CL = 5 L/h หมายความว่า "ใน 1 ชั่วโมง ร่างกายขจัดยาออกจากเลือด 5 ลิตร คือเลือด 5 ลิตรถูกทำให้ปราศจากยา" — เป็นปริมาตร<b>เสมือน</b> (apparent) เช่นเดียวกับ V<sub>d</sub> คือไม่ได้มีเลือดก้อนใดถูกแยกออกจริง แต่ผลรวมของการขจัดยาเทียบเท่ากับการทำให้เลือด 5 ลิตรปราศจากยาในแต่ละชั่วโมง</p>
+
+      <h3>CL มาจากอวัยวะที่กำจัดยา</h3>
+      <p>เลือดที่ไหลผ่านอวัยวะกำจัดยา (ตับ ไต) ด้วยอัตราการไหล Q จะถูกอวัยวะ "สกัด (extract)" ยาออกไปบางส่วน คิดเป็นสัดส่วน E ค่าการกำจัดของอวัยวะนั้นจึงเท่ากับ <b>CL<sub>อวัยวะ</sub> = Q × E</b> และ <b>CL รวม = ผลรวมของทุกอวัยวะ</b> (เช่น CL = CL<sub>ตับ</sub> + CL<sub>ไต</sub>) — ขอให้สังเกตว่าส่วนของยาที่ตับสกัดออกในระหว่างการดูดซึมคือส่วนของยาที่ถูกกำจัดด้วย hepatic first-pass metabolism นั่นเอง ชีวประสิทธิผลผ่านตับ F<sub>h</sub> = 1 − E (อ่านเพิ่มเติมใน tab First-pass metabolism)</p>
+
+      <div style="background:#fff; border:1px solid #EEE6F7; border-radius:16px; padding:10px; margin:10px 0;">
+        <svg viewBox="0 0 520 130" style="width:100%; height:auto; font-family:'Mitr','Sarabun',sans-serif;">
+          <defs>
+            <marker id="clarrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+              <path d="M0,0 L6,3 L0,6 Z" fill="#6366F1"/>
+            </marker>
+          </defs>
+          <!-- เลือดเข้า -->
+          <line x1="20" y1="55" x2="150" y2="55" stroke="#F43F5E" stroke-width="10" stroke-linecap="round" opacity="0.85"/>
+          <text x="20" y="40" font-size="12" fill="#2A2150">เลือดเข้า (Q)</text>
+          <text x="20" y="80" font-size="11" fill="#b81c43">ความเข้มข้นสูง</text>
+          <!-- อวัยวะ -->
+          <rect x="150" y="25" width="120" height="60" rx="14" fill="#EEF0FF" stroke="#6366F1" stroke-width="1.6"/>
+          <text x="210" y="52" text-anchor="middle" font-size="13" font-weight="600" fill="#4f46e5">อวัยวะกำจัดยา</text>
+          <text x="210" y="70" text-anchor="middle" font-size="11" fill="#6B6486">สกัดออกสัดส่วน E</text>
+          <!-- ยาที่ถูกสกัดออก -->
+          <line x1="210" y1="85" x2="210" y2="118" stroke="#6366F1" stroke-width="2" stroke-dasharray="4 3" marker-end="url(#clarrow)"/>
+          <text x="218" y="112" font-size="11" fill="#4f46e5">ยาถูกกำจัด</text>
+          <!-- เลือดออก -->
+          <line x1="270" y1="55" x2="400" y2="55" stroke="#F43F5E" stroke-width="10" stroke-linecap="round" opacity="0.4"/>
+          <text x="300" y="40" font-size="12" fill="#2A2150">เลือดออก</text>
+          <text x="300" y="80" font-size="11" fill="#6B6486">ความเข้มข้นต่ำลง</text>
+          <!-- สูตร -->
+          <text x="415" y="50" font-size="14" font-weight="600" fill="#2A2150">CL = Q × E</text>
+          <text x="415" y="70" font-size="11" fill="#6B6486">F<tspan dy="3" font-size="8">h</tspan><tspan dy="-3"> = 1 − E</tspan></text>
+        </svg>
+      </div>
+
+      <h3>ทำไม CL จึงสำคัญ: มันกำหนด Css,avg และ AUC</h3>
+      <p>เมื่อให้ยาแบบหยดเข้าหลอดเลือดดำต่อเนื่อง (IV infusion) ด้วยอัตรา R₀ ระดับยาจะไต่ขึ้นจนคงที่ที่ <b>Css = R₀ / CL</b> และพื้นที่ใต้กราฟ <b>AUC = ขนาดยา / CL</b> (สำหรับยา bolus ครั้งเดียว AUC₀–∞ = Dose/CL) สังเกตว่า <b>Css และ AUC ขึ้นกับ CL เท่านั้น ไม่ขึ้นกับ V<sub>d</sub></b> ส่วน V<sub>d</sub> ไปกำหนด t½ = 0.693 × V<sub>d</sub>/CL และความเร็วในการเข้าสู่ steady state</p>
+      <p>กรณี<b>ให้ยาซ้ำเป็นครั้ง ๆ</b> (เช่น ยารับประทาน) ระดับยาจะแกว่งขึ้น–ลงในแต่ละมื้อ โดย CL กำหนด<b>ระดับยาเฉลี่ยที่ steady state (Css,avg)</b> = (F × ขนาดยา ÷ τ) / CL ส่วนระดับสูงสุด/ต่ำสุด (peak/trough) ยังขึ้นกับ V<sub>d</sub> และช่วงห่างการให้ยา (τ) ด้วย — เครื่องมือ 2 ด้านล่างใช้การหยดต่อเนื่อง ระดับที่ steady state จึงคงที่ และ Css มีค่าเท่ากับ Css,avg</p>
+      <p><b>ใช้คำนวณ maintenance dose:</b> ถ้าต้องการระดับยาเป้าหมาย Css ให้ตั้ง <b>อัตราการให้ยา = CL × Css เป้าหมาย</b> ผู้ป่วยที่ CL สูง (เช่น สูบบุหรี่) ต้องใช้อัตราสูงขึ้น ผู้ป่วยที่ CL ต่ำ (ตับ/หัวใจวาย) ต้องลดอัตราลง</p>
+    </div>
+
+    <div class="callout">
+      <b>ประเด็นที่ควรสังเกตขณะใช้เครื่องมือ</b>
+      <ul style="margin:6px 0 0; padding-left:1.2em;">
+        <li>เครื่องมือ 1: เลื่อน <b>CL</b> สังเกตจำนวน "ลิตรของเลือดที่ถูกทำให้ปราศจากยาต่อชั่วโมง" เปลี่ยนตาม — นี่คือความหมายของ CL</li>
+        <li>เครื่องมือ 1: เลื่อน <b>ความเข้มข้น C</b> ปริมาตรที่ถูกขจัด (CL) เท่าเดิม แต่ "ปริมาณยา (mg) ที่ถูกขจัดออก = CL × C" เปลี่ยนตาม</li>
+        <li>เครื่องมือ 2: ลด <b>CL</b> ครึ่งหนึ่ง สังเกต Css เพิ่มเป็นสองเท่า (Css = R₀/CL) — CL กำหนดระดับยา</li>
+        <li>เครื่องมือ 2 (จุดสำคัญ): ตรึง CL ไว้แล้วเลื่อน <b>V<sub>d</sub></b> — Css และ AUC <b>ไม่เปลี่ยน</b> แต่ t½ และเวลาเข้าสู่ steady state เปลี่ยน</li>
+        <li>เครื่องมือ 2: ลองตั้งอัตราการให้ยาให้ Css ตกในช่วงการรักษา (แถบสีเขียว) สำหรับผู้ป่วยที่ CL ต่างกัน</li>
+      </ul>
+    </div>
+
+    <div class="tool">
+      <div class="tool-label">เครื่องมือ 1 — ความหมายของ CL แบบเห็นภาพ</div>
+      <div id="cl-volwidget">
+        <div class="pk2-plot">
+          <svg id="cl-vol-svg" viewBox="0 0 560 250" style="width:100%; height:auto; font-family:'Mitr','Sarabun',sans-serif;"></svg>
+          <p class="pk2-cap">แต่ละช่อง = เลือด 1 ลิตร · ช่องที่ไฮไลต์ (เขียว) = ปริมาตรที่ถูกทำให้ปราศจากยาใน 1 ชั่วโมง = CL · จุดในช่อง = ยาที่ยังอยู่ (มากตาม C)</p>
+        </div>
+        <div class="pk2-readouts" style="grid-template-columns:repeat(2,1fr);">
+          <div class="pk2-cell"><div class="v" id="cl-vol-cl">–</div><div class="k">ปริมาตรที่ถูกขจัด (L/ชม.)</div></div>
+          <div class="pk2-cell"><div class="v" id="cl-vol-rate">–</div><div class="k">อัตราการกำจัดยา = CL×C (mg/ชม.)</div></div>
+        </div>
+        <div class="fp-gates" style="grid-template-columns:1fr 1fr;">
+          <div class="fp-gate" style="border-color:#6366f144;">
+            <div class="fp-gate-head"><span><b>CL</b><small>การขจัดยา</small></span><span class="fp-pill" id="cl-vol-cl-val" style="background:#6366F1;">5</span></div>
+            <input type="range" id="cl-vol-clin" min="1" max="15" step="0.5" value="5" style="accent-color:#6366F1;">
+            <p class="fp-help">L/h — จำนวนลิตรเลือดที่ถูกทำให้ปราศจากยาต่อชั่วโมง</p>
+          </div>
+          <div class="fp-gate" style="border-color:#F43F5E44;">
+            <div class="fp-gate-head"><span><b>C</b><small>ความเข้มข้น</small></span><span class="fp-pill" id="cl-vol-c-val" style="background:#F43F5E;">10</span></div>
+            <input type="range" id="cl-vol-cin" min="1" max="20" step="1" value="10" style="accent-color:#F43F5E;">
+            <p class="fp-help">mg/L — เปลี่ยนปริมาณยาที่ถูกขจัดออก แต่ไม่เปลี่ยนปริมาตรที่ถูกขจัด</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tool">
+      <div class="tool-label">เครื่องมือ 2 — CL กำหนด Css และ AUC (ยา theophylline หยดต่อเนื่อง)</div>
+      <div id="cl-infwidget">
+        <div class="pk2-btns" id="cl-presets"></div>
+
+        <div class="pk2-plot">
+          <svg id="cl-inf-svg" viewBox="0 0 560 360" style="width:100%; height:auto; font-family:'Mitr','Sarabun',sans-serif;"></svg>
+          <p class="pk2-cap">เส้นทึบ = ระดับยาขณะหยดต่อเนื่อง · เส้นประแนวนอน = Css · แถบเขียว = ช่วงการรักษา 10–20 mg/L</p>
+        </div>
+
+        <div class="pk2-readouts" style="grid-template-columns:repeat(4,1fr);">
+          <div class="pk2-cell"><div class="v" id="cl-css">–</div><div class="k">Css = R₀/CL (mg/L)</div></div>
+          <div class="pk2-cell"><div class="v" id="cl-thalf">–</div><div class="k">t½ (ชม.)</div></div>
+          <div class="pk2-cell"><div class="v" id="cl-auc">–</div><div class="k">AUC₂₄,ss (mg·ชม./L)</div></div>
+          <div class="pk2-cell"><div class="v" id="cl-t90">–</div><div class="k">เวลาถึง ~90% Css (ชม.)</div></div>
+        </div>
+
+        <p id="cl-hint" style="font-size:.84rem; color:var(--ink); background:#F5F3FF; border:1px solid #E3DCEF; border-radius:12px; padding:8px 10px; margin:8px 0 2px;">–</p>
+
+        <div class="fp-gates">
+          <div class="fp-gate" style="border-color:#F5A52444;">
+            <div class="fp-gate-head"><span><b>CL</b><small>การขจัดยา</small></span><span class="fp-pill" id="cl-cl-val" style="background:#F5A524;">2.8</span></div>
+            <input type="range" id="cl-cl" min="1" max="8" step="0.2" value="2.8" style="accent-color:#F5A524;">
+            <p class="fp-help">L/h — ต่ำลง = Css สูงขึ้น (ไต/ตับบกพร่อง); สูงขึ้น = Css ต่ำลง (สูบบุหรี่)</p>
+          </div>
+          <div class="fp-gate" style="border-color:#34D39944;">
+            <div class="fp-gate-head"><span><b>V<sub>d</sub></b><small>การกระจายตัว</small></span><span class="fp-pill" id="cl-vd-val" style="background:#34D399;">35</span></div>
+            <input type="range" id="cl-vd" min="20" max="60" step="1" value="35" style="accent-color:#34D399;">
+            <p class="fp-help">L — เปลี่ยน t½ และความเร็วเข้าสู่ Css แต่ไม่เปลี่ยน Css</p>
+          </div>
+          <div class="fp-gate" style="border-color:#6366f144;">
+            <div class="fp-gate-head"><span><b>R₀</b><small>อัตราหยดยา</small></span><span class="fp-pill" id="cl-r0-val" style="background:#6366F1;">28</span></div>
+            <input type="range" id="cl-r0" min="10" max="40" step="1" value="28" style="accent-color:#6366F1;">
+            <p class="fp-help">mg/h — อัตราการให้ยา (R₀ = CL × Css เป้าหมาย)</p>
+          </div>
+        </div>
+
+        <div class="fp-foot">
+          <p style="margin:0 0 6px;"><b>ที่มาของค่า:</b> theophylline ผู้ใหญ่ไม่สูบบุหรี่ ~70 kg — V<sub>d</sub> ≈ 0.5 L/kg ≈ 35 L<sup>1,2</sup> · CL ≈ 0.04 L/h/kg ≈ 2.8 L/h<sup>2,3</sup> · t½ ≈ 8–9 ชม.<sup>1,3</sup> · ช่วงการรักษา 10–20 mg/L (แนวโน้มใหม่ 5–15)<sup>3,4</sup> · อัตราการให้ยาแบบ maintenance 0.4 mg/kg/h ≈ 28 mg/h → Css ≈ 10 mg/L<sup>3</sup> · สูบบุหรี่เพิ่ม CL ~50% / ตับ–หัวใจวาย–ไข้ ลด CL<sup>3</sup> · แนวคิด CL = Q × E (extraction ratio)<sup>5</sup> · แบบจำลอง one-compartment infusion เพื่อการสอน — ค่าทุกตัวมีความแปรปรวนระหว่างบุคคลสูง</p>
+          <p style="margin:0;"><b>เอกสารอ้างอิง</b><br>
+          1. Ogilvie RI. Clinical pharmacokinetics of theophylline. Clin Pharmacokinet. 1978;3(4):267–293. <a href="https://pubmed.ncbi.nlm.nih.gov/354637/" target="_blank" rel="noopener">PMID 354637</a>. <a href="https://doi.org/10.2165/00003088-197803040-00002" target="_blank" rel="noopener">[DOI]</a><br>
+          2. Ma X, Chen J, Wang L, et al. Theophylline: a review of population pharmacokinetic analyses. J Clin Pharm Ther. 2016;41(6):594–601. <a href="https://doi.org/10.1111/jcpt.12435" target="_blank" rel="noopener">[DOI]</a><br>
+          3. FDA Prescribing Information. Theophylline in 5% Dextrose Injection. <a href="https://www.accessdata.fda.gov/drugsatfda_docs/label/2008/019211s040lbl.pdf" target="_blank" rel="noopener">[ฉลากยา]</a><br>
+          4. Barnes PJ. Theophylline. Am J Respir Crit Care Med. 2013;188(8):901–906. <a href="https://pubmed.ncbi.nlm.nih.gov/23672674/" target="_blank" rel="noopener">PMID 23672674</a>. <a href="https://doi.org/10.1164/rccm.201302-0388PP" target="_blank" rel="noopener">[DOI]</a><br>
+          5. Wilkinson GR, Shand DG. Commentary: a physiological approach to hepatic drug clearance. Clin Pharmacol Ther. 1975;18(4):377–390. <a href="https://pubmed.ncbi.nlm.nih.gov/1164821/" target="_blank" rel="noopener">PMID 1164821</a>. <a href="https://doi.org/10.1002/cpt1975184377" target="_blank" rel="noopener">[DOI]</a></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="quiz" id="quizcl">
+      <div class="quiz-head">
+        <h3>ทบทวนตัวเอง</h3>
+        <span class="quiz-score" id="quizcl-score">ตอบแล้ว 0/0 ข้อ</span>
+      </div>
+      <p class="quiz-note">ตอบเพื่อเช็กความเข้าใจของตัวเอง เฉลยขึ้นทันทีพร้อมคำอธิบาย</p>
+      <div id="quizcl-body"></div>
+      <button class="quiz-reset" id="quizcl-reset">เริ่มทำใหม่</button>
+    </div>
+  </section>
+
+</div>
+
+<!-- ========================================================================
+     สคริปต์เครื่องมือ 1 — ความหมายของ CL แบบเห็นภาพ (ช่องลิตรของเลือด)
+     ======================================================================== -->
+<script>
+(function(){
+  "use strict";
+
+  // เครื่องมือ 1: แสดงว่า "CL = ปริมาตรเลือดที่ถูกทำให้ปราศจากยาต่อชั่วโมง"
+  // วาดช่องลิตร 15 ช่อง ช่องที่ถูกขจัด (0..CL) ไฮไลต์เขียว ที่เหลือมีจุด=ยา
+  var NCELL = 15;                 // จำนวนช่องลิตรที่แสดง
+  var svg   = document.getElementById("cl-vol-svg");
+  var clIn  = document.getElementById("cl-vol-clin");
+  var cIn   = document.getElementById("cl-vol-cin");
+  if(!svg || !clIn || !cIn) return;
+
+  function draw(){
+    var CL = parseFloat(clIn.value);     // L/h
+    var C  = parseFloat(cIn.value);      // mg/L
+    var rate = CL * C;                   // mg/h
+
+    var L=30, Rr=530, T=70, Bb=150;      // กรอบแถวช่อง
+    var cellW = (Rr-L)/NCELL;
+    var s="";
+
+    // หัวเรื่องในภาพ
+    s += '<text x="280" y="30" text-anchor="middle" font-size="13" font-weight="600" fill="#2A2150">ใน 1 ชั่วโมง: เลือด '+ (CL % 1 === 0 ? CL : CL.toFixed(1)) +' ลิตร ถูกทำให้ปราศจากยา</text>';
+
+    // วงเล็บปีกกาเหนือช่องที่ถูกขจัด
+    var xClear = L + (CL/NCELL)*(Rr-L);
+    s += '<line x1="'+L+'" y1="58" x2="'+xClear.toFixed(1)+'" y2="58" stroke="#16a34a" stroke-width="2"/>';
+    s += '<line x1="'+L+'" y1="54" x2="'+L+'" y2="62" stroke="#16a34a" stroke-width="2"/>';
+    s += '<line x1="'+xClear.toFixed(1)+'" y1="54" x2="'+xClear.toFixed(1)+'" y2="62" stroke="#16a34a" stroke-width="2"/>';
+    s += '<text x="'+((L+xClear)/2).toFixed(1)+'" y="50" text-anchor="middle" font-size="11" font-weight="600" fill="#15803d">ขจัดออก = CL</text>';
+
+    // ความเข้มของจุดยาในช่องที่ยังมียา ขึ้นกับ C
+    var dots = Math.max(1, Math.round(C/3));    // จำนวนจุดต่อช่อง (ตาม C)
+    if(dots>6) dots=6;
+
+    for(var i=0;i<NCELL;i++){
+      var x0 = L + i*cellW;
+      var cleared = (i+1) <= CL;                // ช่องนี้ถูกขจัดเต็มหรือไม่
+      var partial = (!cleared && i < CL);       // ช่องที่ถูกขจัดบางส่วน
+      // พื้นช่อง
+      s += '<rect x="'+x0.toFixed(1)+'" y="'+T+'" width="'+(cellW-2).toFixed(1)+'" height="'+(Bb-T)+'" rx="4" fill="'+(cleared?"#DCFCE7":"#EEF0FF")+'" stroke="'+(cleared?"#16a34a":"#C9BEE0")+'" stroke-width="1"/>';
+      if(partial){
+        var fw=(CL-i)*cellW;                    // ความกว้างส่วนที่ถูกขจัด
+        s += '<rect x="'+x0.toFixed(1)+'" y="'+T+'" width="'+Math.max(0,fw-2).toFixed(1)+'" height="'+(Bb-T)+'" rx="4" fill="#DCFCE7" stroke="#16a34a" stroke-width="1"/>';
+      }
+      // จุดยา (เฉพาะช่องที่ยังมียา)
+      if(!cleared){
+        for(var d=0; d<dots; d++){
+          var dx = x0 + 6 + (d%2)*(cellW*0.45);
+          var dy = T + 12 + Math.floor(d/2)*14;
+          if(dy < Bb-6) s += '<circle cx="'+dx.toFixed(1)+'" cy="'+dy.toFixed(1)+'" r="2.6" fill="#6366F1" opacity="0.8"/>';
+        }
+      }
+    }
+
+    // ไฮไลต์เคลื่อนไหวบนช่องที่ถูกขจัด (บอกว่า "กำลังขจัด")
+    s += '<rect x="'+L+'" y="'+T+'" width="'+(xClear-L).toFixed(1)+'" height="'+(Bb-T)+'" rx="4" fill="#22c55e" opacity="0.18">'
+       + '<animate attributeName="opacity" values="0.06;0.26;0.06" dur="1.6s" repeatCount="indefinite"/></rect>';
+
+    // ไม้บรรทัดลิตรใต้ช่อง
+    for(var k=0;k<=NCELL;k+=1){
+      var xk=L+k*cellW;
+      s += '<line x1="'+xk.toFixed(1)+'" y1="'+Bb+'" x2="'+xk.toFixed(1)+'" y2="'+(Bb+ (k%5===0?8:4))+'" stroke="#9aa" stroke-width="1"/>';
+      if(k%5===0) s += '<text x="'+xk.toFixed(1)+'" y="'+(Bb+22)+'" text-anchor="middle" font-size="10" fill="#6B6486">'+k+'</text>';
+    }
+    s += '<text x="'+Rr+'" y="'+(Bb+22)+'" text-anchor="end" font-size="10" fill="#6B6486">ลิตรของเลือด</text>';
+
+    // ป้ายสรุปใต้ภาพ
+    s += '<text x="280" y="'+(Bb+44)+'" text-anchor="middle" font-size="12" fill="#2A2150">ปริมาณยาที่ถูกกำจัด = CL × C = '
+       + (CL % 1 === 0 ? CL : CL.toFixed(1)) +' × '+ C +' = <tspan font-weight="700" fill="#b81c43">'+ (Math.round(rate*10)/10) +' mg/ชม.</tspan></text>';
+
+    svg.innerHTML = s;
+    document.getElementById("cl-vol-cl").textContent   = (CL % 1 === 0 ? CL : CL.toFixed(1));
+    document.getElementById("cl-vol-rate").textContent = (Math.round(rate*10)/10);
+    document.getElementById("cl-vol-cl-val").textContent = (CL % 1 === 0 ? CL : CL.toFixed(1));
+    document.getElementById("cl-vol-c-val").textContent  = C;
+  }
+
+  [clIn,cIn].forEach(function(el){ el.addEventListener("input", draw); });
+
+  function init(){ draw(); }
+  if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();
+</script>
+
+<!-- ========================================================================
+     สคริปต์เครื่องมือ 2 — CL กำหนด Css และ AUC (theophylline หยดต่อเนื่อง)
+     ค่ายา/พารามิเตอร์แก้ได้ที่ตัวแปร PRESETS ด้านล่าง
+     ======================================================================== -->
+<script>
+(function(){
+  "use strict";
+
+  // ค่ายาจริง theophylline (อ้างอิงในเชิงอรรถใต้เครื่องมือ)
+  // อัตราเดียวกัน (28 mg/h) แต่ CL ต่างกัน → Css ต่างกัน : สอนการปรับ maintenance dose
+  var PRESETS = {
+    nonsmoke: { label:"theophylline ไม่สูบบุหรี่ (Css≈10)", cl:2.8, vd:35, r0:28 },
+    smoke:    { label:"+ สูบบุหรี่ (CL +50%)",              cl:4.2, vd:35, r0:28 },
+    impair:   { label:"+ ตับ/หัวใจวาย (CL −50%)",          cl:1.4, vd:35, r0:28 }
+  };
+  var TMAX = 48;          // แกนเวลา 0–48 ชม. (คงที่ เพื่อเทียบความเร็วเข้าสู่ Css)
+  var TARGET = 10;        // Css เป้าหมายสำหรับตัวช่วยคำนวณขนาดยา (mg/L)
+  var MEC = 10, MTC = 20; // ช่วงการรักษา theophylline (mg/L)
+
+  var svg      = document.getElementById("cl-inf-svg");
+  var presetBox= document.getElementById("cl-presets");
+  var clIn     = document.getElementById("cl-cl");
+  var vdIn     = document.getElementById("cl-vd");
+  var r0In     = document.getElementById("cl-r0");
+  if(!svg || !clIn || !vdIn || !r0In) return;
+
+  function vals(){
+    var cl=parseFloat(clIn.value), vd=parseFloat(vdIn.value), r0=parseFloat(r0In.value);
+    var ke=cl/vd, thalf=Math.LN2/ke, css=r0/cl, t90=thalf*3.3219;
+    return { cl:cl, vd:vd, r0:r0, ke:ke, thalf:thalf, css:css, t90:t90 };
+  }
+
+  function niceStep(x){
+    var steps=[1,2,2.5,5,10,20,25,50];
+    for(var i=0;i<steps.length;i++){ if(steps[i]>=x) return steps[i]; }
+    return steps[steps.length-1];
+  }
+
+  function buildSVG(q){
+    var L=58, R=508, T=18, B=312;
+    var yMax = Math.max(q.css*1.2, 22);
+    function xOf(t){ return L + (t/TMAX)*(R-L); }
+    function yOf(c){ return B - (Math.min(c,yMax)/yMax)*(B-T); }
+
+    var s="";
+    // แถบช่วงการรักษา 10–20
+    s += '<rect x="'+L+'" y="'+yOf(MTC).toFixed(1)+'" width="'+(R-L)+'" height="'+(yOf(MEC)-yOf(MTC)).toFixed(1)+'" fill="#22c55e" opacity="0.10"/>';
+
+    // แกน
+    s += '<line x1="'+L+'" y1="'+B+'" x2="'+R+'" y2="'+B+'" stroke="#C9BEE0" stroke-width="1.2"/>';
+    s += '<line x1="'+L+'" y1="'+T+'" x2="'+L+'" y2="'+B+'" stroke="#C9BEE0" stroke-width="1.2"/>';
+
+    // ขีดแกน Y
+    var step=niceStep(yMax/5);
+    for(var cv=0; cv<=yMax+1e-9; cv+=step){ var yy=yOf(cv);
+      s += '<line x1="'+L+'" y1="'+yy.toFixed(1)+'" x2="'+R+'" y2="'+yy.toFixed(1)+'" stroke="#EEE9F6" stroke-width="1"/>';
+      s += '<text x="'+(L-6)+'" y="'+(yy+3).toFixed(1)+'" text-anchor="end" font-size="10" fill="#6B6486">'+cv+'</text>';
+    }
+    // ขีดแกนเวลา ทุก 8 ชม.
+    for(var tt=0; tt<=TMAX; tt+=8){ var xx=xOf(tt);
+      s += '<line x1="'+xx.toFixed(1)+'" y1="'+T+'" x2="'+xx.toFixed(1)+'" y2="'+B+'" stroke="#F4F0FB" stroke-width="1"/>';
+      s += '<text x="'+xx.toFixed(1)+'" y="'+(B+14)+'" text-anchor="middle" font-size="10" fill="#6B6486">'+tt+'</text>';
+    }
+
+    // เส้นขอบช่วงการรักษา
+    s += '<line x1="'+L+'" y1="'+yOf(MEC).toFixed(1)+'" x2="'+R+'" y2="'+yOf(MEC).toFixed(1)+'" stroke="#16a34a" stroke-width="1" stroke-dasharray="4 4" opacity="0.6"/>';
+    s += '<line x1="'+L+'" y1="'+yOf(MTC).toFixed(1)+'" x2="'+R+'" y2="'+yOf(MTC).toFixed(1)+'" stroke="#16a34a" stroke-width="1" stroke-dasharray="4 4" opacity="0.6"/>';
+    s += '<text x="'+(R-2)+'" y="'+(yOf(MTC)-4).toFixed(1)+'" text-anchor="end" font-size="9" fill="#15803d">ช่วงการรักษา 10–20</text>';
+
+    // เส้น Css
+    var yCss=yOf(q.css);
+    s += '<line x1="'+L+'" y1="'+yCss.toFixed(1)+'" x2="'+R+'" y2="'+yCss.toFixed(1)+'" stroke="#F43F5E" stroke-width="1.4" stroke-dasharray="6 4"/>';
+    s += '<text x="'+(L+6)+'" y="'+(yCss-5).toFixed(1)+'" font-size="10" font-weight="600" fill="#b81c43">Css = '+q.css.toFixed(1)+' mg/L</text>';
+
+    // เส้นเวลา ~90% Css (เห็นผลของ Vd ต่อความเร็ว)
+    if(q.t90 <= TMAX){
+      var x90=xOf(q.t90);
+      s += '<line x1="'+x90.toFixed(1)+'" y1="'+T+'" x2="'+x90.toFixed(1)+'" y2="'+B+'" stroke="#A855F7" stroke-width="0.9" stroke-dasharray="3 3" opacity="0.55"/>';
+      s += '<text x="'+x90.toFixed(1)+'" y="'+(T+11)+'" text-anchor="middle" font-size="9" fill="#9333ea">~90% Css</text>';
+    }
+
+    // เส้นโค้ง C(t) = Css·(1 − e^(−ke·t))
+    var Np=240, path="";
+    for(var i=0;i<=Np;i++){ var t=(i/Np)*TMAX, c=q.css*(1-Math.exp(-q.ke*t));
+      path += (i===0?"M":"L") + xOf(t).toFixed(1) + " " + yOf(c).toFixed(1) + " "; }
+    s += '<path d="'+path+'" fill="none" stroke="#6366F1" stroke-width="2.6" stroke-linejoin="round"/>';
+
+    // ป้ายแกน
+    s += '<text x="'+((L+R)/2)+'" y="'+(B+34)+'" text-anchor="middle" font-size="11" fill="#2A2150">เวลา (ชั่วโมง)</text>';
+    s += '<text transform="rotate(-90 16 '+((T+B)/2)+')" x="16" y="'+((T+B)/2)+'" text-anchor="middle" font-size="11" fill="#2A2150">ระดับยา (mg/L)</text>';
+    return s;
+  }
+
+  function recompute(){
+    var q=vals();
+    svg.innerHTML = buildSVG(q);
+    document.getElementById("cl-css").textContent   = q.css.toFixed(1);
+    document.getElementById("cl-thalf").textContent = q.thalf.toFixed(1);
+    document.getElementById("cl-auc").textContent   = Math.round(q.css*24);
+    document.getElementById("cl-t90").textContent   = q.t90.toFixed(1);
+    document.getElementById("cl-cl-val").textContent = q.cl.toFixed(1);
+    document.getElementById("cl-vd-val").textContent = Math.round(q.vd);
+    document.getElementById("cl-r0-val").textContent = Math.round(q.r0);
+    var needR0 = q.cl*TARGET;
+    document.getElementById("cl-hint").innerHTML =
+      "อยากได้ Css = "+TARGET+" mg/L ที่ CL = "+q.cl.toFixed(1)+" L/h → ตั้งอัตรา R₀ = CL × Css = <b>"+ (Math.round(needR0*10)/10) +" mg/ชม.</b>"
+      + (q.css>MTC ? " · <span style=\"color:#b81c43;\">Css ขณะนี้เกินช่วงการรักษา (เสี่ยงพิษ) ควรลดอัตรา</span>"
+        : (q.css<MEC ? " · <span style=\"color:#b45309;\">Css ขณะนี้ต่ำกว่าช่วงการรักษา</span>" : " · <span style=\"color:#15803d;\">Css ขณะนี้อยู่ในช่วงการรักษา</span>"));
+  }
+
+  function setPreset(key){
+    var p=PRESETS[key]; if(!p) return;
+    clIn.value=p.cl; vdIn.value=p.vd; r0In.value=p.r0;
+    Array.prototype.forEach.call(presetBox.children, function(b){
+      var on=(b.getAttribute("data-preset")===key);
+      b.style.background=on?"#2A2150":"#fff"; b.style.color=on?"#fff":"#2A2150";
+    });
+    recompute();
+  }
+
+  Object.keys(PRESETS).forEach(function(key){
+    var b=document.createElement("button"); b.className="pk2-btn"; b.type="button";
+    b.setAttribute("data-preset", key); b.textContent=PRESETS[key].label;
+    b.style.borderColor="#2A2150"; b.style.color="#2A2150";
+    b.addEventListener("click", function(){ setPreset(key); });
+    presetBox.appendChild(b);
+  });
+
+  [clIn,vdIn,r0In].forEach(function(el){ el.addEventListener("input", recompute); });
+
+  function init(){ setPreset("nonsmoke"); }
+  if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();
+</script>
+
+<!-- ========================================================================
+     สคริปต์แบบทบทวนตัวเอง (self-check) ของปฏิบัติการ CL
+     ======================================================================== -->
+<script>
+(function(){
+  "use strict";
+
+  var QUESTIONS = [
+    { q:"ถ้ายาตัวหนึ่งมีค่าการกำจัด (CL) = 5 L/h ข้อใดอธิบายความหมายได้ถูกต้อง?",
+      kind:"เลือกตอบ",
+      options:["ทุก 1 ชั่วโมง เลือด 5 ลิตรถูกทำให้ปราศจากยา","ทุก 1 ชั่วโมง ยา 5 mg ถูกกำจัด","ยาถูกกำจัดหมดภายใน 5 ชั่วโมง"],
+      answer:0,
+      why:"CL (การขจัดยา) คือปริมาตรเลือดที่ถูกทำให้ปราศจากยาต่อหน่วยเวลา (หน่วยปริมาตร/เวลา) — ปริมาณยาที่ถูกขจัดออก (mg/h) = CL × C จึงขึ้นกับความเข้มข้นด้วย ดูเครื่องมือ 1" },
+
+    { q:"ขณะหยดยาต่อเนื่อง ถ้าลด CL ลงครึ่งหนึ่งโดยคงอัตราการให้ยา (R₀) เท่าเดิม ระดับยาที่ steady state (Css) จะเป็นอย่างไร?",
+      kind:"เลือกตอบ",
+      options:["เพิ่มเป็น 2 เท่า","ลดลงครึ่งหนึ่ง","เท่าเดิม"],
+      answer:0,
+      why:"Css = R₀/CL เมื่อ CL ลดครึ่งหนึ่ง Css เพิ่มเป็น 2 เท่า — เป็นเหตุผลที่ผู้ป่วยตับ/ไตบกพร่อง (CL ต่ำ) ต้องลดขนาดยา ลองเลื่อน CL ในเครื่องมือ 2" },
+
+    { q:"ตรึง CL ไว้ แล้วเพิ่ม Vd ขึ้น ข้อใดถูกต้อง?",
+      kind:"เลือกตอบ",
+      options:["Css เท่าเดิม แต่ t½ ยาวขึ้นและเข้าสู่ Css ช้าลง","Css เพิ่มขึ้นและ t½ ยาวขึ้น","Css ลดลงแต่ t½ เท่าเดิม"],
+      answer:0,
+      why:"Css = R₀/CL ขึ้นกับ CL เท่านั้น ไม่ขึ้นกับ Vd; ส่วน t½ = 0.693·Vd/CL เพิ่มตาม Vd ทำให้เข้าสู่ steady state ช้าลง — สังเกตเส้น ~90% Css ขยับเมื่อเลื่อน Vd" },
+
+    { q:"ต้องการให้ Css เป้าหมาย = 10 mg/L ในผู้ป่วยที่มี CL = 3 L/h ควรตั้งอัตราการให้ยา (R₀) เท่าใด?",
+      kind:"เลือกตอบ",
+      options:["30 mg/h","3.3 mg/h","10 mg/h"],
+      answer:0,
+      why:"อัตราการให้ยาแบบ maintenance = CL × Css เป้าหมาย = 3 × 10 = 30 mg/h — นี่คือหลักการคำนวณ maintenance dose จากค่า CL" }
+  ];
+
+  var state = [];
+  function reset(){ state = QUESTIONS.map(function(){ return null; }); render(); }
+  function choose(qi, oi){ if(state[qi] !== null) return; state[qi] = oi; render(); }
+
+  function render(){
+    var body = document.getElementById("quizcl-body");
+    body.innerHTML = "";
+    QUESTIONS.forEach(function(item, qi){
+      var answered = state[qi] !== null;
+      var card = document.createElement("div"); card.className = "q";
+      var qText = document.createElement("p"); qText.className = "q-text";
+      qText.innerHTML = (qi+1) + ". " + item.q + ' <span class="q-kind">' + item.kind + '</span>';
+      card.appendChild(qText);
+      var opts = document.createElement("div"); opts.className = "q-opts";
+      item.options.forEach(function(text, oi){
+        var b = document.createElement("button"); b.className = "opt"; b.textContent = text;
+        if(answered){ b.disabled = true;
+          if(oi === item.answer) b.classList.add("correct");
+          else if(oi === state[qi]) b.classList.add("wrong");
+        } else { b.addEventListener("click", function(){ choose(qi, oi); }); }
+        opts.appendChild(b);
+      });
+      card.appendChild(opts);
+      if(answered){
+        var correct = (state[qi] === item.answer);
+        var fb = document.createElement("div"); fb.className = "fb " + (correct ? "ok" : "no");
+        fb.innerHTML = (correct ? "✓ <b>ถูกต้อง!</b> " : "✗ <b>ยังไม่ใช่</b> ") + item.why;
+        card.appendChild(fb);
+      }
+      body.appendChild(card);
+    });
+    var answeredCount = state.filter(function(s){ return s !== null; }).length;
+    var correctCount = state.filter(function(s,i){ return s === QUESTIONS[i].answer; }).length;
+    document.getElementById("quizcl-score").textContent =
+      "ตอบแล้ว " + answeredCount + "/" + QUESTIONS.length + " ข้อ · ถูก " + correctCount + " ข้อ";
+  }
+  function init(){ document.getElementById("quizcl-reset").addEventListener("click", reset); reset(); }
+  if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();
+</script>
+
+</body>
+</html>

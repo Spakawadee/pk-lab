@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ปริมาตรการกระจายตัว (Vd)</title>
+
+<!--
+  ===========================================================================
+  vd.html — หัวข้อ "ปริมาตรการกระจายตัว (Vd)" แยกออกมาจาก pk-lab.html
+  เป็นไฟล์เดียวจบ เปิดทำงานได้ด้วยตัวเอง (ไม่พึ่ง pk-lab.html)
+  ประกอบด้วย: เนื้อหา HTML ของหัวข้อ + CSS ที่จำเป็น (ชุดเดียวกับ pk-lab.html)
+              + สคริปต์เครื่องมือ "Vd Explorer" + สคริปต์แบบทบทวนตัวเอง (quiz)
+  ===========================================================================
+-->
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mitr:wght@400;500;600&family=Sarabun:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --ink:#2A2150; --sub:#6B6486; --card:#ffffff;
+    --reach:#F43F5E; --feces:#B59A82; --gut:#34D399; --liver:#F5A524;
+    --indigo:#6366F1; --purple:#A855F7; --teal:#0EA5A4;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; color:var(--ink);
+    font-family:'Sarabun',system-ui,sans-serif; line-height:1.75;
+    background:linear-gradient(160deg,#FDF4FF 0%,#EFFBFF 100%);
+    background-attachment:fixed;
+  }
+  .wrap{max-width:780px; margin:0 auto; padding:28px 18px 64px;}
+  h1,h2,h3{font-family:'Mitr',sans-serif; font-weight:600; line-height:1.35; color:var(--ink);}
+  a{color:var(--indigo); text-decoration:none;}
+  a:hover{text-decoration:underline;}
+
+  /* ---- การ์ดปฏิบัติการ ---- */
+  .lab{background:var(--card); border-radius:28px; padding:26px 24px;
+    margin:22px 0; box-shadow:0 10px 30px #2a21500d; border:1px solid #EFE7F7;}
+  .lab-head{display:flex; align-items:center; gap:14px; margin-bottom:6px;}
+  .lab-num{flex:none; width:42px; height:42px; border-radius:14px; display:grid; place-items:center;
+    font-family:'Mitr',sans-serif; font-weight:600; color:#fff; font-size:1.15rem;
+    background:linear-gradient(135deg,var(--indigo),var(--purple));}
+  .lab-head h2{font-size:1.35rem; margin:0;}
+  .lab-sub{color:var(--sub); font-size:.92rem; margin:2px 0 0;}
+
+  /* ---- ความรู้พื้นฐาน ---- */
+  .know{margin-top:16px; padding-left:16px; border-left:4px solid #EADCF7;}
+  .know h3{font-size:1.02rem; margin:18px 0 6px; color:var(--indigo);}
+  .know p{margin:.4em 0;}
+  .know ul{margin:.3em 0; padding-left:1.2em;}
+  .know li{margin:.25em 0;}
+
+  .callout{background:#FFFDF5; border:1px solid #F3E9C8; border-radius:18px;
+    padding:14px 16px; margin:16px 0; font-size:.92rem; color:#6b6486;}
+  .callout b{color:var(--ink);}
+
+  /* ---- กล่องเครื่องมือ ---- */
+  .tool{margin-top:20px; border:1px solid #E5EEF0; border-radius:24px; overflow:hidden;
+    background:linear-gradient(160deg,#FDF4FF 0%,#EFFBFF 100%);}
+  .tool-label{font-family:'Mitr',sans-serif; font-size:.85rem; font-weight:500;
+    color:var(--teal); padding:12px 16px 0;}
+
+  /* ===== กล่องพารามิเตอร์ (สไลเดอร์) ===== */
+  .fp-gates{display:grid; grid-template-columns:1fr; gap:8px; margin-bottom:12px;}
+  @media(min-width:560px){ .fp-gates{grid-template-columns:1fr 1fr 1fr;} }
+  .fp-gate{background:#fff; border:1px solid; border-radius:16px; padding:12px;}
+  .fp-gate-head{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:4px;}
+  .fp-gate-head small{color:var(--sub); margin-left:4px; font-size:.78rem;}
+  .fp-pill{font-family:ui-monospace,monospace; font-weight:700; color:#fff; padding:1px 8px; border-radius:8px; font-size:.95rem;}
+  .fp-gate input[type=range]{width:100%; cursor:pointer;}
+  .fp-help{font-size:.76rem; color:var(--sub); margin:6px 0 0;}
+  .fp-foot{background:#FFFDF5; border:1px solid #F3E9C8; border-radius:16px; padding:12px;
+    font-size:.76rem; line-height:1.6; color:var(--sub);}
+  .fp-foot b{color:var(--ink);}
+
+  /* ===== แบบทบทวนตัวเอง (self-check quiz) ===== */
+  .quiz{margin-top:22px; background:#FBF9FE; border:1px solid #EADCF7; border-radius:22px; padding:18px 18px 16px;}
+  .quiz-head{display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;}
+  .quiz-head h3{margin:0; font-size:1.05rem; color:var(--purple);}
+  .quiz-score{font-family:'Mitr',sans-serif; font-weight:500; font-size:.92rem; color:var(--indigo);}
+  .quiz-note{font-size:.8rem; color:var(--sub); margin:4px 0 12px;}
+  .q{background:#fff; border:1px solid #EFE7F7; border-radius:16px; padding:14px 16px; margin:12px 0;}
+  .q-text{font-weight:600; margin:0;}
+  .q-kind{display:inline-block; font-size:.72rem; font-weight:600; padding:1px 8px; border-radius:8px;
+    background:#A855F71a; color:var(--purple); margin-left:6px; vertical-align:middle;}
+  .q-opts{display:flex; flex-direction:column; gap:8px; margin-top:12px;}
+  .opt{text-align:left; border:1.5px solid #E3DCEF; background:#fff; border-radius:12px;
+    padding:9px 13px; cursor:pointer; font-family:'Sarabun',sans-serif; font-size:.92rem; color:var(--ink);
+    transition:border-color .15s ease, background .15s ease;}
+  .opt:hover:not(:disabled){border-color:var(--purple);}
+  .opt:disabled{cursor:default;}
+  .opt.correct{border-color:#34D399; background:#ECFDF5; font-weight:600;}
+  .opt.wrong{border-color:#F43F5E; background:#FFF1F2;}
+  .fb{margin-top:10px; font-size:.86rem; border-radius:12px; padding:10px 12px; line-height:1.6;}
+  .fb.ok{background:#ECFDF5; color:#0f7a52;}
+  .fb.no{background:#FFF1F2; color:#b81c43;}
+  .fb b{color:inherit;}
+  .quiz-reset{margin-top:6px; border:1.5px solid var(--purple); background:#fff; color:var(--purple);
+    border-radius:12px; padding:7px 16px; font-family:'Sarabun',sans-serif; font-weight:600; font-size:.88rem; cursor:pointer;}
+  .quiz-reset:hover{background:var(--purple); color:#fff;}
+
+  /* ---- เครื่องมือ: ปุ่มยา / อ่านค่า ---- */
+  .pk2-btns{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px;}
+  .pk2-btn{background:#fff; border:1.5px solid #EADCF7; border-radius:999px; padding:7px 15px;
+    font-family:'Mitr',sans-serif; font-weight:500; font-size:.9rem; color:var(--ink); cursor:pointer; transition:all .18s ease;}
+  .pk2-btn:hover{transform:translateY(-1px); box-shadow:0 4px 12px #6366f122;}
+  .pk2-plot{background:#fff; border:1px solid #EEE6F7; border-radius:16px; padding:8px;}
+  .pk2-readouts{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:12px 0 6px;}
+  .pk2-cell{background:#fff; border:1px solid #EEE6F7; border-radius:12px; padding:8px 6px; text-align:center;}
+  .pk2-cell .v{font-family:'Mitr',sans-serif; font-weight:600; font-size:1.02rem; color:var(--ink); line-height:1.2;}
+  .pk2-cell .k{font-size:.72rem; color:var(--sub); margin-top:2px;}
+  .pk2-status{font-size:.85rem; margin:6px 0 2px; font-weight:600;}
+  @media(max-width:520px){ .pk2-readouts{grid-template-columns:repeat(2,1fr);} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <section class="lab" id="labvd" data-tab="Vd · ปริมาตรการกระจายตัว">
+    <div class="lab-head">
+      <div class="lab-num" style="background:linear-gradient(135deg,#60A5FA,#34D399); font-size:1.05rem;">Vd</div>
+      <div>
+        <h2>ปริมาตรการกระจายตัว (Vd)</h2>
+        <p class="lab-sub">ยากระจายไปอยู่ที่ไหนในร่างกาย · เทียบกับปริมาตรของเหลว (70 kg)</p>
+      </div>
+    </div>
+
+    <div class="know">
+      <p><b>เป้าหมาย:</b> เพื่อให้เข้าใจว่า Vd บอกอะไร และใช้เทียบกับปริมาตรของเหลวในร่างกาย เพื่อคาดการณ์ได้ว่ายากระจายตัวไปอยู่บริเวณใด</p>
+
+      <h3>Vd คืออะไร</h3>
+      <p>Vd คือ <b>ปริมาตรสมมุติ (apparent volume of distribution)</b> ที่แสดงถึงการกระจายตัวที่ปรากฏ — ไม่ใช่ปริมาตรจริง แต่เป็นปริมาตรที่ "ดูเหมือน" จำเป็นต้องใช้เพื่อให้ยาทั้งหมดในร่างกายมีความเข้มข้นเท่ากับในพลาสมา</p>
+      <p>ถ้าร่างกายเปรียบเสมือนกล่อง 1 ใบ (one-compartment): Vd = ขนาดยา / ความเข้มข้นเริ่มต้น (C₀)</p>
+
+      <h3>ปริมาตรของเหลวในร่างกาย (มนุษย์ 70 kg)</h3>
+      <p>พลาสมา ~3 L · ของเหลวระหว่างเซลล์ (interstitial fluid) ~12 L → รวมเป็น <b>ของเหลวนอกเซลล์ (ECF) ~15 L</b> · ของเหลวภายในเซลล์ (ICF) ~27 L → รวมทั้งหมดเป็น <b>น้ำในร่างกายทั้งหมด (TBW) ~42 L</b></p>
+
+      <h3>ใช้ Vd ตีความการกระจายตัว</h3>
+      <ul>
+        <li>Vd ≈ 3 L → ยาส่วนใหญ่อยู่ใน<b>พลาสมา/เลือด</b> (มักจับโปรตีนในเลือดสูง เช่น warfarin)</li>
+        <li>Vd ≈ 15 L → กระจายในของเหลว<b>นอกเซลล์ (ECF)</b> เข้าเซลล์ได้น้อย (เช่น gentamicin เป็นยาที่มีขั้วสูงละลายน้ำดีมาก ละลายไขมันไม่ดี เคลื่อนที่ผ่านเยื่อหุ้มเซลล์ไม่ได้)</li>
+        <li>Vd ≈ 42 L → กระจายทั่ว<b>น้ำในร่างกาย (TBW)</b> ทั้งนอกและในเซลล์ (เช่น ethanol)</li>
+        <li>Vd <b>มากกว่า 42 L</b> → ยาออกจากเลือดไป<b>จับเนื้อเยื่อหรือละลายในไขมัน</b> (เช่น digoxin จับกล้ามเนื้อ, diazepam ละลายไขมัน) ทำให้ความเข้มข้นในเลือดต่ำ Vd จึง "ดูใหญ่" เกินปริมาตรร่างกายจริง</li>
+      </ul>
+
+      <h3>ความสำคัญทางคลินิก</h3>
+      <p>ยาที่มี Vd ≈ ECF (เช่น gentamicin) เข้าสู่ภายในเซลล์ได้น้อย จึงอาจไม่เหมาะกับการรักษาการติดเชื้อที่อยู่ภายในเซลล์ · นอกจากนี้ Vd ใช้คำนวณ loading dose ตามความสัมพันธ์ <b>loading dose = Vd × ความเข้มข้นเป้าหมาย</b> ยาที่ Vd ใหญ่จึงต้องใช้ loading dose สูงกว่าเพื่อให้ได้ระดับยาที่ต้องการ</p>
+    </div>
+
+    <div class="callout">
+      <b>ประเด็นที่ควรสังเกตขณะใช้เครื่องมือ</b>
+      <ul style="margin:6px 0 0; padding-left:1.2em;">
+        <li>เลือกยาแต่ละตัว ดูว่าเครื่องหมายตกในช่องไหนของแถบ และอ่านคำตีความด้านล่าง</li>
+        <li>เปิด "เปรียบเทียบยาทุกตัว" เพื่อเรียงยาตาม Vd บนแถบเดียวกัน</li>
+        <li>เทียบ gentamicin (≈ ECF) กับ ethanol (≈ TBW) — ยาตัวไหนเข้าถึงภายในเซลล์ได้มากกว่า</li>
+        <li>สังเกต digoxin และ diazepam ที่ Vd เกิน TBW ไปมาก (จับเนื้อเยื่อ/ละลายไขมัน) — โซนนี้เป็นสเกล log</li>
+        <li>เลื่อนสไลเดอร์ Vd ดูว่าค่าประมาณเท่าใดจึงข้ามจากพลาสมา → ECF → TBW → เกิน TBW</li>
+      </ul>
+    </div>
+
+    <div class="tool">
+      <div class="tool-label">เครื่องมือโต้ตอบ — เลือกยาหรือปรับค่า Vd แล้วดูตำแหน่ง</div>
+      <div class="pk3" id="vd-widget">
+        <div class="pk2-btns" id="vd-presets"></div>
+
+        <label style="display:flex; align-items:center; gap:8px; font-size:.88rem; color:var(--ink); margin:2px 0 8px;">
+          <input type="checkbox" id="vd-cmp" style="accent-color:#4f46e5;"> เปรียบเทียบยาทุกตัวพร้อมกัน
+        </label>
+
+        <div class="pk2-plot">
+          <svg id="vd-svg" viewBox="0 0 560 230" style="width:100%; height:auto; font-family:'Mitr','Sarabun',sans-serif;"></svg>
+        </div>
+
+        <div id="vd-legend" style="display:flex; flex-wrap:wrap; gap:10px 16px; font-size:.8rem; color:var(--sub); margin:4px 2px 10px;">
+          <span><span style="display:inline-block; width:11px; height:11px; background:#60A5FA; border-radius:2px; vertical-align:-1px;"></span> พลาสมา 3 L</span>
+          <span><span style="display:inline-block; width:11px; height:11px; background:#93C5FD; border-radius:2px; vertical-align:-1px;"></span> ระหว่างเซลล์ 12 L (ECF รวม 15 L)</span>
+          <span><span style="display:inline-block; width:11px; height:11px; background:#34D399; border-radius:2px; vertical-align:-1px;"></span> ภายในเซลล์ 27 L (TBW รวม 42 L)</span>
+          <span><span style="display:inline-block; width:11px; height:11px; background:#EDE9FE; border:1px solid #C4B5FD; border-radius:2px; vertical-align:-1px;"></span> เกิน TBW (จับเนื้อเยื่อ/ไขมัน)</span>
+        </div>
+
+        <div class="pk2-readouts" style="grid-template-columns:repeat(3,1fr);">
+          <div class="pk2-cell"><div class="v" id="vd-vdkg">–</div><div class="k">Vd (L/kg)</div></div>
+          <div class="pk2-cell"><div class="v" id="vd-vdl">–</div><div class="k">Vd (L, 70 kg)</div></div>
+          <div class="pk2-cell"><div class="v" id="vd-zone">–</div><div class="k">กระจายอยู่ที่</div></div>
+        </div>
+        <p class="pk2-status" id="vd-note"></p>
+
+        <div class="fp-gates">
+          <div class="fp-gate" style="border-color:#4f46e544; grid-column:1 / -1;">
+            <div class="fp-gate-head"><span><b>Vd</b><small>ปริมาตรการกระจายตัว</small></span><span class="fp-pill" id="vd-slider-val" style="background:#4f46e5;">0.6</span></div>
+            <input type="range" id="vd-slider" min="0.1" max="10" step="0.05" value="0.6" style="accent-color:#4f46e5;">
+            <p class="fp-help">ปรับค่า Vd เอง (L/kg) — เลื่อนเพื่อสำรวจ หรือกดปุ่มยาด้านบนเพื่อใช้ค่าจริง</p>
+          </div>
+        </div>
+
+        <div class="fp-foot">
+          <p style="margin:0 0 6px;"><b>ที่มาของค่า Vd (โดยประมาณ ต่อ 70 kg):</b>
+          warfarin ~0.14 L/kg (~10 L; จับโปรตีน 99%)<sup>1</sup> ·
+          gentamicin ~0.25 L/kg (~18 L ≈ ECF)<sup>1</sup> ·
+          ethanol ~0.6 L/kg (~42 L = TBW)<sup>2</sup> ·
+          vancomycin ~0.7 L/kg (Vd<sub>ss</sub> 0.39–0.97 L/kg, ~49 L)<sup>3</sup> ·
+          diazepam ~0.8–1.0 L/kg (~60–70 L; ละลายไขมัน เพิ่มได้อีกในคนอ้วน)<sup>4</sup> ·
+          digoxin ~5–7 L/kg (~450–500 L; จับ Na/K-ATPase ที่กล้ามเนื้อ)<sup>5</sup> ·
+          กรอบปริมาตรของเหลว 70 kg (พลาสมา 3 / ECF 15 / TBW 42 L)<sup>6</sup> — ค่าทั้งหมดเป็นค่าเฉลี่ยที่มีความแปรปรวนระหว่างบุคคลสูง</p>
+          <p style="margin:0;"><b>เอกสารอ้างอิง</b><br>
+          1. Bisht S, Chauhan V, Patel P. Clinical Significance of Volume of Distribution in Pharmacotherapy. In: StatPearls [Internet]. Treasure Island (FL): StatPearls Publishing; 2026. <a href="https://pubmed.ncbi.nlm.nih.gov/31424864/" target="_blank" rel="noopener">PMID 31424864</a>.<br>
+          2. Jones AW. Alcohol, its absorption, distribution, metabolism, and excretion in the body and pharmacokinetic calculations. WIREs Forensic Sci. 2019;1(5):e1340. <a href="https://doi.org/10.1002/wfs2.1340" target="_blank" rel="noopener">[DOI]</a><br>
+          3. Matzke GR, Zhanel GG, Guay DR. Clinical pharmacokinetics of vancomycin. Clin Pharmacokinet. 1986;11(4):257–282. <a href="https://pubmed.ncbi.nlm.nih.gov/3530582/" target="_blank" rel="noopener">PMID 3530582</a>.<br>
+          4. Dhaliwal JS, Rosani A, Saadabadi A. Diazepam. In: StatPearls [Internet]. Treasure Island (FL): StatPearls Publishing; 2023. <a href="https://pubmed.ncbi.nlm.nih.gov/30725707/" target="_blank" rel="noopener">PMID 30725707</a>.<br>
+          5. Iisalo E. Clinical pharmacokinetics of digoxin. Clin Pharmacokinet. 1977;2(1):1–16. <a href="https://pubmed.ncbi.nlm.nih.gov/322907/" target="_blank" rel="noopener">PMID 322907</a>.<br>
+          6. Rowland M, Tozer TN. Clinical Pharmacokinetics and Pharmacodynamics: Concepts and Applications. 4th ed. Philadelphia: Lippincott Williams &amp; Wilkins; 2011.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="quiz" id="quizvd">
+      <div class="quiz-head">
+        <h3>ทบทวนตัวเอง</h3>
+        <span class="quiz-score" id="quizvd-score">ตอบแล้ว 0/0 ข้อ</span>
+      </div>
+      <p class="quiz-note">ตอบเพื่อเช็กความเข้าใจของตัวเอง เฉลยขึ้นทันทีพร้อมคำอธิบาย</p>
+      <div id="quizvd-body"></div>
+      <button class="quiz-reset" id="quizvd-reset">เริ่มทำใหม่</button>
+    </div>
+  </section>
+
+</div>
+
+<!-- ========================================================================
+     สคริปต์เครื่องมือ "Vd Explorer" — ยากระจายไปอยู่ที่ไหนในร่างกาย
+     ค่ายา/พารามิเตอร์แก้ได้ที่ตัวแปร PRESETS ด้านล่าง
+     ======================================================================== -->
+<script>
+(function(){
+  "use strict";
+
+  var KG = 70;          // น้ำหนักอ้างอิง (kg)
+  var VMAX = 700;       // ค่า Vd สูงสุดที่แสดง (L)
+  // ค่ายาจริง (อ้างอิงในเชิงอรรถใต้เครื่องมือ) — lkg = Vd ต่อน้ำหนักตัว (L/kg)
+  var PRESETS = [
+    { key:"warfarin",   label:"warfarin",   lkg:0.14, note:"จับโปรตีนในเลือด ~99% จึงอยู่ในพลาสมา/เลือดเป็นหลัก (Vd เล็ก)" },
+    { key:"gentamicin", label:"gentamicin", lkg:0.25, note:"ละลายน้ำ กระจายในของเหลวนอกเซลล์ (ECF) เข้าเซลล์/เนื้อเยื่อได้น้อย — ไม่เหมาะกับการติดเชื้อภายในเซลล์" },
+    { key:"ethanol",    label:"ethanol",    lkg:0.6,  note:"ละลายน้ำ กระจายทั่วน้ำในร่างกาย (TBW ≈ 42 L) อย่างสม่ำเสมอ" },
+    { key:"vancomycin", label:"vancomycin", lkg:0.7,  note:"กระจายประมาณน้ำในร่างกาย (≈ TBW)" },
+    { key:"diazepam",   label:"diazepam",   lkg:1.0,  note:"ละลายไขมันได้ดี สะสมในเนื้อเยื่อไขมัน Vd จึงเกิน TBW (เพิ่มได้อีกในคนอ้วน)" },
+    { key:"digoxin",    label:"digoxin",    lkg:6.5,  note:"จับเนื้อเยื่อกล้ามเนื้อ/หัวใจ (Na/K-ATPase) ไม่เข้าไขมัน Vd สูงมากเกิน TBW หลายเท่า" }
+  ];
+
+  var compareAll=false;
+  var curKey="ethanol";
+
+  var svg       = document.getElementById("vd-svg");
+  var presetBox = document.getElementById("vd-presets");
+  var cmpChk    = document.getElementById("vd-cmp");
+  var slider    = document.getElementById("vd-slider");
+  if(!svg || !presetBox || !slider) return;
+
+  function findP(key){ for(var i=0;i<PRESETS.length;i++){ if(PRESETS[i].key===key) return PRESETS[i]; } return null; }
+  function curVdL(){ return parseFloat(slider.value)*KG; }   // Vd เป็นลิตร
+
+  // ---- สเกลผสม: 0–42 L เป็นสัดส่วนจริง, >42 L เป็น log ----
+  var L=70, R=540, xSplit=L+0.60*(R-L);
+  function xOfVd(v){
+    if(v<0) v=0; if(v>VMAX) v=VMAX;
+    if(v<=42) return L + (v/42)*(xSplit-L);
+    return xSplit + ((Math.log(v)-Math.log(42))/(Math.log(VMAX)-Math.log(42)))*(R-xSplit);
+  }
+
+  function classify(vdL){
+    if(vdL<=3)  return { z:"พลาสมา/เลือด",  t:"ยาส่วนใหญ่อยู่ในพลาสมา/เลือด (Vd เล็ก มักจับโปรตีนในเลือดสูง)" };
+    if(vdL<=15) return { z:"ECF",           t:"ยาส่วนใหญ่กระจายในของเหลวนอกเซลล์ (ECF) เข้าเซลล์ได้น้อย" };
+    if(vdL<=42) return { z:"ECF+ICF",       t:"กระจายทั่วน้ำในร่างกาย (TBW = ECF + ICF) ทั้งนอกและในเซลล์" };
+    return            { z:"สะสมในเนื้อเยื่อ/ไขมัน", t:"เกิน TBW → ยาจับเนื้อเยื่อหรือละลายในไขมัน (Vd เป็นปริมาตรสมมุติ ไม่ใช่ของเหลวจริง)" };
+  }
+
+  function pin(vdL, name, bold, labY){
+    var x=xOfVd(vdL), barBot=158;
+    var col = bold ? "#4f46e5" : "#94a0bf", w = bold ? 2.2 : 1;
+    var o="";
+    o+='<line x1="'+x.toFixed(1)+'" y1="'+labY+'" x2="'+x.toFixed(1)+'" y2="'+barBot+'" stroke="'+col+'" stroke-width="'+w+'"'+(bold?'':' stroke-dasharray="2 2"')+'/>';
+    o+='<circle cx="'+x.toFixed(1)+'" cy="'+labY+'" r="'+(bold?3.5:2.5)+'" fill="'+col+'"/>';
+    o+='<text x="'+x.toFixed(1)+'" y="'+(labY-4)+'" text-anchor="middle" font-size="'+(bold?10:8.5)+'" font-weight="'+(bold?'700':'600')+'" fill="'+col+'">'+name+'</text>';
+    return o;
+  }
+
+  function buildSVG(){
+    var barTop=110, barBot=158;
+    var s="";
+    function rect(v0,v1,fill){ var x0=xOfVd(v0),x1=xOfVd(v1);
+      return '<rect x="'+x0.toFixed(1)+'" y="'+barTop+'" width="'+(x1-x0).toFixed(1)+'" height="'+(barBot-barTop)+'" fill="'+fill+'"/>'; }
+    // ปริมาตรของเหลว (สัดส่วนจริง 0–42 L)
+    s+=rect(0,3,"#60A5FA");
+    s+=rect(3,15,"#93C5FD");
+    s+=rect(15,42,"#34D399");
+    // โซนเกิน TBW (สเกล log)
+    s+='<rect x="'+xSplit.toFixed(1)+'" y="'+barTop+'" width="'+(R-xSplit).toFixed(1)+'" height="'+(barBot-barTop)+'" fill="#EDE9FE"/>';
+    s+='<line x1="'+xSplit.toFixed(1)+'" y1="'+(barTop-5)+'" x2="'+xSplit.toFixed(1)+'" y2="'+(barBot+5)+'" stroke="#7C3AED" stroke-width="1.2" stroke-dasharray="3 2"/>';
+    s+='<text x="'+((xSplit+R)/2).toFixed(1)+'" y="'+((barTop+barBot)/2+3)+'" text-anchor="middle" font-size="9.5" fill="#6D28D9">สะสมในเนื้อเยื่อ/ไขมัน</text>';
+    // กรอบแถบ
+    s+='<rect x="'+L+'" y="'+barTop+'" width="'+(R-L)+'" height="'+(barBot-barTop)+'" fill="none" stroke="#C9BEE0" stroke-width="1"/>';
+    // ป้ายค่าขอบเขต
+    [[0,"0"],[3,"3"],[15,"15"],[42,"42"],[100,"100"],[300,"300"],[700,"700"]].forEach(function(t){
+      var x=xOfVd(t[0]);
+      s+='<line x1="'+x.toFixed(1)+'" y1="'+barBot+'" x2="'+x.toFixed(1)+'" y2="'+(barBot+4)+'" stroke="#6B6486" stroke-width="0.8"/>';
+      s+='<text x="'+x.toFixed(1)+'" y="'+(barBot+15)+'" text-anchor="middle" font-size="9" fill="#6B6486">'+t[1]+'</text>';
+    });
+    s+='<text x="'+(L)+'" y="'+(barTop-6)+'" font-size="9.5" fill="#6B6486">ค่า Vd (L) สำหรับคน 70 kg</text>';
+    // วงเล็บ ECF
+    var ex0=xOfVd(0), ex1=xOfVd(15), ey=barBot+26;
+    s+='<line x1="'+ex0+'" y1="'+ey+'" x2="'+ex1.toFixed(1)+'" y2="'+ey+'" stroke="#0EA5A4" stroke-width="1.2"/>';
+    s+='<line x1="'+ex0+'" y1="'+(ey-3)+'" x2="'+ex0+'" y2="'+(ey+3)+'" stroke="#0EA5A4" stroke-width="1.2"/>';
+    s+='<line x1="'+ex1.toFixed(1)+'" y1="'+(ey-3)+'" x2="'+ex1.toFixed(1)+'" y2="'+(ey+3)+'" stroke="#0EA5A4" stroke-width="1.2"/>';
+    s+='<text x="'+((ex0+ex1)/2).toFixed(1)+'" y="'+(ey+12)+'" text-anchor="middle" font-size="9" fill="#0e7d7b">ECF 15 L</text>';
+    // วงเล็บ TBW
+    var tx1=xOfVd(42), ty=barBot+44;
+    s+='<line x1="'+ex0+'" y1="'+ty+'" x2="'+tx1.toFixed(1)+'" y2="'+ty+'" stroke="#7C3AED" stroke-width="1.2"/>';
+    s+='<line x1="'+ex0+'" y1="'+(ty-3)+'" x2="'+ex0+'" y2="'+(ty+3)+'" stroke="#7C3AED" stroke-width="1.2"/>';
+    s+='<line x1="'+tx1.toFixed(1)+'" y1="'+(ty-3)+'" x2="'+tx1.toFixed(1)+'" y2="'+(ty+3)+'" stroke="#7C3AED" stroke-width="1.2"/>';
+    s+='<text x="'+((ex0+tx1)/2).toFixed(1)+'" y="'+(ty+12)+'" text-anchor="middle" font-size="9" fill="#6D28D9">TBW 42 L</text>';
+
+    // เครื่องหมายยา
+    if(compareAll){
+      var arr=PRESETS.slice().sort(function(a,b){ return a.lkg-b.lkg; });
+      arr.forEach(function(p,i){
+        s+=pin(p.lkg*KG, p.label, (p.key===curKey), 36+(i%3)*22);
+      });
+      if(!curKey) s+=pin(curVdL(), "กำหนดเอง", true, 100);
+    } else {
+      var lab=(curKey? findP(curKey).label : "กำหนดเอง");
+      s+=pin(curVdL(), lab+" · "+Math.round(curVdL())+" L", true, 86);
+    }
+    return s;
+  }
+
+  function recompute(){
+    svg.innerHTML = buildSVG();
+    var vdL=curVdL(), c=classify(vdL);
+    document.getElementById("vd-vdkg").textContent = (Math.round(parseFloat(slider.value)*100)/100);
+    document.getElementById("vd-vdl").textContent  = Math.round(vdL);
+    document.getElementById("vd-zone").textContent = c.z;
+    document.getElementById("vd-slider-val").textContent = (Math.round(parseFloat(slider.value)*100)/100);
+    var note=document.getElementById("vd-note");
+    var pnote = curKey ? (findP(curKey).label + ": " + findP(curKey).note) : c.t;
+    note.textContent = pnote;
+    note.style.color = (vdL>52) ? "#6D28D9" : "#6B6486";
+  }
+
+  function setPreset(key){
+    curKey=key; var p=findP(key); if(p) slider.value=p.lkg;
+    Array.prototype.forEach.call(presetBox.children, function(b){
+      var on=(b.getAttribute("data-preset")===key);
+      b.style.background=on?"#2A2150":"#fff"; b.style.color=on?"#fff":"#2A2150";
+    });
+    recompute();
+  }
+
+  // ปุ่มยา
+  PRESETS.forEach(function(p){
+    var b=document.createElement("button"); b.className="pk2-btn"; b.type="button";
+    b.setAttribute("data-preset", p.key); b.textContent=p.label;
+    b.style.borderColor="#2A2150"; b.style.color="#2A2150";
+    b.addEventListener("click", function(){ setPreset(p.key); });
+    presetBox.appendChild(b);
+  });
+
+  // เลื่อนสไลเดอร์เอง = ยกเลิกการเลือกยา (กำหนดเอง)
+  slider.addEventListener("input", function(){
+    curKey=null;
+    Array.prototype.forEach.call(presetBox.children, function(b){ b.style.background="#fff"; b.style.color="#2A2150"; });
+    recompute();
+  });
+  cmpChk.addEventListener("change", function(){ compareAll=cmpChk.checked; recompute(); });
+
+  function init(){ setPreset("ethanol"); }
+  if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();
+</script>
+
+<!-- ========================================================================
+     สคริปต์แบบทบทวนตัวเอง (self-check) ของปฏิบัติการ Vd
+     ======================================================================== -->
+<script>
+(function(){
+  "use strict";
+
+  var QUESTIONS = [
+    { q:"ปริมาตรการกระจายตัว (Vd) หมายถึงข้อใด?",
+      kind:"เลือกตอบ",
+      options:["ปริมาตรสมมุติที่คำนวณจากปริมาณยาในร่างกายกับความเข้มข้นในพลาสมา","ปริมาตรเลือดจริงในร่างกาย","ปริมาตรปัสสาวะที่ขับยาออก"],
+      answer:0,
+      why:"Vd เป็นปริมาตร 'สมมุติ' (apparent volume) = ขนาดยา/C₀ ไม่ใช่ปริมาตรของเหลวจริง แต่ใช้บอกแนวโน้มการกระจายตัวของยา" },
+
+    { q:"ยาฆ่าเชื้อที่มี Vd ≈ 15 L (≈ ECF) เหมาะกับการรักษาการติดเชื้อภายในเซลล์หรือไม่?",
+      kind:"เลือกตอบ",
+      options:["ไม่เหมาะ เพราะกระจายอยู่นอกเซลล์ เข้าเซลล์ได้น้อย","เหมาะมาก เพราะ Vd เล็ก","เหมาะ เพราะกระจายทั่วร่างกาย"],
+      answer:0,
+      why:"Vd ≈ ECF (เช่น gentamicin) แปลว่ายาอยู่ในของเหลวนอกเซลล์เป็นหลัก เข้าสู่ภายในเซลล์ได้น้อย จึงไม่เหมาะกับเชื้อที่อยู่ภายในเซลล์ — เปิดโหมดเปรียบเทียบในเครื่องมือเพื่อดู" },
+
+    { q:"ยาที่มี Vd ≈ 500 L (มากกว่า TBW 42 L หลายเท่า) สื่อถึงอะไร?",
+      kind:"เลือกตอบ",
+      options:["ยาออกจากเลือดไปจับเนื้อเยื่อ/ละลายในไขมัน ทำให้ระดับยาในเลือดต่ำ","ในร่างกายมีของเหลว 500 ลิตรจริง ๆ","ยาไม่ถูกดูดซึม"],
+      answer:0,
+      why:"Vd เป็นปริมาตรสมมุติ ค่าที่เกิน TBW มากแปลว่ายาออกไปจับเนื้อเยื่อ/ไขมัน (เช่น digoxin จับกล้ามเนื้อ) ทำให้ความเข้มข้นในเลือดต่ำ Vd จึง 'ดูใหญ่' เกินตัว" },
+
+    { q:"ยาที่จับโปรตีนในเลือดสูงมาก (เช่น warfarin ~99%) มักมีค่า Vd แบบใด?",
+      kind:"เลือกตอบ",
+      options:["เล็ก เพราะถูกกักไว้ในเลือด","ใหญ่มาก เพราะกระจายเข้าเนื้อเยื่อ","ไม่เกี่ยวกับการจับโปรตีน"],
+      answer:0,
+      why:"ยาที่จับโปรตีนในพลาสมาสูงจะถูกกักอยู่ในกระแสเลือด กระจายออกไปเนื้อเยื่อได้น้อย Vd จึงเล็ก (warfarin ~0.14 L/kg ≈ 10 L)" }
+  ];
+
+  var state = [];
+  function reset(){ state = QUESTIONS.map(function(){ return null; }); render(); }
+  function choose(qi, oi){ if(state[qi] !== null) return; state[qi] = oi; render(); }
+
+  function render(){
+    var body = document.getElementById("quizvd-body");
+    body.innerHTML = "";
+    QUESTIONS.forEach(function(item, qi){
+      var answered = state[qi] !== null;
+      var card = document.createElement("div"); card.className = "q";
+      var qText = document.createElement("p"); qText.className = "q-text";
+      qText.innerHTML = (qi+1) + ". " + item.q + ' <span class="q-kind">' + item.kind + '</span>';
+      card.appendChild(qText);
+      var opts = document.createElement("div"); opts.className = "q-opts";
+      item.options.forEach(function(text, oi){
+        var b = document.createElement("button"); b.className = "opt"; b.textContent = text;
+        if(answered){ b.disabled = true;
+          if(oi === item.answer) b.classList.add("correct");
+          else if(oi === state[qi]) b.classList.add("wrong");
+        } else { b.addEventListener("click", function(){ choose(qi, oi); }); }
+        opts.appendChild(b);
+      });
+      card.appendChild(opts);
+      if(answered){
+        var correct = (state[qi] === item.answer);
+        var fb = document.createElement("div"); fb.className = "fb " + (correct ? "ok" : "no");
+        fb.innerHTML = (correct ? "✓ <b>ถูกต้อง!</b> " : "✗ <b>ยังไม่ใช่</b> ") + item.why;
+        card.appendChild(fb);
+      }
+      body.appendChild(card);
+    });
+    var answeredCount = state.filter(function(s){ return s !== null; }).length;
+    var correctCount = state.filter(function(s,i){ return s === QUESTIONS[i].answer; }).length;
+    document.getElementById("quizvd-score").textContent =
+      "ตอบแล้ว " + answeredCount + "/" + QUESTIONS.length + " ข้อ · ถูก " + correctCount + " ข้อ";
+  }
+  function init(){ document.getElementById("quizvd-reset").addEventListener("click", reset); reset(); }
+  if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();
+</script>
+
+</body>
+</html>

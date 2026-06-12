@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ครึ่งชีวิต (t½)</title>
+
+<!--
+  ===========================================================================
+  t½ ค่าครึ่งชีวิต.html — หัวข้อ "ครึ่งชีวิต (t½)"
+  แยกออกมาจาก pk-lab.html เป็นไฟล์เดียวจบ เปิดทำงานได้ด้วยตัวเอง (ไม่พึ่ง pk-lab.html)
+  ประกอบด้วย: เนื้อหา HTML ของหัวข้อ + CSS ที่จำเป็น (ชุดเดียวกับ pk-lab.html)
+              + สคริปต์เครื่องมือ t½ Explorer (กราฟ + ตารางบันไดครึ่งชีวิต) + สคริปต์ quiz
+  ===========================================================================
+-->
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mitr:wght@400;500;600&family=Sarabun:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --ink:#2A2150; --sub:#6B6486; --card:#ffffff;
+    --reach:#F43F5E; --feces:#B59A82; --gut:#34D399; --liver:#F5A524;
+    --indigo:#6366F1; --purple:#A855F7; --teal:#0EA5A4;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; color:var(--ink);
+    font-family:'Sarabun',system-ui,sans-serif; line-height:1.75;
+    background:linear-gradient(160deg,#FDF4FF 0%,#EFFBFF 100%);
+    background-attachment:fixed;
+  }
+  .wrap{max-width:780px; margin:0 auto; padding:28px 18px 64px;}
+  h1,h2,h3{font-family:'Mitr',sans-serif; font-weight:600; line-height:1.35; color:var(--ink);}
+  a{color:var(--indigo); text-decoration:none;}
+  a:hover{text-decoration:underline;}
+
+  /* ---- การ์ดปฏิบัติการ ---- */
+  .lab{background:var(--card); border-radius:28px; padding:26px 24px;
+    margin:22px 0; box-shadow:0 10px 30px #2a21500d; border:1px solid #EFE7F7;}
+  .lab-head{display:flex; align-items:center; gap:14px; margin-bottom:6px;}
+  .lab-num{flex:none; width:42px; height:42px; border-radius:14px; display:grid; place-items:center;
+    font-family:'Mitr',sans-serif; font-weight:600; color:#fff; font-size:1.15rem;
+    background:linear-gradient(135deg,var(--indigo),var(--purple));}
+  .lab-head h2{font-size:1.35rem; margin:0;}
+  .lab-sub{color:var(--sub); font-size:.92rem; margin:2px 0 0;}
+
+  /* ---- ความรู้พื้นฐาน ---- */
+  .know{margin-top:16px; padding-left:16px; border-left:4px solid #EADCF7;}
+  .know h3{font-size:1.02rem; margin:18px 0 6px; color:var(--indigo);}
+  .know p{margin:.4em 0;}
+  .know ul{margin:.3em 0; padding-left:1.2em;}
+  .know li{margin:.25em 0;}
+
+  .callout{background:#FFFDF5; border:1px solid #F3E9C8; border-radius:18px;
+    padding:14px 16px; margin:16px 0; font-size:.92rem; color:#6b6486;}
+  .callout b{color:var(--ink);}
+
+  /* ---- กล่องเครื่องมือ ---- */
+  .tool{margin-top:20px; border:1px solid #E5EEF0; border-radius:24px; overflow:hidden;
+    background:linear-gradient(160deg,#FDF4FF 0%,#EFFBFF 100%);}
+  .tool-label{font-family:'Mitr',sans-serif; font-size:.85rem; font-weight:500;
+    color:var(--teal); padding:12px 16px 0;}
+
+  /* ===== กล่องพารามิเตอร์ (สไลเดอร์) ===== */
+  .fp-gates{display:grid; grid-template-columns:1fr; gap:8px; margin-bottom:12px;}
+  @media(min-width:560px){ .fp-gates{grid-template-columns:1fr 1fr 1fr;} }
+  .fp-gate{background:#fff; border:1px solid; border-radius:16px; padding:12px;}
+  .fp-gate-head{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:4px;}
+  .fp-gate-head small{color:var(--sub); margin-left:4px; font-size:.78rem;}
+  .fp-pill{font-family:ui-monospace,monospace; font-weight:700; color:#fff; padding:1px 8px; border-radius:8px; font-size:.95rem;}
+  .fp-gate input[type=range]{width:100%; cursor:pointer;}
+  .fp-help{font-size:.76rem; color:var(--sub); margin:6px 0 0;}
+  .fp-foot{background:#FFFDF5; border:1px solid #F3E9C8; border-radius:16px; padding:12px;
+    font-size:.76rem; line-height:1.6; color:var(--sub);}
+  .fp-foot b{color:var(--ink);}
+
+  /* ===== แบบทบทวนตัวเอง (self-check quiz) ===== */
+  .quiz{margin-top:22px; background:#FBF9FE; border:1px solid #EADCF7; border-radius:22px; padding:18px 18px 16px;}
+  .quiz-head{display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;}
+  .quiz-head h3{margin:0; font-size:1.05rem; color:var(--purple);}
+  .quiz-score{font-family:'Mitr',sans-serif; font-weight:500; font-size:.92rem; color:var(--indigo);}
+  .quiz-note{font-size:.8rem; color:var(--sub); margin:4px 0 12px;}
+  .q{background:#fff; border:1px solid #EFE7F7; border-radius:16px; padding:14px 16px; margin:12px 0;}
+  .q-text{font-weight:600; margin:0;}
+  .q-kind{display:inline-block; font-size:.72rem; font-weight:600; padding:1px 8px; border-radius:8px;
+    background:#A855F71a; color:var(--purple); margin-left:6px; vertical-align:middle;}
+  .q-opts{display:flex; flex-direction:column; gap:8px; margin-top:12px;}
+  .opt{text-align:left; border:1.5px solid #E3DCEF; background:#fff; border-radius:12px;
+    padding:9px 13px; cursor:pointer; font-family:'Sarabun',sans-serif; font-size:.92rem; color:var(--ink);
+    transition:border-color .15s ease, background .15s ease;}
+  .opt:hover:not(:disabled){border-color:var(--purple);}
+  .opt:disabled{cursor:default;}
+  .opt.correct{border-color:#34D399; background:#ECFDF5; font-weight:600;}
+  .opt.wrong{border-color:#F43F5E; background:#FFF1F2;}
+  .fb{margin-top:10px; font-size:.86rem; border-radius:12px; padding:10px 12px; line-height:1.6;}
+  .fb.ok{background:#ECFDF5; color:#0f7a52;}
+  .fb.no{background:#FFF1F2; color:#b81c43;}
+  .fb b{color:inherit;}
+  .quiz-reset{margin-top:6px; border:1.5px solid var(--purple); background:#fff; color:var(--purple);
+    border-radius:12px; padding:7px 16px; font-family:'Sarabun',sans-serif; font-weight:600; font-size:.88rem; cursor:pointer;}
+  .quiz-reset:hover{background:var(--purple); color:#fff;}
+
+  /* ---- เครื่องมือ: ปุ่มยา / กราฟ / อ่านค่า ---- */
+  .pk2-btns{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px;}
+  .pk2-btn{background:#fff; border:1.5px solid #EADCF7; border-radius:999px; padding:7px 15px;
+    font-family:'Mitr',sans-serif; font-weight:500; font-size:.9rem; color:var(--ink); cursor:pointer; transition:all .18s ease;}
+  .pk2-btn:hover{transform:translateY(-1px); box-shadow:0 4px 12px #6366f122;}
+  .pk2-plot{background:#fff; border:1px solid #EEE6F7; border-radius:16px; padding:8px;}
+  .pk2-cap{font-size:.78rem; color:var(--sub); text-align:center; margin:4px 0 0;}
+  .pk2-readouts{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:12px 0 6px;}
+  .pk2-cell{background:#fff; border:1px solid #EEE6F7; border-radius:12px; padding:8px 6px; text-align:center;}
+  .pk2-cell .v{font-family:'Mitr',sans-serif; font-weight:600; font-size:1.02rem; color:var(--ink); line-height:1.2;}
+  .pk2-cell .k{font-size:.72rem; color:var(--sub); margin-top:2px;}
+  @media(max-width:520px){ .pk2-readouts{grid-template-columns:repeat(2,1fr);} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <section class="lab" id="labhl" data-tab="t½ · ครึ่งชีวิต">
+    <div class="lab-head">
+      <div class="lab-num" style="background:linear-gradient(135deg,#0EA5A4,#6366F1); font-size:1.05rem;">t½</div>
+      <div>
+        <h2>ครึ่งชีวิต (t½)</h2>
+        <p class="lab-sub">เวลาที่ระดับยาลดลงเหลือครึ่งหนึ่ง · ความสัมพันธ์กับ V<sub>d</sub> และ CL</p>
+      </div>
+    </div>
+
+    <div class="know">
+      <p><b>เป้าหมาย:</b> เพื่อให้เห็นภาพชัดเจนว่า <b>ครึ่งชีวิต (half-life, t½)</b> คือเวลาที่ระดับยาในเลือดลดลงเหลือครึ่งหนึ่ง และเข้าใจว่าค่า t½ ถูกกำหนดด้วยอะไร</p>
+
+      <h3>t½ คืออะไร และมาจากไหน</h3>
+      <p>t½ คือเวลาที่ความเข้มข้นของยาลดลงเหลือครึ่งหนึ่งของค่าเดิม สำหรับยาที่ถูกกำจัดแบบ first-order ทุก ๆ ช่วงเวลา 1 เท่าของ t½ ระดับยาจะลดลงเหลือครึ่งหนึ่งเสมอ (100% → 50% → 25% → 12.5% → …) ค่า t½ คำนวณได้จาก
+      <br>t½ = 0.693 × V<sub>d</sub> / CL &nbsp; (หรือ t½ = 0.693 / k<sub>e</sub> เมื่อ k<sub>e</sub> = CL / V<sub>d</sub>)</p>
+      <p>จุดสำคัญสองข้อ: (1) t½ ขึ้นกับ <b>V<sub>d</sub></b> และ <b>CL</b> เท่านั้น — เมื่อ CL ลดลง (เช่น ไตทำงานบกพร่อง) หรือ V<sub>d</sub> เพิ่มขึ้น ค่า t½ จะยาวขึ้น; (2) t½ <b>ไม่ขึ้นกับขนาดยา</b> — ขนาดยามากขึ้นทำให้ความเข้มข้นเริ่มต้น (C₀) สูงขึ้น แต่เวลาที่ลดลงครึ่งหนึ่งเท่าเดิม</p>
+      <p>เมื่อผ่านไปประมาณ 5 เท่าของ t½ ยาจะถูกกำจัดออกไปแล้วประมาณ 97% (เหลือ ~3%) ซึ่งเป็นช่วงเวลาเดียวกับที่ใช้เข้าสู่ steady state เมื่อให้ยาซ้ำ (ดูปฏิบัติการถัดไป)</p>
+    </div>
+
+    <div class="callout">
+      <b>ประเด็นที่ควรสังเกตขณะใช้เครื่องมือ</b>
+      <ul style="margin:6px 0 0; padding-left:1.2em;">
+        <li>สังเกตจุดวงกลมบนเส้นโค้ง: ทุกครั้งที่ผ่านไป 1×t½ ระดับยาลดลงเหลือครึ่งหนึ่งของค่าก่อนหน้า (ดูเส้นไกด์ % ทางซ้าย)</li>
+        <li>เลื่อน <b>CL</b> หรือ <b>V<sub>d</sub></b> สังเกตว่า t½ เปลี่ยน บันไดครึ่งชีวิตยืด/หดตามแนวนอน แต่รูปแบบ "ลดครึ่ง" เหมือนเดิม</li>
+        <li>เลื่อน <b>ขนาดยา</b> สังเกตว่า C₀ เปลี่ยน แต่ t½ และรูปแบบการลดครึ่งเท่าเดิม (t½ ไม่ขึ้นกับขนาดยา)</li>
+        <li>สลับแกน Y เป็น <b>log</b> เส้นจะกลายเป็นเส้นตรง และระยะของแต่ละ t½ เท่ากันพอดี</li>
+        <li>ดูที่เส้น 5×t½ ยาเหลือประมาณ 3% (ถูกกำจัดไปแล้ว ~97%)</li>
+      </ul>
+    </div>
+
+    <div class="tool">
+      <div class="tool-label">เครื่องมือโต้ตอบ — ปรับค่าแล้วสังเกตผล</div>
+      <div class="pk3" id="hl-widget">
+        <div class="pk2-btns" id="hl-presets"></div>
+
+        <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:8px;">
+          <span style="font-size:.85rem; color:var(--sub);">แกน Y:</span>
+          <div class="pk2-btns" id="hl-scale" style="margin:0;"></div>
+        </div>
+
+        <div class="pk2-plot">
+          <svg id="hl-svg" viewBox="0 0 560 360" style="width:100%; height:auto; font-family:'Mitr','Sarabun',sans-serif;"></svg>
+          <p class="pk2-cap">เส้นทึบ = ระดับยา · เส้นไกด์แนวนอน = ครึ่งของค่าก่อนหน้า (%) · เส้นไกด์แนวตั้ง = ทุก 1×t½</p>
+        </div>
+
+        <div class="pk2-readouts" style="grid-template-columns:repeat(3,1fr);">
+          <div class="pk2-cell"><div class="v" id="hl-thalf">–</div><div class="k">t½ (ชม.)</div></div>
+          <div class="pk2-cell"><div class="v" id="hl-ke">–</div><div class="k">k<sub>e</sub> (ต่อ ชม.)</div></div>
+          <div class="pk2-cell"><div class="v" id="hl-c0">–</div><div class="k">C₀ (mg/L)</div></div>
+        </div>
+
+        <div id="hl-table" style="margin:10px 0 2px; overflow-x:auto;"></div>
+
+        <div class="fp-gates">
+          <div class="fp-gate" style="border-color:#6366f144;">
+            <div class="fp-gate-head"><span><b>ขนาดยา</b><small>Dose</small></span><span class="fp-pill" id="hl-dose-val" style="background:#6366F1;">1000</span></div>
+            <input type="range" id="hl-dose" min="250" max="2000" step="50" value="1000" style="accent-color:#6366F1;">
+            <p class="fp-help">ขนาดยา IV (mg) — เปลี่ยน C₀ แต่ไม่เปลี่ยน t½</p>
+          </div>
+          <div class="fp-gate" style="border-color:#34D39944;">
+            <div class="fp-gate-head"><span><b>V<sub>d</sub></b><small>การกระจายตัว</small></span><span class="fp-pill" id="hl-vd-val" style="background:#34D399;">60</span></div>
+            <input type="range" id="hl-vd" min="10" max="100" step="1" value="60" style="accent-color:#34D399;">
+            <p class="fp-help">ปริมาตรการกระจายตัว (L) — มากขึ้น = t½ ยาว</p>
+          </div>
+          <div class="fp-gate" style="border-color:#F5A52444;">
+            <div class="fp-gate-head"><span><b>CL</b><small>การขจัดยา</small></span><span class="fp-pill" id="hl-cl-val" style="background:#F5A524;">21</span></div>
+            <input type="range" id="hl-cl" min="1" max="30" step="0.5" value="21" style="accent-color:#F5A524;">
+            <p class="fp-help">การขจัดยา (L/h) — มากขึ้น = ขจัดเร็ว t½ สั้น</p>
+          </div>
+        </div>
+
+        <div class="fp-foot">
+          <p style="margin:0 0 6px;"><b>ที่มาของค่า:</b> paracetamol t½ ≈ 2 ชม. (ผู้ใหญ่; ช่วง 1.9–2.5 ชม.; V<sub>d</sub> ≈ 0.9 L/kg, CL ≈ 0.3 L/h/kg ≈ 21 L/h ที่ 70 kg)<sup>1</sup> · vancomycin t½ ≈ 6–7 ชม. (V<sub>d</sub> ≈ 49 L, CL ≈ 5 L/h)<sup>2</sup> · แบบจำลอง one-compartment IV (bolus) เพื่อการสอน — ค่าทั้งหมดมีความแปรปรวนระหว่างบุคคลสูง</p>
+          <p style="margin:0;"><b>เอกสารอ้างอิง</b><br>
+          1. Forrest JA, Clements JA, Prescott LF. Clinical pharmacokinetics of paracetamol. Clin Pharmacokinet. 1982;7(2):93–107. <a href="https://pubmed.ncbi.nlm.nih.gov/7039926/" target="_blank" rel="noopener">PMID 7039926</a>. <a href="https://doi.org/10.2165/00003088-198207020-00001" target="_blank" rel="noopener">[DOI]</a><br>
+          2. Matzke GR, Zhanel GG, Guay DR. Clinical pharmacokinetics of vancomycin. Clin Pharmacokinet. 1986;11(4):257–282. <a href="https://pubmed.ncbi.nlm.nih.gov/3530582/" target="_blank" rel="noopener">PMID 3530582</a>. <a href="https://doi.org/10.2165/00003088-198611040-00001" target="_blank" rel="noopener">[DOI]</a></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="quiz" id="quizhl">
+      <div class="quiz-head">
+        <h3>ทบทวนตัวเอง</h3>
+        <span class="quiz-score" id="quizhl-score">ตอบแล้ว 0/0 ข้อ</span>
+      </div>
+      <p class="quiz-note">ตอบเพื่อเช็กความเข้าใจของตัวเอง เฉลยขึ้นทันทีพร้อมคำอธิบาย</p>
+      <div id="quizhl-body"></div>
+      <button class="quiz-reset" id="quizhl-reset">เริ่มทำใหม่</button>
+    </div>
+  </section>
+
+</div>
+
+<!-- ========================================================================
+     สคริปต์เครื่องมือ "t½ Explorer" — เห็นภาพการลดลงครึ่งหนึ่ง
+     ค่ายา/พารามิเตอร์แก้ได้ที่ตัวแปร PRESETS ด้านล่าง
+     ======================================================================== -->
+<script>
+(function(){
+  "use strict";
+
+  // ค่ายาจริง (อ้างอิงในเชิงอรรถใต้เครื่องมือ) — paracetamol t½≈2h, vancomycin t½≈6.8h
+  var PRESETS = {
+    para:  { label:"paracetamol (t½≈2 ชม.)",  dose:1000, vd:60, cl:21 },
+    vanco: { label:"vancomycin (t½≈6.8 ชม.)", dose:1000, vd:49, cl:5  }
+  };
+  var yscale = "linear";   // "linear" | "log"
+
+  var svg      = document.getElementById("hl-svg");
+  var presetBox= document.getElementById("hl-presets");
+  var scaleBox = document.getElementById("hl-scale");
+  var doseIn   = document.getElementById("hl-dose");
+  var vdIn     = document.getElementById("hl-vd");
+  var clIn     = document.getElementById("hl-cl");
+  var tableBox = document.getElementById("hl-table");
+  if(!svg || !doseIn || !vdIn || !clIn) return;
+
+  function vals(){
+    var dose=parseFloat(doseIn.value), vd=parseFloat(vdIn.value), cl=parseFloat(clIn.value);
+    var ke=cl/vd, thalf=Math.LN2/ke, c0=dose/vd;
+    return { dose:dose, vd:vd, cl:cl, ke:ke, thalf:thalf, c0:c0 };
+  }
+
+  // เลือกช่วงขีดแกนความเข้มข้น (แกนปกติ) ให้เป็นเลขกลม
+  function niceStep(x){
+    var steps=[0.1,0.2,0.25,0.5,1,2,2.5,5,10,20,25,50,100,200,250,500];
+    for(var i=0;i<steps.length;i++){ if(steps[i]>=x) return steps[i]; }
+    return steps[steps.length-1];
+  }
+
+  function buildSVG(q){
+    var L=66, R=502, T=18, B=312;
+    var NT=6;                       // จำนวนครึ่งชีวิตที่แสดงบนแกนเวลา (0..6×t½)
+    var H = NT*q.thalf;
+    function xOf(t){ return L + (t/H)*(R-L); }
+
+    var yMax = q.c0*1.06;
+    var LOGMIN = Math.max(q.c0/200, 0.01);
+    var logBot = Math.log(LOGMIN)/Math.LN10, logTop = Math.log(yMax)/Math.LN10;
+    function yOf(c){
+      if(yscale==="log"){
+        var cc=Math.max(c, LOGMIN);
+        return B - ((Math.log(cc)/Math.LN10 - logBot)/(logTop-logBot))*(B-T);
+      }
+      return B - (Math.min(c,yMax)/yMax)*(B-T);
+    }
+
+    var s="";
+    // แกน
+    s += '<line x1="'+L+'" y1="'+B+'" x2="'+R+'" y2="'+B+'" stroke="#C9BEE0" stroke-width="1.2"/>';
+    s += '<line x1="'+L+'" y1="'+T+'" x2="'+L+'" y2="'+B+'" stroke="#C9BEE0" stroke-width="1.2"/>';
+
+    // ระดับครึ่งชีวิต C0/2^n
+    var levels=[];
+    for(var n=0;n<=NT;n++){ levels.push(q.c0/Math.pow(2,n)); }
+
+    // ----- แกนซ้าย: ความเข้มข้น (mg/L) มีสเกลจริง -----
+    if(yscale==="log"){
+      var pLo=Math.floor(logBot), pHi=Math.ceil(logTop);
+      for(var pp=pLo; pp<=pHi; pp++){
+        var base=Math.pow(10,pp);
+        for(var m=1;m<10;m++){
+          var cv=base*m; if(cv<LOGMIN-1e-9 || cv>yMax+1e-9) continue;
+          var yy=yOf(cv), major=(m===1);
+          s += '<line x1="'+L+'" y1="'+yy.toFixed(1)+'" x2="'+R+'" y2="'+yy.toFixed(1)+'" stroke="#EEE9F6" stroke-width="'+(major?1:0.5)+'"/>';
+          if(major){ var lbl=(cv<1?cv:Math.round(cv));
+            s += '<text x="'+(L-6)+'" y="'+(yy+3).toFixed(1)+'" text-anchor="end" font-size="10" fill="#6B6486">'+lbl+'</text>'; }
+        }
+      }
+    } else {
+      var step=niceStep(yMax/5);
+      for(var cv=0; cv<=yMax+1e-9; cv+=step){ var yy=yOf(cv);
+        s += '<line x1="'+L+'" y1="'+yy.toFixed(1)+'" x2="'+R+'" y2="'+yy.toFixed(1)+'" stroke="#EEE9F6" stroke-width="1"/>';
+        s += '<text x="'+(L-6)+'" y="'+(yy+3).toFixed(1)+'" text-anchor="end" font-size="10" fill="#6B6486">'+(Math.round(cv*10)/10)+'</text>';
+      }
+    }
+    // ----- เส้นไกด์ครึ่งชีวิต (แนวนอน) + ป้าย % ทางขวา + ÷2 -----
+    for(var n=0;n<=NT;n++){
+      var yy2=yOf(levels[n]);
+      s += '<line x1="'+L+'" y1="'+yy2.toFixed(1)+'" x2="'+R+'" y2="'+yy2.toFixed(1)+'" stroke="#0EA5A4" stroke-width="1.1" stroke-dasharray="5 4" opacity="0.6"/>';
+      var pct=100/Math.pow(2,n);
+      var plab=(pct>=10? Math.round(pct) : pct.toFixed(1))+"%";
+      s += '<text x="'+(R+6)+'" y="'+(yy2+3).toFixed(1)+'" text-anchor="start" font-size="10" fill="#0e7d7b">'+plab+'</text>';
+    }
+    for(var n=0;n<NT;n++){
+      var ymid=(yOf(levels[n])+yOf(levels[n+1]))/2;
+      s += '<text x="'+(R+30)+'" y="'+(ymid+3).toFixed(1)+'" font-size="9" fill="#94a3b8">÷2</text>';
+    }
+    s += '<text x="'+(R+6)+'" y="'+(T-4)+'" font-size="9.5" fill="#0e7d7b">% ของ C₀</text>';
+
+    // เส้นไกด์แนวตั้งที่ n×t½ + ป้ายเวลา/จำนวน t½
+    for(var n=1;n<=NT;n++){
+      var tt=n*q.thalf, xx=xOf(tt);
+      s += '<line x1="'+xx.toFixed(1)+'" y1="'+T+'" x2="'+xx.toFixed(1)+'" y2="'+B+'" stroke="#A855F7" stroke-width="0.8" stroke-dasharray="3 3" opacity="0.45"/>';
+      s += '<text x="'+xx.toFixed(1)+'" y="'+(B+14)+'" text-anchor="middle" font-size="10" fill="#6B6486">'+tt.toFixed(1)+'</text>';
+      s += '<text x="'+xx.toFixed(1)+'" y="'+(B+26)+'" text-anchor="middle" font-size="9" fill="#9333ea">'+n+'×t½</text>';
+    }
+    // ป้ายแกน
+    s += '<text x="'+((L+R)/2)+'" y="'+(B+40)+'" text-anchor="middle" font-size="11" fill="#2A2150">เวลา (ชั่วโมง)</text>';
+    s += '<text transform="rotate(-90 16 '+((T+B)/2)+')" x="16" y="'+((T+B)/2)+'" text-anchor="middle" font-size="11" fill="#2A2150">ระดับยา (mg/L)'+(yscale==="log"?" — log":"")+'</text>';
+
+    // ไฮไลต์ 5×t½
+    if(NT>=5){
+      var x5=xOf(5*q.thalf);
+      s += '<rect x="'+(x5-2).toFixed(1)+'" y="'+T+'" width="4" height="'+(B-T)+'" fill="#F43F5E" opacity="0.10"/>';
+      s += '<text x="'+x5.toFixed(1)+'" y="'+(T+11)+'" text-anchor="middle" font-size="9.5" font-weight="600" fill="#b81c43">5×t½: เหลือ ~3%</text>';
+    }
+
+    // เส้นโค้ง C(t) = C0·e^(-ke·t)
+    var Np=240, path="";
+    for(var i=0;i<=Np;i++){ var t=(i/Np)*H, c=q.c0*Math.exp(-q.ke*t);
+      path += (i===0?"M":"L") + xOf(t).toFixed(1) + " " + yOf(c).toFixed(1) + " "; }
+    s += '<path d="'+path+'" fill="none" stroke="#6366F1" stroke-width="2.4" stroke-linejoin="round"/>';
+
+    // จุดวงกลมที่ n×t½ + ป้ายค่าความเข้มข้น (mg/L) ให้เห็นการลดครึ่งบนกราฟ
+    for(var n=0;n<=NT;n++){
+      var dx=xOf(n*q.thalf), dyy=yOf(levels[n]), cval=levels[n];
+      s += '<circle cx="'+dx.toFixed(1)+'" cy="'+dyy.toFixed(1)+'" r="3.6" fill="#fff" stroke="#6366F1" stroke-width="1.8"/>';
+      var ctxt=(cval>=1? cval.toFixed(1) : cval.toFixed(2));
+      if(n===NT){ s += '<text x="'+(dx-6).toFixed(1)+'" y="'+(dyy-5).toFixed(1)+'" text-anchor="end" font-size="9" font-weight="600" fill="#4f46e5">'+ctxt+'</text>'; }
+      else { s += '<text x="'+(dx+6).toFixed(1)+'" y="'+(dyy-5).toFixed(1)+'" text-anchor="start" font-size="9" font-weight="600" fill="#4f46e5">'+ctxt+'</text>'; }
+    }
+    return s;
+  }
+
+  function buildTable(q){
+    var h='<table style="width:100%; border-collapse:collapse; font-size:.82rem;">'
+      + '<tr style="color:#6B6486;">'
+      + '<th style="text-align:left; padding:3px 6px;">จำนวน t½</th>'
+      + '<th style="text-align:right; padding:3px 6px;">เวลา (ชม.)</th>'
+      + '<th style="text-align:right; padding:3px 6px;">ความเข้มข้น (mg/L)</th>'
+      + '<th style="text-align:right; padding:3px 6px;">% คงเหลือ</th>'
+      + '<th style="text-align:right; padding:3px 6px;">% ถูกกำจัด</th></tr>';
+    for(var n=0;n<=5;n++){
+      var remain=100/Math.pow(2,n), elim=100-remain, tnum=n*q.thalf, conc=q.c0/Math.pow(2,n);
+      h += '<tr style="border-top:1px solid #EEE9F6;">'
+        + '<td style="padding:3px 6px;">'+n+'</td>'
+        + '<td style="text-align:right; padding:3px 6px;">'+tnum.toFixed(1)+'</td>'
+        + '<td style="text-align:right; padding:3px 6px; color:#4f46e5; font-weight:600;">'+conc.toFixed(2)+'</td>'
+        + '<td style="text-align:right; padding:3px 6px;">'+remain.toFixed(1)+'</td>'
+        + '<td style="text-align:right; padding:3px 6px; color:#b81c43;">'+elim.toFixed(1)+'</td></tr>';
+    }
+    h += '</table>';
+    return h;
+  }
+
+  function recompute(){
+    var q=vals();
+    svg.innerHTML = buildSVG(q);
+    if(tableBox) tableBox.innerHTML = buildTable(q);
+    document.getElementById("hl-thalf").textContent = q.thalf.toFixed(2);
+    document.getElementById("hl-ke").textContent    = q.ke.toFixed(3);
+    document.getElementById("hl-c0").textContent    = q.c0.toFixed(1);
+    document.getElementById("hl-dose-val").textContent = Math.round(q.dose);
+    document.getElementById("hl-vd-val").textContent   = Math.round(q.vd);
+    document.getElementById("hl-cl-val").textContent   = (Math.round(q.cl*10)/10);
+  }
+
+  function setPreset(key){
+    var p=PRESETS[key]; if(!p) return;
+    doseIn.value=p.dose; vdIn.value=p.vd; clIn.value=p.cl;
+    Array.prototype.forEach.call(presetBox.children, function(b){
+      var on=(b.getAttribute("data-preset")===key);
+      b.style.background=on?"#2A2150":"#fff"; b.style.color=on?"#fff":"#2A2150";
+    });
+    recompute();
+  }
+  function setScale(sname){
+    yscale=sname;
+    if(scaleBox) Array.prototype.forEach.call(scaleBox.children, function(b){
+      var on=(b.getAttribute("data-scale")===sname);
+      b.style.background=on?"#2A2150":"#fff"; b.style.color=on?"#fff":"#2A2150";
+    });
+    recompute();
+  }
+
+  // ปุ่ม preset
+  Object.keys(PRESETS).forEach(function(key){
+    var b=document.createElement("button"); b.className="pk2-btn"; b.type="button";
+    b.setAttribute("data-preset", key); b.textContent=PRESETS[key].label;
+    b.style.borderColor="#2A2150"; b.style.color="#2A2150";
+    b.addEventListener("click", function(){ setPreset(key); });
+    presetBox.appendChild(b);
+  });
+  // ปุ่มสลับแกน Y
+  [["linear","ปกติ (linear)"],["log","log (semi-log)"]].forEach(function(sc){
+    var b=document.createElement("button"); b.className="pk2-btn"; b.type="button";
+    b.setAttribute("data-scale", sc[0]); b.textContent=sc[1];
+    b.style.borderColor="#2A2150"; b.style.color="#2A2150";
+    b.style.padding="5px 12px"; b.style.fontSize=".82rem";
+    b.addEventListener("click", function(){ setScale(sc[0]); });
+    scaleBox.appendChild(b);
+  });
+
+  [doseIn,vdIn,clIn].forEach(function(el){ el.addEventListener("input", recompute); });
+
+  function init(){ setScale("linear"); setPreset("para"); }
+  if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();
+</script>
+
+<!-- ========================================================================
+     สคริปต์แบบทบทวนตัวเอง (self-check) ของปฏิบัติการ t½
+     ======================================================================== -->
+<script>
+(function(){
+  "use strict";
+
+  var QUESTIONS = [
+    { q:"ครึ่งชีวิต (t½) ของยาหมายถึงข้อใด?",
+      kind:"เลือกตอบ",
+      options:["เวลาที่ระดับยาในเลือดลดลงเหลือครึ่งหนึ่ง","เวลาที่ยาถูกดูดซึมไปครึ่งหนึ่ง","ครึ่งหนึ่งของระยะเวลาออกฤทธิ์"],
+      answer:0,
+      why:"t½ คือเวลาที่ความเข้มข้นของยาลดลงเหลือครึ่งหนึ่งของค่าเดิม — สังเกตจุดวงกลมบนเส้นโค้งที่ทุก 1×t½ ระดับยาลดลงครึ่งหนึ่ง" },
+
+    { q:"ถ้าเพิ่มขนาดยาเป็น 2 เท่า (โดย Vd และ CL คงเดิม) ค่า t½ จะเป็นอย่างไร?",
+      kind:"เลือกตอบ",
+      options:["เท่าเดิม","ยาวขึ้น 2 เท่า","สั้นลงครึ่งหนึ่ง"],
+      answer:0,
+      why:"t½ = 0.693 × Vd / CL ไม่มีพจน์ของขนาดยา — ขนาดยามากขึ้นทำให้ C₀ สูงขึ้น แต่ t½ เท่าเดิม ลองเลื่อนสไลเดอร์ขนาดยาในเครื่องมือเพื่อสังเกต" },
+
+    { q:"เมื่อ CL ลดลง (เช่น ผู้ป่วยที่การทำงานของไตบกพร่อง) ค่า t½ จะเปลี่ยนไปอย่างไร?",
+      kind:"เลือกตอบ",
+      options:["ยาวขึ้น","สั้นลง","ไม่เปลี่ยนแปลง"],
+      answer:0,
+      why:"t½ = 0.693 × Vd / CL เมื่อ CL ลดลง t½ จะยาวขึ้น (ยาถูกกำจัดช้าลง) — ลดสไลเดอร์ CL ในเครื่องมือเพื่อสังเกตบันไดครึ่งชีวิตยืดออก" },
+
+    { q:"หลังจากเวลาผ่านไปประมาณ 5 เท่าของ t½ ยาจะถูกกำจัดออกไปแล้วประมาณเท่าใด?",
+      kind:"เลือกตอบ",
+      options:["~97% (เหลือ ~3%)","~50% (เหลือ ~50%)","~75% (เหลือ ~25%)"],
+      answer:0,
+      why:"ทุก t½ ยาเหลือครึ่งหนึ่ง: ที่ 5×t½ เหลือ (1/2)^5 ≈ 3% จึงถูกกำจัดไปแล้ว ~97% — ดูแถวสุดท้ายของตารางในเครื่องมือ" }
+  ];
+
+  var state = [];
+  function reset(){ state = QUESTIONS.map(function(){ return null; }); render(); }
+  function choose(qi, oi){ if(state[qi] !== null) return; state[qi] = oi; render(); }
+
+  function render(){
+    var body = document.getElementById("quizhl-body");
+    body.innerHTML = "";
+    QUESTIONS.forEach(function(item, qi){
+      var answered = state[qi] !== null;
+      var card = document.createElement("div"); card.className = "q";
+      var qText = document.createElement("p"); qText.className = "q-text";
+      qText.innerHTML = (qi+1) + ". " + item.q + ' <span class="q-kind">' + item.kind + '</span>';
+      card.appendChild(qText);
+      var opts = document.createElement("div"); opts.className = "q-opts";
+      item.options.forEach(function(text, oi){
+        var b = document.createElement("button"); b.className = "opt"; b.textContent = text;
+        if(answered){ b.disabled = true;
+          if(oi === item.answer) b.classList.add("correct");
+          else if(oi === state[qi]) b.classList.add("wrong");
+        } else { b.addEventListener("click", function(){ choose(qi, oi); }); }
+        opts.appendChild(b);
+      });
+      card.appendChild(opts);
+      if(answered){
+        var correct = (state[qi] === item.answer);
+        var fb = document.createElement("div"); fb.className = "fb " + (correct ? "ok" : "no");
+        fb.innerHTML = (correct ? "✓ <b>ถูกต้อง!</b> " : "✗ <b>ยังไม่ใช่</b> ") + item.why;
+        card.appendChild(fb);
+      }
+      body.appendChild(card);
+    });
+    var answeredCount = state.filter(function(s){ return s !== null; }).length;
+    var correctCount = state.filter(function(s,i){ return s === QUESTIONS[i].answer; }).length;
+    document.getElementById("quizhl-score").textContent =
+      "ตอบแล้ว " + answeredCount + "/" + QUESTIONS.length + " ข้อ · ถูก " + correctCount + " ข้อ";
+  }
+  function init(){ document.getElementById("quizhl-reset").addEventListener("click", reset); reset(); }
+  if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();
+</script>
+
+</body>
+</html>

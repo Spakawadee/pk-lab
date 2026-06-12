@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>หัวข้อใหม่ (ตัวอย่าง)</title>
+
+<!--
+  ===========================================================================
+  template.html — หน้าเปล่าสำหรับเริ่มหัวข้อใหม่
+  ใช้ฟอนต์และโทนสีชุดเดียวกับ pk-lab.html
+  วิธีใช้: คัดลอกไฟล์นี้ เปลี่ยนชื่อ แล้วแก้หัวข้อ/ย่อหน้าในส่วน <body>
+  ===========================================================================
+-->
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mitr:wght@400;500;600&family=Sarabun:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --ink:#2A2150; --sub:#6B6486; --card:#ffffff;
+    --indigo:#6366F1; --purple:#A855F7; --teal:#0EA5A4;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; color:var(--ink);
+    font-family:'Sarabun',system-ui,sans-serif; line-height:1.75;
+    background:linear-gradient(160deg,#FDF4FF 0%,#EFFBFF 100%);
+    background-attachment:fixed;
+  }
+  .wrap{max-width:780px; margin:0 auto; padding:28px 18px 64px;}
+  h1,h2,h3{font-family:'Mitr',sans-serif; font-weight:600; line-height:1.35; color:var(--ink);}
+
+  .hero{padding:14px 4px 6px;}
+  .eyebrow{font-family:'Mitr',sans-serif; font-size:.8rem; letter-spacing:.06em;
+    color:var(--purple); font-weight:500;}
+  .hero h1{font-size:2rem; margin:.2em 0 .15em;}
+  .hero p{color:var(--sub); margin:.2em 0 0; max-width:60ch;}
+
+  .lab{background:var(--card); border-radius:28px; padding:26px 24px;
+    margin:22px 0; box-shadow:0 10px 30px #2a21500d; border:1px solid #EFE7F7;}
+  .lab-head{display:flex; align-items:center; gap:14px; margin-bottom:6px;}
+  .lab-num{flex:none; width:42px; height:42px; border-radius:14px; display:grid; place-items:center;
+    font-family:'Mitr',sans-serif; font-weight:600; color:#fff; font-size:1.15rem;
+    background:linear-gradient(135deg,var(--indigo),var(--purple));}
+  .lab-head h2{font-size:1.35rem; margin:0;}
+  .lab-sub{color:var(--sub); font-size:.92rem; margin:2px 0 0;}
+  .lab p{margin:.6em 0;}
+</style>
+</head>
+<body>
+  <div class="wrap">
+
+    <div class="hero">
+      <div class="eyebrow">ปฏิบัติการเภสัชจลนศาสตร์</div>
+      <h1>หัวข้อใหม่ (ตัวอย่าง)</h1>
+      <p>คำโปรยสั้น ๆ อธิบายว่าหัวข้อนี้ครอบคลุมอะไร — แก้ข้อความนี้ได้ตามต้องการ</p>
+    </div>
+
+    <section class="lab">
+      <div class="lab-head">
+        <div class="lab-num">1</div>
+        <div>
+          <h2>ชื่อหัวข้อย่อย</h2>
+          <p class="lab-sub">คำอธิบายสั้น ๆ ใต้หัวข้อ</p>
+        </div>
+      </div>
+      <p>นี่คือย่อหน้าตัวอย่าง ใช้สำหรับวางโครงหน้าก่อนใส่เนื้อหาจริง สามารถลบหรือแก้ไขข้อความนี้ได้ทันที โดยยังคงฟอนต์และโทนสีชุดเดียวกับหน้าปฏิบัติการอื่น ๆ</p>
+      <p>เพิ่มย่อหน้า รูปภาพ หรือเครื่องมือโต้ตอบในการ์ดนี้ได้ตามต้องการ</p>
+    </section>
+
+  </div>
+</body>
+</html>

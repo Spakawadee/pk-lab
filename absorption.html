@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>กราฟความเข้มข้น–เวลา การดูดซึม และชีวประสิทธิผล</title>
+
+<!--
+  ===========================================================================
+  absorption.html — หัวข้อ "กราฟความเข้มข้น–เวลา การดูดซึม และชีวประสิทธิผล"
+  แยกออกมาจาก pk-lab.html เป็นไฟล์เดียวจบ เปิดทำงานได้ด้วยตัวเอง (ไม่พึ่ง pk-lab.html)
+  ประกอบด้วย: เนื้อหา HTML ของหัวข้อ + CSS ที่จำเป็น (ชุดเดียวกับ pk-lab.html)
+              + สคริปต์เครื่องมือกราฟความเข้มข้น–เวลา (Bateman) + สคริปต์แบบทบทวนตัวเอง (quiz)
+  ===========================================================================
+-->
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mitr:wght@400;500;600&family=Sarabun:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --ink:#2A2150; --sub:#6B6486; --card:#ffffff;
+    --reach:#F43F5E; --feces:#B59A82; --gut:#34D399; --liver:#F5A524;
+    --indigo:#6366F1; --purple:#A855F7; --teal:#0EA5A4;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; color:var(--ink);
+    font-family:'Sarabun',system-ui,sans-serif; line-height:1.75;
+    background:linear-gradient(160deg,#FDF4FF 0%,#EFFBFF 100%);
+    background-attachment:fixed;
+  }
+  .wrap{max-width:780px; margin:0 auto; padding:28px 18px 64px;}
+  h1,h2,h3{font-family:'Mitr',sans-serif; font-weight:600; line-height:1.35; color:var(--ink);}
+  a{color:var(--indigo); text-decoration:none;}
+  a:hover{text-decoration:underline;}
+
+  /* ---- การ์ดปฏิบัติการ ---- */
+  .lab{background:var(--card); border-radius:28px; padding:26px 24px;
+    margin:22px 0; box-shadow:0 10px 30px #2a21500d; border:1px solid #EFE7F7;}
+  .lab-head{display:flex; align-items:center; gap:14px; margin-bottom:6px;}
+  .lab-num{flex:none; width:42px; height:42px; border-radius:14px; display:grid; place-items:center;
+    font-family:'Mitr',sans-serif; font-weight:600; color:#fff; font-size:1.15rem;
+    background:linear-gradient(135deg,var(--indigo),var(--purple));}
+  .lab-head h2{font-size:1.35rem; margin:0;}
+  .lab-sub{color:var(--sub); font-size:.92rem; margin:2px 0 0;}
+
+  /* ---- ความรู้พื้นฐาน ---- */
+  .know{margin-top:16px; padding-left:16px; border-left:4px solid #EADCF7;}
+  .know h3{font-size:1.02rem; margin:18px 0 6px; color:var(--indigo);}
+  .know p{margin:.4em 0;}
+  .know ul{margin:.3em 0; padding-left:1.2em;}
+  .know li{margin:.25em 0;}
+
+  .callout{background:#FFFDF5; border:1px solid #F3E9C8; border-radius:18px;
+    padding:14px 16px; margin:16px 0; font-size:.92rem; color:#6b6486;}
+  .callout b{color:var(--ink);}
+
+  /* ---- กล่องเครื่องมือ ---- */
+  .tool{margin-top:20px; border:1px solid #E5EEF0; border-radius:24px; overflow:hidden;
+    background:linear-gradient(160deg,#FDF4FF 0%,#EFFBFF 100%);}
+  .tool-label{font-family:'Mitr',sans-serif; font-size:.85rem; font-weight:500;
+    color:var(--teal); padding:12px 16px 0;}
+
+  /* ===== กล่องพารามิเตอร์ (สไลเดอร์) ===== */
+  .fp-gates{display:grid; grid-template-columns:1fr; gap:8px; margin-bottom:12px;}
+  @media(min-width:560px){ .fp-gates{grid-template-columns:1fr 1fr 1fr;} }
+  .fp-gate{background:#fff; border:1px solid; border-radius:16px; padding:12px;}
+  .fp-gate-head{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:4px;}
+  .fp-gate-head small{color:var(--sub); margin-left:4px; font-size:.78rem;}
+  .fp-pill{font-family:ui-monospace,monospace; font-weight:700; color:#fff; padding:1px 8px; border-radius:8px; font-size:.95rem;}
+  .fp-gate input[type=range]{width:100%; cursor:pointer;}
+  .fp-help{font-size:.76rem; color:var(--sub); margin:6px 0 0;}
+  .fp-foot{background:#FFFDF5; border:1px solid #F3E9C8; border-radius:16px; padding:12px;
+    font-size:.76rem; line-height:1.6; color:var(--sub);}
+  .fp-foot b{color:var(--ink);}
+
+  /* ===== แบบทบทวนตัวเอง (self-check quiz) ===== */
+  .quiz{margin-top:22px; background:#FBF9FE; border:1px solid #EADCF7; border-radius:22px; padding:18px 18px 16px;}
+  .quiz-head{display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;}
+  .quiz-head h3{margin:0; font-size:1.05rem; color:var(--purple);}
+  .quiz-score{font-family:'Mitr',sans-serif; font-weight:500; font-size:.92rem; color:var(--indigo);}
+  .quiz-note{font-size:.8rem; color:var(--sub); margin:4px 0 12px;}
+  .q{background:#fff; border:1px solid #EFE7F7; border-radius:16px; padding:14px 16px; margin:12px 0;}
+  .q-text{font-weight:600; margin:0;}
+  .q-kind{display:inline-block; font-size:.72rem; font-weight:600; padding:1px 8px; border-radius:8px;
+    background:#A855F71a; color:var(--purple); margin-left:6px; vertical-align:middle;}
+  .q-opts{display:flex; flex-direction:column; gap:8px; margin-top:12px;}
+  .opt{text-align:left; border:1.5px solid #E3DCEF; background:#fff; border-radius:12px;
+    padding:9px 13px; cursor:pointer; font-family:'Sarabun',sans-serif; font-size:.92rem; color:var(--ink);
+    transition:border-color .15s ease, background .15s ease;}
+  .opt:hover:not(:disabled){border-color:var(--purple);}
+  .opt:disabled{cursor:default;}
+  .opt.correct{border-color:#34D399; background:#ECFDF5; font-weight:600;}
+  .opt.wrong{border-color:#F43F5E; background:#FFF1F2;}
+  .fb{margin-top:10px; font-size:.86rem; border-radius:12px; padding:10px 12px; line-height:1.6;}
+  .fb.ok{background:#ECFDF5; color:#0f7a52;}
+  .fb.no{background:#FFF1F2; color:#b81c43;}
+  .fb b{color:inherit;}
+  .quiz-reset{margin-top:6px; border:1.5px solid var(--purple); background:#fff; color:var(--purple);
+    border-radius:12px; padding:7px 16px; font-family:'Sarabun',sans-serif; font-weight:600; font-size:.88rem; cursor:pointer;}
+  .quiz-reset:hover{background:var(--purple); color:#fff;}
+
+  /* ---- เครื่องมือ: กราฟความเข้มข้น–เวลา (ปุ่มยา / อ่านค่า) ---- */
+  .pk2-btns{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px;}
+  .pk2-btn{background:#fff; border:1.5px solid #EADCF7; border-radius:999px; padding:7px 15px;
+    font-family:'Mitr',sans-serif; font-weight:500; font-size:.9rem; color:var(--ink); cursor:pointer; transition:all .18s ease;}
+  .pk2-btn:hover{transform:translateY(-1px); box-shadow:0 4px 12px #6366f122;}
+  .pk2-plot{background:#fff; border:1px solid #EEE6F7; border-radius:16px; padding:8px;}
+  .pk2-cap{font-size:.78rem; color:var(--sub); text-align:center; margin:4px 0 0;}
+  .pk2-readouts{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:12px 0 6px;}
+  .pk2-cell{background:#fff; border:1px solid #EEE6F7; border-radius:12px; padding:8px 6px; text-align:center;}
+  .pk2-cell .v{font-family:'Mitr',sans-serif; font-weight:600; font-size:1.02rem; color:var(--ink); line-height:1.2;}
+  .pk2-cell .k{font-size:.72rem; color:var(--sub); margin-top:2px;}
+  .pk2-status{font-size:.85rem; margin:6px 0 2px; font-weight:600;}
+  @media(max-width:520px){ .pk2-readouts{grid-template-columns:repeat(2,1fr);} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <section class="lab" id="lab2" data-tab="การดูดซึม และชีวประสิทธิผล">
+    <div class="lab-head">
+      <div class="lab-num" style="background:linear-gradient(135deg,#34D399,#0EA5A4); font-size:0.82rem;">C–t</div>
+      <div>
+        <h2>กราฟความเข้มข้น–เวลา การดูดซึม และชีวประสิทธิผล</h2>
+        <p class="lab-sub">อัตราเร็วเทียบกับปริมาณการดูดซึม · onset และ duration of action ผ่าน MEC/MTC</p>
+      </div>
+    </div>
+
+    <div class="know">
+      <p><b>เป้าหมาย:</b> เพื่อให้อ่านกราฟความเข้มข้นของยาในเลือดกับเวลาได้ เข้าใจความแตกต่างระหว่าง
+      "อัตราเร็ว" และ "ปริมาณ" ของการดูดซึม และเชื่อมโยงระดับยากับการออกฤทธิ์ผ่านค่า MEC และ MTC</p>
+
+      <h3>อัตราเร็วและปริมาณของการดูดซึม</h3>
+      <p>คุณภาพของการดูดซึมยาพิจารณาได้จากสองด้าน คือ <b>อัตราเร็วของการดูดซึม</b> ดูจาก t<sub>max</sub>
+      (เวลาที่ระดับยาสูงสุด — ยิ่ง t<sub>max</sub> น้อยยิ่งดูดซึมเร็ว) และ C<sub>max</sub> (ระดับยาสูงสุด)
+      กับ <b>ปริมาณยาที่ถูกดูดซึม</b> ดูจาก AUC (พื้นที่ใต้กราฟ) ซึ่งแสดงปริมาณยาที่เข้าสู่ระบบไหลเวียนโลหิต
+      ข้อควรระวังคือ C<sub>max</sub> ใช้เทียบอัตราเร็วได้ดีเมื่อ AUC ใกล้เคียงกันเท่านั้น</p>
+
+      <h3>ชีวประสิทธิผลสัมบูรณ์และสัมพัทธ์</h3>
+      <p>ชีวประสิทธิผลสัมบูรณ์ (absolute bioavailability) เปรียบเทียบ AUC ของยาที่ให้โดยวิถีที่สนใจ
+      กับ AUC ของยาที่ให้ทางหลอดเลือดดำ (IV) ซึ่งถือว่า F = 100% ส่วนชีวประสิทธิผลสัมพัทธ์
+      (relative bioavailability) เปรียบเทียบระหว่างตำรับหรือวิถีการให้ยาสองแบบ (โดยปรับตามขนาดยา)</p>
+
+      <h3>MEC, MTC และ onset/duration of action</h3>
+      <ul>
+        <li><b>MEC</b> (minimum effective concentration) ระดับยาต่ำสุดที่เริ่มออกฤทธิ์รักษา</li>
+        <li><b>MTC</b> (minimum toxic concentration) ระดับยาที่เริ่มเกิดพิษ ช่วงระหว่าง MEC ถึง MTC คือช่วงการรักษา (therapeutic range)</li>
+        <li><b>Onset of action</b> คือเวลาที่ระดับยาเพิ่มขึ้นจนถึง MEC</li>
+        <li><b>Duration of action</b> คือช่วงเวลาที่ระดับยาอยู่เหนือ MEC</li>
+      </ul>
+
+      <h3>ตำรับออกฤทธิ์ทันที (IR) เทียบกับออกฤทธิ์เนิ่น (ER)</h3>
+      <p>เมื่อ AUC เท่ากัน (ปริมาณดูดซึมเท่ากัน) ตำรับออกฤทธิ์เนิ่น (extended-release) จะดูดซึมช้ากว่า
+      จึงมี C<sub>max</sub> ต่ำกว่า t<sub>max</sub> ช้ากว่า และออกฤทธิ์นานกว่าตำรับออกฤทธิ์ทันที
+      (immediate-release) โดยทั่วไปจึงเลือกตำรับ IR สำหรับอาการปวดเฉียบพลันที่ต้องการออกฤทธิ์เร็ว
+      และเลือกตำรับ ER สำหรับอาการปวดเรื้อรังที่ต้องการระดับยาสม่ำเสมอ</p>
+
+      <h3>ยาตัวอย่างในเครื่องมือ</h3>
+      <p>ใช้ morphine ซึ่งเป็นยาแก้ปวดที่มี first-pass metabolism สูง (ชีวประสิทธิผลทางการรับประทานเฉลี่ย ~30%
+      เทียบกับทางหลอดเลือดดำที่ F = 100%) มีทั้งรูปแบบฉีดเข้าหลอดเลือดดำ (IV), ยาเม็ดออกฤทธิ์ทันที (IR)
+      และยาเม็ดออกฤทธิ์เนิ่น (ER) จึงเหมาะกับการเปรียบเทียบทั้งอัตราเร็วและปริมาณการดูดซึม</p>
+    </div>
+
+    <div class="callout">
+      <b>ประเด็นที่ควรสังเกตขณะใช้เครื่องมือ</b>
+      <ul style="margin:6px 0 0; padding-left:1.2em;">
+        <li>เลือก "ยาเม็ด IR" แล้ว "ยาเม็ด ER" เปรียบเทียบกัน สังเกตว่า AUC ใกล้เคียงกัน แต่ C<sub>max</sub> และ t<sub>max</sub> ต่างกัน</li>
+        <li>เพิ่มค่า k<sub>a</sub> (ดูดซึมเร็วขึ้น) โดยคง F ไว้ สังเกตว่า t<sub>max</sub> ลดลง C<sub>max</sub> เพิ่มขึ้น แต่ AUC คงเดิม</li>
+        <li>ปรับค่า F สังเกตว่า C<sub>max</sub> และ AUC เปลี่ยนไปพร้อมกัน (ปริมาณการดูดซึม)</li>
+        <li>สังเกตว่า onset และ duration เปลี่ยนอย่างไรเมื่อเส้นกราฟตัดเส้น MEC และเข้าใกล้/เกินเส้น MTC</li>
+      </ul>
+    </div>
+
+    <div class="tool">
+      <div class="tool-label">เครื่องมือโต้ตอบ — ปรับค่าแล้วสังเกตผล</div>
+      <div class="pk2" id="pk2-widget">
+        <div class="pk2-btns" id="pk2-btns"></div>
+
+        <div class="pk2-plot">
+          <svg id="pk2-svg" viewBox="0 0 560 360" style="width:100%; height:auto; font-family:'Mitr','Sarabun',sans-serif;"></svg>
+          <p class="pk2-cap">เส้นทึบ = ระดับยาในเลือด · เส้นประ = MEC และ MTC · แถบสี = ช่วงการรักษา</p>
+        </div>
+
+        <div class="pk2-readouts">
+          <div class="pk2-cell"><div class="v" id="pk2-tmax">–</div><div class="k">t<sub>max</sub> (ชม.)</div></div>
+          <div class="pk2-cell"><div class="v" id="pk2-cmax">–</div><div class="k">C<sub>max</sub> (ng/mL)</div></div>
+          <div class="pk2-cell"><div class="v" id="pk2-auc">–</div><div class="k">AUC (ng·ชม./mL)</div></div>
+          <div class="pk2-cell"><div class="v" id="pk2-f">–</div><div class="k">%F (เทียบ IV)</div></div>
+          <div class="pk2-cell"><div class="v" id="pk2-onset">–</div><div class="k">onset (ชม.)</div></div>
+          <div class="pk2-cell"><div class="v" id="pk2-dur">–</div><div class="k">duration เหนือ MEC (ชม.)</div></div>
+        </div>
+        <p class="pk2-status" id="pk2-status"></p>
+
+        <div class="fp-gates">
+          <div class="fp-gate" style="border-color:#6366f144;">
+            <div class="fp-gate-head"><span><b>k<sub>a</sub></b><small>อัตราการดูดซึม</small></span><span class="fp-pill" id="pk2-ka-val" style="background:#6366F1;">6.00</span></div>
+            <input type="range" id="pk2-ka" min="0.1" max="8" step="0.05" value="6" style="accent-color:#6366F1;">
+            <p class="fp-help">ค่าคงที่อัตราการดูดซึม (h⁻¹) — มากขึ้น = ดูดซึมเร็วขึ้น (ไม่ใช้กับวิถี IV)</p>
+          </div>
+          <div class="fp-gate" style="border-color:#F43F5E44;">
+            <div class="fp-gate-head"><span><b>F</b><small>ชีวประสิทธิผล</small></span><span class="fp-pill" id="pk2-F-val" style="background:#F43F5E;">30%</span></div>
+            <input type="range" id="pk2-F" min="0.05" max="1" step="0.01" value="0.3" style="accent-color:#F43F5E;">
+            <p class="fp-help">สัดส่วนของขนาดยาที่เข้าสู่ระบบไหลเวียนโลหิต</p>
+          </div>
+        </div>
+
+        <div class="fp-foot">
+          <p style="margin:0 0 6px;"><b>ค่าคงที่ที่ใช้ในแบบจำลอง:</b> morphine V<sub>d</sub> ≈ 200 L (≈2.9 L/kg, 70 kg),
+          t½ ≈ 2.4 h (k<sub>e</sub> ≈ 0.29 h⁻¹), MEC ≈ 15 ng/mL, MTC ≈ 60 ng/mL · ขนาดยา preset: IV 10 mg, รับประทาน 30 mg
+          · แบบจำลอง one-compartment การดูดซึมอันดับหนึ่ง (Bateman) ซึ่งเป็นการลดทอนเพื่อการสอน
+          (ยา ER จริงดูดซึมใกล้แบบอันดับศูนย์)</p>
+          <p style="margin:0 0 6px;"><b>ที่มาของค่า:</b> F รับประทาน ~30% และ first-pass สูง<sup>1</sup> (สอดคล้องกับ FDA morphine sulfate label) · V<sub>d</sub> ≈ 2.9 L/kg, t½ ≈ 2–3 h<sup>1</sup> · C<sub>max</sub>/t<sub>max</sub> ของ IR เทียบ ER<sup>2,3</sup> · MEC ~16 ± 9 ng/mL<sup>4</sup> — ค่าทั้งหมดเป็นค่าเฉลี่ยที่มีความแปรปรวนระหว่างบุคคลสูง</p>
+          <p style="margin:0;"><b>เอกสารอ้างอิง</b><br>
+          1. Hasselström J, Säwe J. Morphine pharmacokinetics and metabolism in humans. Enterohepatic cycling and relative contribution of metabolites to active opioid concentrations. Clin Pharmacokinet. 1993;24(4):344–354. <a href="https://pubmed.ncbi.nlm.nih.gov/8491060/" target="_blank" rel="noopener">PMID 8491060</a>. <a href="https://doi.org/10.2165/00003088-199324040-00007" target="_blank" rel="noopener">[DOI]</a><br>
+          2. Atrux-Tallau N, Naimi Z, Jaudinot EO. Pharmacokinetics of morphine sulfate orodispersible tablets and bioequivalence with immediate-release oral morphine sulfate formulations in healthy adult subjects under fasting conditions: single-dose comparative bioavailability studies. Clin Drug Investig. 2022;42(12):1101–1112. <a href="https://pubmed.ncbi.nlm.nih.gov/36331670/" target="_blank" rel="noopener">PMID 36331670</a>. <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC9705466/" target="_blank" rel="noopener">[PMC]</a> <a href="https://doi.org/10.1007/s40261-022-01214-x" target="_blank" rel="noopener">[DOI]</a><br>
+          3. Kaiko RF, Lazarus H, Cronin C, et al. Controlled-release morphine bioavailability (MS Contin tablets) in the presence and absence of food. Hospice J. 1990;6(4):17–30. <a href="https://doi.org/10.1080/0742-969X.1990.11882681" target="_blank" rel="noopener">[DOI]</a><br>
+          4. Dahlström B, Tamsen A, Paalzow L, Hartvig P. Patient-controlled analgesic therapy, part IV: pharmacokinetics and analgesic plasma concentrations of morphine. Clin Pharmacokinet. 1982;7(3):266–279. <a href="https://pubmed.ncbi.nlm.nih.gov/7094501/" target="_blank" rel="noopener">PMID 7094501</a>. <a href="https://doi.org/10.2165/00003088-198207030-00006" target="_blank" rel="noopener">[DOI]</a></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ---------- แบบทบทวนตัวเอง (self-check) ---------- -->
+    <div class="quiz" id="quiz2">
+      <div class="quiz-head">
+        <h3>ทบทวนตัวเอง</h3>
+        <span class="quiz-score" id="quiz2-score">ตอบแล้ว 0/0 ข้อ</span>
+      </div>
+      <p class="quiz-note">ตอบเพื่อเช็กความเข้าใจของตัวเอง เฉลยขึ้นทันทีพร้อมคำอธิบาย</p>
+      <div id="quiz2-body"></div>
+      <button class="quiz-reset" id="quiz2-reset">เริ่มทำใหม่</button>
+    </div>
+  </section>
+
+</div>
+
+<!-- ========================================================================
+     สคริปต์เครื่องมือ — กราฟความเข้มข้น–เวลา (one-compartment, Bateman)
+     ค่ายา/พารามิเตอร์แก้ได้ที่ตัวแปร P2 ด้านล่าง
+     ======================================================================== -->
+<script>
+(function(){
+  "use strict";
+
+  var P2 = {
+    ke:0.29, Vd:200, MEC:15, MTC:60, tEnd:14,
+    presets:{
+      iv:{ label:"IV (อ้างอิง)", color:"#0EA5A4", mode:"iv",   dose:10, F:1.00, ka:6.0 },
+      ir:{ label:"ยาเม็ด IR",   color:"#6366F1", mode:"oral", dose:30, F:0.30, ka:6.0 },
+      er:{ label:"ยาเม็ด ER",   color:"#A855F7", mode:"oral", dose:30, F:0.30, ka:0.5 }
+    }
+  };
+  var ORDER = ["iv","ir","er"];
+  var cur = "ir";
+
+  var svg   = document.getElementById("pk2-svg");
+  var btns  = document.getElementById("pk2-btns");
+  var kaIn  = document.getElementById("pk2-ka");
+  var FIn   = document.getElementById("pk2-F");
+  if(!svg || !btns || !kaIn || !FIn) return;
+
+  function params(){
+    var p = P2.presets[cur];
+    return { mode:p.mode, dose:p.dose, Vd:P2.Vd, ke:P2.ke,
+             ka:parseFloat(kaIn.value), F:parseFloat(FIn.value), color:p.color };
+  }
+  function conc(t, q){
+    if(q.mode === "iv"){ var C0 = q.F*q.dose/q.Vd*1000; return C0*Math.exp(-q.ke*t); }
+    var d = q.ka - q.ke; if(Math.abs(d) < 1e-6) d = (d<0?-1:1)*1e-6;
+    var pre = (q.F*q.dose*q.ka)/(q.Vd*d)*1000;
+    return pre*(Math.exp(-q.ke*t) - Math.exp(-q.ka*t));
+  }
+  function tmaxOf(q){
+    if(q.mode === "iv") return 0;
+    var d = q.ka - q.ke; if(Math.abs(d) < 1e-6) return 1/q.ke;
+    return Math.log(q.ka/q.ke)/d;
+  }
+  function aucOf(q){ return q.F*q.dose/(q.ke*q.Vd)*1000; }
+  function onsetDur(q){
+    if(q.mode === "iv"){ var C0 = conc(0,q);
+      if(C0 >= P2.MEC) return { onset:0, offset:Math.log(C0/P2.MEC)/q.ke };
+      return { onset:null, offset:null };
+    }
+    var dt=0.02, onset=null, offset=null;
+    for(var t=0; t<=48; t+=dt){ var c = conc(t,q);
+      if(onset===null && c>=P2.MEC) onset=t;
+      else if(onset!==null && offset===null && c<P2.MEC && t>onset){ offset=t; break; }
+    }
+    return { onset:onset, offset:offset };
+  }
+
+  function buildSVG(q){
+    var L=58, R=544, T=18, B=320, tEnd=P2.tEnd;
+    var tm=tmaxOf(q), cmax=conc(tm,q);
+    var yMaxC = Math.max(P2.MTC*1.25, cmax*1.15, 35);
+    yMaxC = Math.ceil(yMaxC/10)*10;
+    var step = Math.ceil(yMaxC/5/10)*10; if(step<10) step=10;
+    function xOf(t){ return L + (t/tEnd)*(R-L); }
+    function yOf(c){ return B - (Math.min(c,yMaxC)/yMaxC)*(B-T); }
+    var s = "";
+
+    // แถบช่วงการรักษา (MEC..MTC)
+    s += '<rect x="'+L+'" y="'+yOf(P2.MTC).toFixed(1)+'" width="'+(R-L)+'" height="'+(yOf(P2.MEC)-yOf(P2.MTC)).toFixed(1)+'" fill="#34D399" opacity="0.10"/>';
+
+    // แกน
+    s += '<line x1="'+L+'" y1="'+B+'" x2="'+R+'" y2="'+B+'" stroke="#C9BEE0" stroke-width="1.2"/>';
+    s += '<line x1="'+L+'" y1="'+T+'" x2="'+L+'" y2="'+B+'" stroke="#C9BEE0" stroke-width="1.2"/>';
+
+    // เส้นกริด+ป้ายแกน y
+    for(var c=0; c<=yMaxC; c+=step){
+      var yy=yOf(c);
+      s += '<line x1="'+L+'" y1="'+yy.toFixed(1)+'" x2="'+R+'" y2="'+yy.toFixed(1)+'" stroke="#EEE9F6" stroke-width="1"/>';
+      s += '<text x="'+(L-6)+'" y="'+(yy+4).toFixed(1)+'" text-anchor="end" font-size="10" fill="#6B6486">'+c+'</text>';
+    }
+    // ป้ายแกน x (ทุก 2 ชม.)
+    for(var t=0; t<=tEnd; t+=2){
+      var xx=xOf(t);
+      s += '<text x="'+xx.toFixed(1)+'" y="'+(B+15)+'" text-anchor="middle" font-size="10" fill="#6B6486">'+t+'</text>';
+    }
+    s += '<text x="'+((L+R)/2)+'" y="'+(B+32)+'" text-anchor="middle" font-size="11" fill="#2A2150">เวลา (ชั่วโมง)</text>';
+    s += '<text transform="rotate(-90 16 '+((T+B)/2)+')" x="16" y="'+((T+B)/2)+'" text-anchor="middle" font-size="11" fill="#2A2150">ความเข้มข้น (ng/mL)</text>';
+
+    // เส้น MEC / MTC
+    var yMEC=yOf(P2.MEC), yMTC=yOf(P2.MTC);
+    s += '<line x1="'+L+'" y1="'+yMEC.toFixed(1)+'" x2="'+R+'" y2="'+yMEC.toFixed(1)+'" stroke="#0f9d6b" stroke-width="1.4" stroke-dasharray="6 4"/>';
+    s += '<text x="'+(R-2)+'" y="'+(yMEC-4).toFixed(1)+'" text-anchor="end" font-size="10" font-weight="600" fill="#0f9d6b">MEC '+P2.MEC+'</text>';
+    s += '<line x1="'+L+'" y1="'+yMTC.toFixed(1)+'" x2="'+R+'" y2="'+yMTC.toFixed(1)+'" stroke="#b81c43" stroke-width="1.4" stroke-dasharray="6 4"/>';
+    s += '<text x="'+(R-2)+'" y="'+(yMTC-4).toFixed(1)+'" text-anchor="end" font-size="10" font-weight="600" fill="#b81c43">MTC '+P2.MTC+'</text>';
+
+    // แถบช่วง duration เหนือ MEC
+    var od = onsetDur(q);
+    if(od.onset !== null){
+      var x1=xOf(od.onset), x2=xOf(Math.min(od.offset===null?tEnd:od.offset, tEnd));
+      s += '<rect x="'+x1.toFixed(1)+'" y="'+yMEC.toFixed(1)+'" width="'+(x2-x1).toFixed(1)+'" height="'+(B-yMEC).toFixed(1)+'" fill="'+q.color+'" opacity="0.10"/>';
+    }
+
+    // เส้นกราฟ
+    var N=160, path="";
+    for(var i=0;i<=N;i++){ var tt=(i/N)*tEnd; var cc=conc(tt,q);
+      path += (i===0?"M":"L") + xOf(tt).toFixed(1) + " " + yOf(cc).toFixed(1) + " ";
+    }
+    s += '<path d="'+path+'" fill="none" stroke="'+q.color+'" stroke-width="2.6" stroke-linejoin="round"/>';
+
+    // จุด Cmax + เส้นชี้ tmax
+    if(tm>=0 && tm<=tEnd){
+      var xc=xOf(tm), yc=yOf(cmax);
+      s += '<line x1="'+xc.toFixed(1)+'" y1="'+yc.toFixed(1)+'" x2="'+xc.toFixed(1)+'" y2="'+B+'" stroke="'+q.color+'" stroke-width="1" stroke-dasharray="3 3" opacity="0.6"/>';
+      s += '<circle cx="'+xc.toFixed(1)+'" cy="'+yc.toFixed(1)+'" r="4.5" fill="'+q.color+'"/>';
+    }
+    return s;
+  }
+
+  function fmt(x, d){ return x.toFixed(d); }
+
+  function recompute(){
+    var q = params();
+    svg.innerHTML = buildSVG(q);
+
+    var tm=tmaxOf(q), cmax=conc(tm,q), auc=aucOf(q), od=onsetDur(q);
+    document.getElementById("pk2-tmax").textContent = (q.mode==="iv") ? "0 (IV)" : fmt(tm,2);
+    document.getElementById("pk2-cmax").textContent = fmt(cmax,1);
+    document.getElementById("pk2-auc").textContent  = Math.round(auc);
+    document.getElementById("pk2-f").textContent    = Math.round(q.F*100) + "%";
+    document.getElementById("pk2-onset").textContent = (od.onset===null) ? "ไม่ถึง MEC" : fmt(od.onset,2);
+    document.getElementById("pk2-dur").textContent   =
+      (od.onset===null || od.offset===null) ? "–" : fmt(od.offset-od.onset,2);
+
+    // ป้ายค่า slider
+    document.getElementById("pk2-ka-val").textContent = fmt(q.ka,2);
+    document.getElementById("pk2-F-val").textContent  = Math.round(q.F*100) + "%";
+
+    // สถานะ
+    var st = document.getElementById("pk2-status");
+    if(cmax > P2.MTC){ st.textContent = "⚠ Cmax เกิน MTC — เสี่ยงเกิดพิษจากยา"; st.style.color = "#b81c43"; }
+    else if(od.onset === null){ st.textContent = "ระดับยาไม่ถึง MEC — ไม่ออกฤทธิ์ในการรักษา"; st.style.color = "#6B6486"; }
+    else { st.textContent = "ระดับยาขึ้นถึงช่วงการรักษา (เหนือ MEC และไม่เกิน MTC)"; st.style.color = "#0f9d6b"; }
+  }
+
+  function selectPreset(key){
+    cur = key;
+    var p = P2.presets[key];
+    if(p.mode === "iv"){
+      FIn.value = 1.0; FIn.disabled = true;
+      kaIn.disabled = true;
+    } else {
+      FIn.disabled = false; kaIn.disabled = false;
+      kaIn.value = p.ka; FIn.value = p.F;
+    }
+    // ไฮไลต์ปุ่มที่เลือก
+    Array.prototype.forEach.call(btns.children, function(b){
+      var on = (b.getAttribute("data-key") === key);
+      var col = P2.presets[b.getAttribute("data-key")].color;
+      b.style.background = on ? col : "#fff";
+      b.style.color = on ? "#fff" : col;
+      b.style.borderColor = col;
+    });
+    recompute();
+  }
+
+  // สร้างปุ่ม preset
+  ORDER.forEach(function(key){
+    var p = P2.presets[key];
+    var b = document.createElement("button");
+    b.className = "pk2-btn"; b.type = "button";
+    b.setAttribute("data-key", key);
+    b.textContent = p.label;
+    b.style.borderColor = p.color; b.style.color = p.color;
+    b.addEventListener("click", function(){ selectPreset(key); });
+    btns.appendChild(b);
+  });
+
+  kaIn.addEventListener("input", recompute);
+  FIn.addEventListener("input", recompute);
+
+  function init(){ selectPreset("ir"); }
+  if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();
+</script>
+
+<!-- ========================================================================
+     สคริปต์แบบทบทวนตัวเอง (self-check) ของปฏิบัติการการดูดซึม
+     ======================================================================== -->
+<script>
+(function(){
+  "use strict";
+
+  var QUESTIONS = [
+    { q:"ถ้าเพิ่มค่า ka (ดูดซึมเร็วขึ้น) โดยคง F ไว้ ค่า tmax และ Cmax จะเปลี่ยนอย่างไร?",
+      kind:"ทำนายผล",
+      options:["tmax ลดลง, Cmax เพิ่มขึ้น","tmax เพิ่มขึ้น, Cmax ลดลง","ไม่เปลี่ยนทั้งคู่"],
+      answer:0,
+      why:"ดูดซึมเร็วขึ้นทำให้ถึงจุดสูงสุดเร็วและสูงขึ้น แต่ปริมาณรวม (AUC) ไม่เปลี่ยน เพราะ F คงที่ — ปรับ ka ในเครื่องมือเพื่อสังเกตได้" },
+
+    { q:"ค่าใดบ่งบอก \"ปริมาณ\" ยาที่ถูกดูดซึมเข้าสู่ระบบไหลเวียนโลหิต?",
+      kind:"เลือกตอบ",
+      options:["AUC","tmax","onset"],
+      answer:0,
+      why:"AUC (พื้นที่ใต้กราฟ) แสดงปริมาณยาที่เข้าสู่ระบบไหลเวียนโลหิต ส่วน tmax บ่งบอกอัตราเร็วของการดูดซึม" },
+
+    { q:"Onset of action บนกราฟหมายถึงสิ่งใด?",
+      kind:"เลือกตอบ",
+      options:["เวลาที่ระดับยาเพิ่มขึ้นจนถึง MEC","เวลาที่ระดับยาสูงสุด","เวลาที่ระดับยาถึง MTC"],
+      answer:0,
+      why:"Onset คือเวลาที่ระดับยาขึ้นถึง MEC ส่วนเวลาที่ระดับยาสูงสุดคือ tmax" },
+
+    { q:"เมื่อ AUC เท่ากัน ตำรับ ER เทียบกับ IR เหมาะกับอาการปวดแบบใด?",
+      kind:"เลือกตอบ",
+      options:["ปวดเรื้อรัง (Cmax ต่ำ ออกฤทธิ์นาน)","ปวดเฉียบพลัน (ออกฤทธิ์เร็ว)","เหมือนกันทุกกรณี"],
+      answer:0,
+      why:"ER ดูดซึมช้ากว่า Cmax ต่ำกว่า แต่ออกฤทธิ์นานกว่า จึงเหมาะกับอาการปวดเรื้อรัง ส่วน IR ออกฤทธิ์เร็ว เหมาะกับอาการปวดเฉียบพลัน" },
+
+    { q:"เหตุใด morphine ที่ให้ทางหลอดเลือดดำจึงมี F = 100% เทียบกับการรับประทานที่ ~30%?",
+      kind:"เลือกตอบ",
+      options:["เพราะไม่ผ่าน first-pass metabolism","เพราะดูดซึมเร็วกว่า","เพราะ Vd ต่างกัน"],
+      answer:0,
+      why:"การให้ทางหลอดเลือดดำนำยาเข้าสู่ระบบไหลเวียนโลหิตโดยตรง ไม่ผ่าน first-pass metabolism จึงได้ F = 100% ส่วนการรับประทานต้องผ่านตับก่อน" },
+
+    { q:"ชีวประสิทธิผลสัมบูรณ์ (absolute bioavailability) ใช้เปรียบเทียบ AUC ของยากับวิถีใด?",
+      kind:"เลือกตอบ",
+      options:["ยาที่ให้ทางหลอดเลือดดำ (IV)","ยาน้ำที่รับประทาน","ยาอมใต้ลิ้น"],
+      answer:0,
+      why:"absolute bioavailability เทียบ AUC (ปรับตามขนาดยา) ของวิถีที่สนใจกับยาที่ให้ทางหลอดเลือดดำ ซึ่งถือว่า F = 100%" }
+  ];
+
+  var state = [];
+  function reset(){ state = QUESTIONS.map(function(){ return null; }); render(); }
+  function choose(qi, oi){ if(state[qi] !== null) return; state[qi] = oi; render(); }
+
+  function render(){
+    var body = document.getElementById("quiz2-body");
+    body.innerHTML = "";
+    QUESTIONS.forEach(function(item, qi){
+      var answered = state[qi] !== null;
+      var card = document.createElement("div"); card.className = "q";
+      var qText = document.createElement("p"); qText.className = "q-text";
+      qText.innerHTML = (qi+1) + ". " + item.q + ' <span class="q-kind">' + item.kind + '</span>';
+      card.appendChild(qText);
+      var opts = document.createElement("div"); opts.className = "q-opts";
+      item.options.forEach(function(text, oi){
+        var b = document.createElement("button"); b.className = "opt"; b.textContent = text;
+        if(answered){ b.disabled = true;
+          if(oi === item.answer) b.classList.add("correct");
+          else if(oi === state[qi]) b.classList.add("wrong");
+        } else { b.addEventListener("click", function(){ choose(qi, oi); }); }
+        opts.appendChild(b);
+      });
+      card.appendChild(opts);
+      if(answered){
+        var correct = (state[qi] === item.answer);
+        var fb = document.createElement("div"); fb.className = "fb " + (correct ? "ok" : "no");
+        fb.innerHTML = (correct ? "✓ <b>ถูกต้อง!</b> " : "✗ <b>ยังไม่ใช่</b> ") + item.why;
+        card.appendChild(fb);
+      }
+      body.appendChild(card);
+    });
+    var answeredCount = state.filter(function(s){ return s !== null; }).length;
+    var correctCount = state.filter(function(s,i){ return s === QUESTIONS[i].answer; }).length;
+    document.getElementById("quiz2-score").textContent =
+      "ตอบแล้ว " + answeredCount + "/" + QUESTIONS.length + " ข้อ · ถูก " + correctCount + " ข้อ";
+  }
+  function init(){ document.getElementById("quiz2-reset").addEventListener("click", reset); reset(); }
+  if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();
+</script>
+
+</body>
+</html>
