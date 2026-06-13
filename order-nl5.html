@@ -78,6 +78,7 @@ small{color:var(--sub)}
 var aord="first", ascl="lin";
 var aS=document.getElementById("asvg");
 function drawA(){
+  if(aord==="ex1"){ drawEx1(); return; }
   var L=52,R=540,T=14,B=250,C0=20,K0=2.2,k=0.35,H=12;
   var samp=[],cmax=0;
   for(var i=0;i<=240;i++){var t=i/240*H,c;
@@ -99,7 +100,36 @@ function drawA(){
   if(aord==="first") an.innerHTML='<b>First-order:</b> ลดลงแบบ exponential — บน semi-log เป็น<b>เส้นตรง</b> · ทุกช่วงเวลาระดับยาลดลงเป็น<b>สัดส่วน</b>เท่าเดิม (t½ คงที่)';
   else an.innerHTML='<b>Zero-order:</b> ลดลงแบบ<b>เส้นตรง</b>บนสเกลปกติ — ลดลง<b>ปริมาณเท่ากัน</b>ทุกชั่วโมง · บน semi-log จะ<b>ไม่</b>เป็นเส้นตรง · t½ ไม่คงที่';
 }
-[["first","First-order (ยาส่วนใหญ่)"],["zero","Zero-order (อิ่มตัว)"]].forEach(function(o){
+// แบบฝึกหัดที่ 1 — paracetamol IV 1000 mg (first-order) สร้างจาก Perucca & Richens 1979 (Table 1 = ค่าของรูปที่ 1)
+function drawEx1(){
+  var L=52,R=540,T=14,B=250,H=6,LOG=0.3;
+  var DR=[
+    {nm:"อาสาสมัครสุขภาพดี (healthy)", C0:16.0, k:0.292, col:"#6366F1"}
+  ];
+  var ymax=DR[0].C0*1.12;
+  function xo(t){return L+t/H*(R-L);}
+  function yo(c){ if(ascl==="log"){var cc=Math.max(c,LOG);return B-(Math.log(cc/LOG)/Math.log(ymax/LOG))*(B-T);} return B-Math.min(c,ymax)/ymax*(B-T);}
+  var s='<line x1="'+L+'" y1="'+B+'" x2="'+R+'" y2="'+B+'" stroke="#C9BEE0"/><line x1="'+L+'" y1="'+T+'" x2="'+L+'" y2="'+B+'" stroke="#C9BEE0"/>';
+  if(ascl==="log"){[0.3,1,3,10,30].forEach(function(v){if(v>ymax)return;var y=yo(v);s+='<line x1="'+L+'" y1="'+y.toFixed(1)+'" x2="'+R+'" y2="'+y.toFixed(1)+'" stroke="#EEE9F6"/><text x="'+(L-6)+'" y="'+(y+4).toFixed(1)+'" text-anchor="end" font-size="10" fill="#6B6486">'+v+'</text>';});}
+  else{for(var g=0;g<=ymax;g+=5){var y=yo(g);s+='<line x1="'+L+'" y1="'+y.toFixed(1)+'" x2="'+R+'" y2="'+y.toFixed(1)+'" stroke="#EEE9F6"/><text x="'+(L-6)+'" y="'+(y+4).toFixed(1)+'" text-anchor="end" font-size="10" fill="#6B6486">'+g+'</text>';}}
+  for(var tx=0;tx<=H;tx+=1){s+='<text x="'+xo(tx).toFixed(1)+'" y="'+(B+15)+'" text-anchor="middle" font-size="10" fill="#6B6486">'+tx+'</text>';}
+  s+='<text x="'+((L+R)/2)+'" y="'+(B+30)+'" text-anchor="middle" font-size="11" fill="#2A2150">เวลา (ชม.)</text>';
+  s+='<text transform="rotate(-90 14 '+((T+B)/2)+')" x="14" y="'+((T+B)/2)+'" text-anchor="middle" font-size="11" fill="#2A2150">ระดับยา (mg/L)'+(ascl==="log"?" — log":"")+'</text>';
+  DR.forEach(function(d){
+    var p="";for(var i=0;i<=240;i++){var t=i/240*H,c=d.C0*Math.exp(-d.k*t);p+=(i===0?"M":"L")+xo(t).toFixed(1)+" "+yo(c).toFixed(1)+" ";}
+    s+='<path d="'+p+'" fill="none" stroke="'+d.col+'" stroke-width="2.6"/>';
+    [0.5,1,1.5,2,3,4,5,6].forEach(function(t){var c=d.C0*Math.exp(-d.k*t);s+='<circle cx="'+xo(t).toFixed(1)+'" cy="'+yo(c).toFixed(1)+'" r="3" fill="'+d.col+'"/>';});
+  });
+  aS.innerHTML=s;
+  document.getElementById("anote").innerHTML=
+    '<b>แบบฝึกหัดที่ 1.1 — paracetamol ฉีดเข้าหลอดเลือดดำ 1000 mg (รูปที่ 1):</b> '
+    +'<span class="k" style="background:#6366F1"></span>อาสาสมัครสุขภาพดี (C₀ 16.0 · k 0.292 h⁻¹ · t½ 2.52 h) · '
+    +'ระดับยาในเลือดลดลงแบบ <b>first-order</b> — สลับเป็นสเกล log จะเห็นเป็นเส้นตรง'
+    +'<br><small>เส้นโค้งสร้างจากพารามิเตอร์ใน Table 1 (C₀ และ K<sub>el</sub>) ของรูปที่ 1 · หน่วย µg/ml ≡ mg/L · '
+    +'อ้างอิง: Perucca E, Richens A. Paracetamol disposition in normal subjects and in patients treated with antiepileptic drugs. Br J Clin Pharmacol. 1979;7(2):201–6. '
+    +'<a href="https://doi.org/10.1111/j.1365-2125.1979.tb00922.x" target="_blank" rel="noopener">doi:10.1111/j.1365-2125.1979.tb00922.x</a></small>';
+}
+[["first","First-order (ยาส่วนใหญ่)"],["zero","Zero-order (อิ่มตัว)"],["ex1","แบบฝึกหัดที่ 1.1"]].forEach(function(o){
   var b=document.createElement("button");b.textContent=o[1];b.onclick=function(){aord=o[0];upA();};b.dataset.k=o[0];document.getElementById("aord").appendChild(b);});
 [["lin","ปกติ (linear)"],["log","log (semi-log)"]].forEach(function(o){
   var b=document.createElement("button");b.textContent=o[1];b.onclick=function(){ascl=o[0];upA();};b.dataset.k=o[0];document.getElementById("ascl").appendChild(b);});
@@ -116,7 +146,10 @@ var DRUGS={
    desc:"phenytoin — เอนไซม์ที่ตับอิ่มตัวในช่วงการรักษา จึงเป็น nonlinear (เส้นโค้งงอขึ้น)"},
  leve:{nm:"levetiracetam (linear)",ty:"lin",mn:250,Rmax:3500,step:50,ymax:50,lo:12,hi:46,band:"12–46",d0:1500,col:"#2563EB",
    css:function(R){return R/91;},
-   desc:"levetiracetam — ขับทางไต ไม่ผ่านเมแทบอลิซึมที่ตับ ระบบกำจัดไม่อิ่มตัว จึงเป็น linear (เส้นตรง)"}
+   desc:"levetiracetam — ขับทางไต ไม่ผ่านเมแทบอลิซึมที่ตับ ระบบกำจัดไม่อิ่มตัว จึงเป็น linear (เส้นตรง)"},
+ para:{nm:"แบบฝึกหัดที่ 1.2",ty:"lin",mn:500,Rmax:4000,step:100,ymax:24,lo:4,hi:20,band:"4–20",d0:1500,col:"#10B981",
+   css:function(R){return R/520.4;},
+   desc:"paracetamol — ตัวอย่างยา linear (เพิ่มขนาดยา Css เพิ่มเป็นสัดส่วนตรง) · ค่า PK: CL ≈ 19.3 L/ชม., F ≈ 0.89 (Perucca & Richens 1979) · ช่วงการรักษา ~4–20 mg/L, MEC ระงับปวด ~10 mg/L (Gibb & Anderson 2007)"}
 };
 var cur="phenytoin";
 function tickStep(Rmax){return Rmax<=600?100:(Rmax<=2000?500:1000);}
@@ -151,9 +184,11 @@ function drawB(){
   var bn=document.getElementById("bnote"),cTxt=isFinite(cv)?cv.toFixed(1)+" mg/L":"พุ่งสูงมาก (อิ่มตัว)";
   if(D.ty==="nl") bn.innerHTML='<span class="k" style="background:'+D.col+'"></span>phenytoin: '+Math.round(Rv)+' mg/วัน → Css ≈ '+cTxt+' '
     +'<span class="k" style="background:#6B6486"></span>เส้นประ = ถ้าเป็นเชิงเส้น · <b>เพิ่มขนาดยานิดเดียวใกล้จุดอิ่มตัว → Css พุ่งเกินช่วงอ้างอิงจนเป็นพิษ (nonlinear)</b>';
+  else if(cur==="para") bn.innerHTML='<span class="k" style="background:'+D.col+'"></span>paracetamol: '+Math.round(Rv)+' mg/วัน → C<sub>ss,avg</sub> ≈ '+cTxt+' · <b>เส้นตรง (linear) — เพิ่มขนาดยา 2 เท่า Css เพิ่ม 2 เท่า เป็นสัดส่วนตรง</b>'
+    +'<br><small>PK (CL, F) จาก: Perucca E, Richens A. Br J Clin Pharmacol. 1979;7(2):201–6. <a href="https://doi.org/10.1111/j.1365-2125.1979.tb00922.x" target="_blank" rel="noopener">[DOI]</a> · ช่วงการรักษา ~4–20 mg/L, MEC ระงับปวด ~10 mg/L จาก: Gibb IA, Anderson BJ. Paracetamol (acetaminophen) pharmacodynamics: interpreting the plasma concentration. Arch Dis Child. 2007;93(3):241–7. <a href="https://doi.org/10.1136/adc.2007.126896" target="_blank" rel="noopener">[DOI]</a></small>';
   else bn.innerHTML='<span class="k" style="background:'+D.col+'"></span>levetiracetam: '+Math.round(Rv)+' mg/วัน → Css ≈ '+cTxt+' · <b>เส้นตรง — เพิ่มขนาดยา 2 เท่า Css เพิ่ม 2 เท่า เป็นสัดส่วนตรง (linear)</b>';
 }
-[["phenytoin"],["leve"]].forEach(function(o){var k=o[0];
+[["phenytoin"],["leve"],["para"]].forEach(function(o){var k=o[0];
   var b=document.createElement("button");b.textContent=DRUGS[k].nm;b.dataset.k=k;
   b.onclick=function(){selDrug(k);};document.getElementById("bdrug").appendChild(b);});
 function selDrug(k){cur=k;var D=DRUGS[k];
