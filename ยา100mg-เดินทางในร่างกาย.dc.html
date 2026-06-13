@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Mali:wght@500;600;700&family=Noto+Sans+Thai+Looped:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;background:#0b101c;}
+</style>
+</helmet>
+<div data-screen-label="ยา 100 mg เดินทางในร่างกาย (ADME)" style="min-height:100vh;width:100%;background:radial-gradient(1200px 720px at 28% -5%,#15223e 0%,#0b101c 62%);display:flex;align-items:center;justify-content:center;font-family:'Noto Sans Thai Looped',sans-serif;padding:22px;">
+  <div style="position:relative;width:min(96vw,calc(93vh*1280/760));aspect-ratio:1280/760;box-shadow:0 30px 90px rgba(0,0,0,.55);border-radius:22px;overflow:hidden;border:1px solid #1d2942;">
+    <svg viewBox="0 0 1280 760" style="display:block;width:100%;height:100%;">
+      <defs>
+        <filter id="glow" x="-70%" y="-70%" width="240%" height="240%">
+          <feGaussianBlur stdDeviation="5" result="b"></feGaussianBlur>
+          <feMerge><feMergeNode in="b"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge>
+        </filter>
+        <linearGradient id="liverg" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#7a5330"></stop><stop offset="1" stop-color="#3c2c1d"></stop>
+        </linearGradient>
+        <linearGradient id="stomg" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#284069"></stop><stop offset="1" stop-color="#1a2845"></stop>
+        </linearGradient>
+        <linearGradient id="kidg" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#2a6f86"></stop><stop offset="1" stop-color="#1a3f50"></stop>
+        </linearGradient>
+      </defs>
+
+      <!-- ===== Header ===== -->
+      <text x="56" y="56" font-family="'Mali',cursive" font-size="36" font-weight="700" fill="#eaf1fb">ADME journey</text>
+      <text x="58" y="89" font-size="16.5" fill="#8ea0bd">ตามลำดับ ADME — ดูดซึม · กระจาย · เปลี่ยนรูป · ขับออก</text>
+      <rect x="56" y="104" width="1168" height="5" rx="2.5" fill="#1b2742"></rect>
+      <rect x="56" y="104" width="{{ progW }}" height="5" rx="2.5" fill="#3ddc97"></rect>
+      <text x="56" y="133" font-size="17" font-weight="600" fill="#3ddc97">{{ phaseLabel }}</text>
+
+      <!-- ===== Journey panel ===== -->
+      <rect x="40" y="150" width="556" height="592" rx="16" fill="rgba(255,255,255,0.018)" stroke="#1b2742"></rect>
+      <text x="62" y="178" font-family="'Mali',cursive" font-size="15" font-weight="600" fill="#6f80a0">เส้นทางของยาในร่างกาย · the ADME journey</text>
+
+      <!-- vessels / spine -->
+      <line x1="296" y1="212" x2="296" y2="246" stroke="#22324f" stroke-width="9" stroke-linecap="round"></line>
+      <line x1="296" y1="294" x2="296" y2="322" stroke="#22324f" stroke-width="9" stroke-linecap="round"></line>
+      <line x1="296" y1="368" x2="296" y2="408" stroke="#2f5273" stroke-width="9" stroke-linecap="round"></line>
+      <line x1="296" y1="452" x2="296" y2="492" stroke="#5a2c3c" stroke-width="9" stroke-linecap="round"></line>
+      <line x1="296" y1="552" x2="296" y2="596" stroke="#2a4d5c" stroke-width="9" stroke-linecap="round"></line>
+
+      <!-- distribution dashed line to target -->
+      <line x1="320" y1="520" x2="438" y2="520" stroke="#ff6f91" stroke-width="2" stroke-dasharray="3 5" opacity="{{ dBadge }}"></line>
+
+      <!-- metabolism: drug circulates back up to liver -->
+      <g opacity="{{ returnOp }}">
+        <path d="M330 528 C 388 516, 392 458, 344 444" fill="none" stroke="#f3a64b" stroke-width="2.2" stroke-dasharray="5 5" stroke-linecap="round"></path>
+        <polygon points="344,444 356,448 352,436" fill="#f3a64b"></polygon>
+        <text x="400" y="470" font-size="11" font-weight="600" fill="#f3b766">ยากระจายตัวไปที่ตับ</text>
+        <text x="400" y="485" font-size="11" font-weight="600" fill="#f3b766">และเกิด metabolism</text>
+      </g>
+
+      <!-- organ active highlights -->
+      <ellipse cx="296" cy="268" rx="52" ry="40" fill="#3ddc97" opacity="{{ gStom }}" filter="url(#glow)"></ellipse>
+      <ellipse cx="296" cy="344" rx="58" ry="34" fill="#3ddc97" opacity="{{ gInt }}" filter="url(#glow)"></ellipse>
+      <ellipse cx="296" cy="430" rx="62" ry="34" fill="#f3a64b" opacity="{{ gLiv }}" filter="url(#glow)"></ellipse>
+      <ellipse cx="296" cy="520" rx="48" ry="42" fill="#ff6f91" opacity="{{ gHeart }}" filter="url(#glow)"></ellipse>
+      <ellipse cx="296" cy="620" rx="46" ry="34" fill="#37c2e0" opacity="{{ gKid }}" filter="url(#glow)"></ellipse>
+
+      <!-- 1 mouth -->
+      <ellipse cx="296" cy="200" rx="20" ry="9" fill="#26365a" stroke="#3a557f" stroke-width="2"></ellipse>
+      <ellipse cx="296" cy="200" rx="9" ry="4" fill="#0f1a30"></ellipse>
+      <text x="230" y="196" text-anchor="end" font-size="15" font-weight="600" fill="#cdd8ea">กลืนยา</text>
+      <text x="230" y="214" text-anchor="end" font-size="12.5" fill="#7e8ea8">Dose 100 mg</text>
+
+      <!-- 2 stomach -->
+      <ellipse cx="296" cy="268" rx="38" ry="31" fill="url(#stomg)" stroke="#3a557f" stroke-width="2" transform="rotate(-13 296 268)"></ellipse>
+      <text x="230" y="262" text-anchor="end" font-size="15" font-weight="600" fill="#cdd8ea">กระเพาะ</text>
+      <text x="230" y="280" text-anchor="end" font-size="12.5" fill="#7e8ea8">ยาแตกตัว</text>
+
+      <!-- 3 intestine (clean capsule) -->
+      <rect x="248" y="328" width="96" height="32" rx="16" fill="url(#stomg)" stroke="#3a557f" stroke-width="2"></rect>
+      <text x="230" y="340" text-anchor="end" font-size="15" font-weight="600" fill="#cdd8ea">ลำไส้เล็ก</text>
+      <text x="230" y="358" text-anchor="end" font-size="12.5" fill="#7e8ea8">ดูดซึม ~90%</text>
+
+      <!-- 4 liver -->
+      <path d="M236 416 q62 -24 122 -6 q8 28 -14 42 q-50 16 -90 0 q-22 -10 -18 -36 z" fill="url(#liverg)" stroke="#9a6c3c" stroke-width="2"></path>
+      <text x="222" y="422" text-anchor="end" font-size="15" font-weight="600" fill="#cdd8ea">ตับ</text>
+      <text x="222" y="440" text-anchor="end" font-size="12" fill="#e7a55c">first-pass −60 mg</text>
+      <text x="222" y="456" text-anchor="end" font-size="11" fill="#9a7a52">(ระหว่างดูดซึม)</text>
+
+      <!-- 5 heart / bloodstream -->
+      <path d="M296 544 c-22 -18 -42 -32 -42 -54 c0 -14 11 -24 24 -24 c11 0 18 8 18 8 c0 0 7 -8 18 -8 c13 0 24 10 24 24 c0 22 -20 36 -42 54 z" fill="#c54a68" stroke="#ff7e9b" stroke-width="2"></path>
+      <text x="230" y="512" text-anchor="end" font-size="15" font-weight="600" fill="#cdd8ea">กระแสเลือด</text>
+      <text x="230" y="530" text-anchor="end" font-size="12.5" fill="#7e8ea8">เข้าระบบ ~30 mg</text>
+
+      <!-- target receptor (site of action) -->
+      <g opacity="{{ dBadge }}">
+        <circle cx="470" cy="520" r="22" fill="rgba(255,111,145,0.10)" stroke="#ff6f91" stroke-dasharray="2 4"></circle>
+        <circle cx="470" cy="520" r="13" fill="rgba(255,111,145,0.18)" stroke="#ff9bb1"></circle>
+        <circle cx="470" cy="520" r="6" fill="#ff6f91" opacity="{{ targetGlow }}" filter="url(#glow)"></circle>
+        <text x="470" y="560" text-anchor="middle" font-size="12" font-weight="600" fill="#ff9bb1">ตัวรับเป้าหมาย</text>
+        <text x="470" y="576" text-anchor="middle" font-size="11" fill="#9aa6bb">site of action</text>
+      </g>
+
+      <!-- 6 kidney -->
+      <path d="M286 600 c-16 -2 -28 8 -28 21 c0 13 12 23 28 21 c8 -1 11 -6 12 -12 c1 -7 -1 -10 6 -13 c9 -3 14 -10 14 -18 c0 -12 -11 -20 -23 -19 c-7 1 -10 5 -11 11 c-1 5 -10 -3 -8 0 z" fill="url(#kidg)" stroke="#3a86a0" stroke-width="2"></path>
+      <text x="230" y="614" text-anchor="end" font-size="15" font-weight="600" fill="#cdd8ea">ไต</text>
+      <text x="230" y="632" text-anchor="end" font-size="12.5" fill="#8fd4e6">ขับออก → ปัสสาวะ</text>
+
+      <!-- urine drops -->
+      <g opacity="{{ eBadge }}">
+        <path d="M290 660 q-5 8 0 12 q5 -4 0 -12 z" fill="#5fc7e0"></path>
+        <path d="M302 672 q-5 8 0 12 q5 -4 0 -12 z" fill="#5fc7e0" opacity="0.8"></path>
+        <ellipse cx="296" cy="700" rx="34" ry="8" fill="#2a4d5c"></ellipse>
+        <ellipse cx="296" cy="698" rx="30" ry="6" fill="#3f7e94" opacity="0.7"></ellipse>
+        <text x="296" y="724" text-anchor="middle" font-size="11.5" fill="#7fbccd">ปัสสาวะ · urine</text>
+      </g>
+
+      <!-- ADME letter badges -->
+      <g opacity="{{ aBadge }}">
+        <rect x="360" y="328" width="32" height="32" rx="9" fill="#3ddc97"></rect>
+        <text x="376" y="350" text-anchor="middle" font-family="'Fredoka'" font-size="20" font-weight="700" fill="#0b1a13">A</text>
+        <text x="402" y="345" font-size="12.5" font-weight="600" fill="#bfe9d6">Absorption</text>
+      </g>
+      <g opacity="{{ mBadge }}">
+        <rect x="360" y="414" width="32" height="32" rx="9" fill="#f3a64b"></rect>
+        <text x="376" y="436" text-anchor="middle" font-family="'Fredoka'" font-size="20" font-weight="700" fill="#2a1606">M</text>
+        <text x="402" y="431" font-size="12.5" font-weight="600" fill="#f3c98c">Metabolism</text>
+      </g>
+      <g opacity="{{ dBadge }}">
+        <rect x="360" y="504" width="32" height="32" rx="9" fill="#ff6f91"></rect>
+        <text x="376" y="526" text-anchor="middle" font-family="'Fredoka'" font-size="20" font-weight="700" fill="#2a0610">D</text>
+        <text x="402" y="498" font-size="12.5" font-weight="600" fill="#ffb3c4">Distribution</text>
+      </g>
+      <g opacity="{{ eBadge }}">
+        <rect x="360" y="604" width="32" height="32" rx="9" fill="#37c2e0"></rect>
+        <text x="376" y="626" text-anchor="middle" font-family="'Fredoka'" font-size="20" font-weight="700" fill="#04222a">E</text>
+        <text x="402" y="621" font-size="12.5" font-weight="600" fill="#a9e2ef">Excretion</text>
+      </g>
+
+      <!-- particles -->
+      <sc-for list="{{ particles }}" as="p" hint-placeholder-count="10">
+        <g>
+          <circle cx="{{ p.x }}" cy="{{ p.y }}" r="{{ p.glowR }}" fill="{{ p.fill }}" opacity="{{ p.glowOp }}" filter="url(#glow)"></circle>
+          <circle cx="{{ p.x }}" cy="{{ p.y }}" r="{{ p.r }}" fill="{{ p.fill }}" opacity="{{ p.op }}"></circle>
+        </g>
+      </sc-for>
+
+      <!-- capsule -->
+      <g transform="{{ capTransform }}" opacity="{{ capOp }}">
+        <rect x="-15" y="-6.5" width="16" height="13" rx="6" fill="#3ddc97"></rect>
+        <rect x="-1" y="-6.5" width="16" height="13" rx="6" fill="#eaf6f0"></rect>
+        <rect x="-15" y="-6.5" width="30" height="13" rx="6.5" fill="none" stroke="#0c1320" stroke-width="1.4"></rect>
+      </g>
+
+      <!-- ===== Graph panel ===== -->
+      <rect x="612" y="150" width="616" height="320" rx="16" fill="#0f1830" stroke="#1d2942"></rect>
+      <text x="636" y="184" font-family="'Mali',cursive" font-size="20" font-weight="700" fill="#eaf1fb">ความเข้มข้นยาในเลือด</text>
+      <text x="636" y="205" font-size="13" fill="#8ea0bd">Plasma concentration–time curve</text>
+
+      <!-- legend -->
+      <line x1="958" y1="173" x2="986" y2="173" stroke="#3ddc97" stroke-width="3.5" stroke-linecap="round"></line>
+      <text x="992" y="178" font-size="12.5" fill="#bfe9d6">ความเข้มข้นยา (oral)</text>
+      <line x1="958" y1="194" x2="986" y2="194" stroke="#ff9bb1" stroke-width="2" stroke-dasharray="6 4"></line>
+      <text x="992" y="199" font-size="12.5" fill="#ffc2cf">MEC (ระดับออกฤทธิ์ขั้นต่ำ)</text>
+
+      <!-- axes -->
+      <line x1="690" y1="224" x2="690" y2="440" stroke="#2b3a5c" stroke-width="1.5"></line>
+      <line x1="690" y1="440" x2="1206" y2="440" stroke="#2b3a5c" stroke-width="1.5"></line>
+      <polygon points="690,220 686,230 694,230" fill="#2b3a5c"></polygon>
+      <polygon points="1210,440 1200,436 1200,444" fill="#2b3a5c"></polygon>
+      <text x="660" y="338" font-size="12.5" fill="#6f80a0" transform="rotate(-90 660 338)" text-anchor="middle">ความเข้มข้น C</text>
+      <text x="690" y="458" font-size="11.5" fill="#6f80a0" text-anchor="middle">0</text>
+      <text x="817" y="458" font-size="11.5" fill="#6f80a0" text-anchor="middle">2</text>
+      <text x="945" y="458" font-size="11.5" fill="#6f80a0" text-anchor="middle">4</text>
+      <text x="1072" y="458" font-size="11.5" fill="#6f80a0" text-anchor="middle">6</text>
+      <text x="1200" y="458" font-size="11.5" fill="#6f80a0" text-anchor="middle">8</text>
+      <text x="1150" y="436" font-size="12" fill="#6f80a0">เวลา (ชม.)</text>
+
+      <!-- AUC fill + therapeutic-window shade + curve + MEC + onset/duration -->
+      <path d="{{ aucD }}" fill="#3ddc97" opacity="0.10"></path>
+      <path d="{{ mecShade }}" fill="#3ddc97" opacity="0.28"></path>
+      <g opacity="{{ curveOp }}">
+        <line x1="690" y1="{{ mecY }}" x2="1200" y2="{{ mecY }}" stroke="#ff9bb1" stroke-width="2" stroke-dasharray="6 4"></line>
+        <text x="1196" y="{{ mecLabelY }}" text-anchor="end" font-size="12" font-weight="700" fill="#ffc2cf">MEC</text>
+      </g>
+      <path d="{{ oralD }}" fill="none" stroke="#3ddc97" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity="{{ curveOp }}"></path>
+      <circle cx="{{ penOX }}" cy="{{ penOY }}" r="5.5" fill="#3ddc97" filter="url(#glow)" opacity="{{ penOp }}"></circle>
+      <g opacity="{{ onsetOp }}">
+        <line x1="{{ onsetX }}" y1="{{ mecY }}" x2="{{ onsetX }}" y2="440" stroke="#9fb0cc" stroke-width="1.4" stroke-dasharray="3 3"></line>
+        <circle cx="{{ onsetX }}" cy="{{ mecY }}" r="4" fill="#eaf1fb"></circle>
+        <text x="{{ onsetX }}" y="{{ onsetLabelY }}" text-anchor="middle" font-size="12" font-weight="600" fill="#cdd8ea">onset</text>
+      </g>
+      <g opacity="{{ durOp }}">
+        <line x1="{{ offsetX }}" y1="{{ mecY }}" x2="{{ offsetX }}" y2="440" stroke="#9fb0cc" stroke-width="1.4" stroke-dasharray="3 3"></line>
+        <circle cx="{{ offsetX }}" cy="{{ mecY }}" r="4" fill="#eaf1fb"></circle>
+        <line x1="{{ onsetX }}" y1="{{ durArrowY }}" x2="{{ offsetX }}" y2="{{ durArrowY }}" stroke="#7ee6b5" stroke-width="2" stroke-linecap="round"></line>
+        <text x="{{ durMidX }}" y="{{ durLabelY }}" text-anchor="middle" font-size="12.5" font-weight="600" fill="#7ee6b5">duration of action</text>
+      </g>
+
+      <!-- ===== Budget panel ===== -->
+      <rect x="612" y="486" width="616" height="256" rx="16" fill="#0f1830" stroke="#1d2942"></rect>
+      <text x="636" y="520" font-family="'Mali',cursive" font-size="20" font-weight="700" fill="#eaf1fb">รับประทาน 100 mg เข้าสู่ร่างกายเท่าไร?</text>
+      <text x="1196" y="528" text-anchor="end" font-family="'Fredoka'" font-size="56" font-weight="700" fill="#3ddc97">{{ fPctStr }}</text>
+      <text x="1196" y="548" text-anchor="end" font-size="12.5" fill="#8ea0bd">เข้าสู่ร่างกายจริง (F)</text>
+
+      <text x="636" y="556" font-size="12.5" fill="#7e8ea8">ขนาดที่กลืน = 100 mg</text>
+      <rect x="636" y="566" width="500" height="36" rx="9" fill="#0c1426" stroke="#243352"></rect>
+      <rect x="636" y="566" width="{{ wSys }}" height="36" fill="#3ddc97" opacity="{{ sysOp }}"></rect>
+      <rect x="{{ fpX }}" y="566" width="{{ wFp }}" height="36" fill="#f3a64b" opacity="{{ fpOp }}"></rect>
+      <rect x="{{ naX }}" y="566" width="{{ wNa }}" height="36" fill="#5f6c82" opacity="{{ naOp }}"></rect>
+      <rect x="636" y="566" width="500" height="36" rx="9" fill="none" stroke="#243352"></rect>
+
+      <text x="{{ sysLabelX }}" y="624" text-anchor="middle" font-family="'Fredoka','Noto Sans Thai Looped',sans-serif" font-size="12.5" fill="#7ee6b5" opacity="{{ sysOp }}">{{ sysLabel }}</text>
+      <text x="{{ fpLabelX }}" y="624" text-anchor="middle" font-family="'Fredoka','Noto Sans Thai Looped',sans-serif" font-size="12.5" fill="#f3b766" opacity="{{ fpOp }}">{{ fpLabel }}</text>
+      <text x="{{ naLabelX }}" y="624" text-anchor="middle" font-family="'Fredoka','Noto Sans Thai Looped',sans-serif" font-size="12.5" fill="#9aa6bb" opacity="{{ naOp }}">{{ naLabel }}</text>
+
+      <text x="636" y="660" font-size="14" font-weight="600" fill="#cdd8ea">ออกฤทธิ์ที่ไหน &amp; ถูกกำจัดยังไง?</text>
+      <text x="636" y="683" font-size="12.5" fill="#8ea0bd">• first-pass เกิด “ระหว่างดูดซึม” (A) — ยาผ่านตับครั้งแรกก่อนเข้าระบบ เหลือ ~30%</text>
+      <text x="636" y="704" font-size="12.5" fill="#8ea0bd">• ยากระจาย (D) ไปจับตัวรับเป้าหมาย → กระจายตัวไปที่ตับเกิด metabolism (M) → ไตขับออก (E)</text>
+    </svg>
+
+    <div style="position:absolute;top:16px;right:18px;display:flex;gap:8px;">
+      <button onClick="{{ togglePlay }}" style="font-family:'Noto Sans Thai Looped',sans-serif;font-size:13px;font-weight:600;color:#0b101c;background:#3ddc97;border:none;border-radius:999px;padding:7px 14px;cursor:pointer;">{{ playLabel }}</button>
+      <button onClick="{{ replay }}" style="font-family:'Noto Sans Thai Looped',sans-serif;font-size:13px;font-weight:600;color:#cdd8ea;background:rgba(255,255,255,0.06);border:1px solid #2a3656;border-radius:999px;padding:7px 14px;cursor:pointer;">↻ เริ่มใหม่</button>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { t: 0, playing: true };
+
+  componentDidMount(){
+    this._build();
+    this.elapsed = 0;
+    this.last = performance.now();
+    const loop = (now)=>{
+      const dt = Math.min(0.05,(now - this.last)/1000); this.last = now;
+      if(this.state.playing){
+        this.elapsed += dt;
+        if(this.elapsed >= this.LOOP) this.elapsed -= this.LOOP;
+        this.setState({ t: this.elapsed });
+      }
+      this._raf = requestAnimationFrame(loop);
+    };
+    this._raf = requestAnimationFrame(loop);
+  }
+  componentWillUnmount(){ if(this._raf) cancelAnimationFrame(this._raf); }
+
+  _mix(c1,c2,f){
+    const p=h=>[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];
+    const A=p(c1),B=p(c2);
+    return 'rgb('+Math.round(A[0]+(B[0]-A[0])*f)+','+Math.round(A[1]+(B[1]-A[1])*f)+','+Math.round(A[2]+(B[2]-A[2])*f)+')';
+  }
+  _pos(wp,t){
+    if(t<=wp[0].t) return {x:wp[0].x,y:wp[0].y};
+    for(let k=0;k<wp.length-1;k++){const a=wp[k],b=wp[k+1];
+      if(t<=b.t){let f=(t-a.t)/(b.t-a.t);f=f*f*(3-2*f);return {x:a.x+(b.x-a.x)*f,y:a.y+(b.y-a.y)*f};}}
+    const l=wp[wp.length-1];return {x:l.x,y:l.y};
+  }
+  _num(kf,t){
+    if(t<=kf[0].t) return kf[0].v;
+    for(let k=0;k<kf.length-1;k++){const a=kf[k],b=kf[k+1];if(t<=b.t){const f=(t-a.t)/(b.t-a.t);return a.v+(b.v-a.v)*f;}}
+    return kf[kf.length-1].v;
+  }
+  _col(kf,t){
+    if(kf.length===1||t<=kf[0].t) return kf[0].c;
+    for(let k=0;k<kf.length-1;k++){const a=kf[k],b=kf[k+1];if(t<=b.t){return this._mix(a.c,b.c,(t-a.t)/(b.t-a.t));}}
+    return kf[kf.length-1].c;
+  }
+
+  _build(){
+    if(this._built) return; this._built=true;
+    this.LOOP = 20;
+    // graph geometry
+    this.gx0=690; this.gx1=1200; this.gyB=440;
+    this.pxPerH=(this.gx1-this.gx0)/8;
+    this.GSCALE=320;          // green plasma curve amplitude (emphasized)
+    this.MECu=0.36;           // minimum effective concentration (unit)
+    this.mecY=this.gyB-this.MECu*this.GSCALE;
+    this.ORAL=[]; this.units=[];
+    for(let j=0;j<=80;j++){
+      const th=j*0.1;
+      const unit=Math.exp(-0.25*th)-Math.exp(-1.5*th);
+      const x=this.gx0+th*this.pxPerH;
+      this.units.push(unit);
+      this.ORAL.push({x,y:this.gyB-unit*this.GSCALE});
+    }
+    this.peakIdx=this.units.reduce((bi,u,i,a)=>u>a[bi]?i:bi,0);
+    let onIdx=this.peakIdx;
+    for(let j=1;j<this.peakIdx;j++){ if(this.units[j]>=this.MECu){onIdx=j;break;} }
+    let offIdx=this.peakIdx;
+    for(let j=this.peakIdx;j<this.units.length;j++){ if(this.units[j]<this.MECu){offIdx=j;break;} }
+    const oa=this.units[onIdx-1], ob=this.units[onIdx];
+    this.onsetF=(onIdx-1)+(this.MECu-oa)/(ob-oa);
+    const fa=this.units[offIdx-1], fb=this.units[offIdx];
+    this.offsetF=(offIdx-1)+(this.MECu-fa)/(fb-fa);
+    this.onsetX=this.gx0+(this.onsetF*0.1)*this.pxPerH;
+    this.offsetX=this.gx0+(this.offsetF*0.1)*this.pxPerH;
+
+    // anatomy points
+    const off=(i)=>{const a=i*2.39996;return {x:Math.cos(a)*14,y:Math.sin(a)*14};};
+    const STOM={x:296,y:268}, INT={x:296,y:344}, PORT={x:296,y:386},
+          LIV={x:296,y:430}, HV={x:296,y:474}, HEART={x:296,y:520},
+          TARGET={x:466,y:520}, KID={x:296,y:620}, URINE={x:296,y:690};
+    const green='#3ddc97', orange='#f3a64b', gray='#7a8699';
+    this.PT=[];
+    for(let i=0;i<10;i++){
+      const o=off(i);
+      const notAbs=i===9, firstPass=(i>=3&&i<9), survive=i<3;
+      const wp=[{t:0,x:STOM.x+o.x,y:STOM.y+o.y},
+                {t:3.4,x:STOM.x+o.x,y:STOM.y+o.y},
+                {t:4.5,x:INT.x+o.x*0.7,y:INT.y+o.y*0.7}];
+      const op=[{t:0,v:0},{t:2.0,v:0},{t:2.6,v:1}];
+      const col=[{t:0,c:green}];
+      const rad=[{t:0,v:6.5}];
+      if(notAbs){
+        // not absorbed: stays in gut, exits downward
+        wp.push({t:5.5,x:INT.x+12,y:INT.y+6},{t:8.0,x:INT.x+12,y:INT.y+6},
+                {t:10.0,x:INT.x+8,y:INT.y+120},{t:20,x:INT.x+8,y:INT.y+120});
+        op.push({t:8.0,v:1},{t:10.0,v:0.25},{t:20,v:0});
+        col.push({t:6.0,c:green},{t:7.2,c:gray});
+      } else if(firstPass){
+        // absorbed, but removed by FIRST-PASS at liver (part of Absorption)
+        const s=(i-3)*0.10;
+        wp.push({t:5.4+s,x:INT.x+o.x*0.6,y:INT.y+o.y*0.6});
+        wp.push({t:6.5+s,x:PORT.x+o.x*0.5,y:PORT.y});
+        wp.push({t:7.6+s,x:LIV.x+o.x,y:LIV.y+o.y*0.6});
+        wp.push({t:8.8,x:LIV.x+o.x*1.4,y:LIV.y+o.y*0.9});
+        wp.push({t:20,x:LIV.x+o.x*1.4,y:LIV.y+o.y*0.9});
+        col.push({t:7.8,c:green},{t:8.8,c:orange});
+        op.push({t:8.8,v:1},{t:10.4,v:0},{t:20,v:0});
+      } else { // survive first-pass -> systemic -> distribute -> back to liver(M) -> kidney(E)
+        const s=i*0.10;
+        wp.push({t:5.4+s,x:INT.x+o.x*0.6,y:INT.y+o.y*0.6});
+        wp.push({t:6.5+s,x:PORT.x+o.x*0.5,y:PORT.y});
+        wp.push({t:7.6+s,x:LIV.x+o.x*0.5,y:LIV.y});   // pass through liver (survive)
+        wp.push({t:8.7+s,x:HV.x+o.x*0.4,y:HV.y});
+        wp.push({t:9.7+s,x:HEART.x+o.x*0.6,y:HEART.y+o.y*0.6}); // enters systemic (end A)
+        wp.push({t:11.2+i*0.25,x:TARGET.x+o.x*0.7,y:TARGET.y+o.y*0.7}); // D
+        wp.push({t:12.6+i*0.25,x:HEART.x+o.x*0.8,y:HEART.y+o.y*0.8});
+        wp.push({t:13.9+i*0.15,x:LIV.x+o.x*1.2,y:LIV.y+o.y*0.8}); // back to liver (M)
+        wp.push({t:15.6,x:KID.x+o.x*0.6,y:KID.y+o.y*0.5});  // E
+        wp.push({t:17.0,x:URINE.x+o.x*0.4,y:URINE.y});
+        wp.push({t:20,x:URINE.x+o.x*0.4,y:URINE.y});
+        col.push({t:13.9,c:green},{t:14.9,c:orange}); // metabolized on return to liver
+        op.push({t:17.0,v:1},{t:18.2,v:0},{t:20,v:0});
+      }
+      this.PT.push({wp,op,col,rad,survive});
+    }
+  }
+
+  renderVals(){
+    this._build();
+    const t=this.state.t, L=this.LOOP;
+    const cl=(v)=>Math.max(0,Math.min(1,v));
+    const ramp=(a,b)=>{let f=cl((t-a)/(b-a));return f*f*(3-2*f);};
+    const win=(a,b)=> (t>=a&&t<b)?1:0;
+
+    // capsule swallow
+    const cap=this._pos([{t:0,x:296,y:200},{t:0.6,x:296,y:200},{t:2.0,x:296,y:268}],t);
+    let capOp=1;
+    if(t<0.35) capOp=t/0.35;
+    else if(t>=2.0&&t<2.6) capOp=1-(t-2.0)/0.6;
+    else if(t>=2.6) capOp=0;
+    const capTransform='translate('+cap.x.toFixed(1)+' '+cap.y.toFixed(1)+') rotate('+(((t*55)%360)).toFixed(1)+')';
+
+    // particles
+    const particles=this.PT.map((mm)=>{
+      const p=this._pos(mm.wp,t);
+      const r=this._num(mm.rad,t);
+      const inBlood=mm.survive&&t>9.6&&t<13.0;
+      const glowOp=inBlood?0.5:0;
+      return {x:+p.x.toFixed(1),y:+p.y.toFixed(1),r:+r.toFixed(2),
+        fill:this._col(mm.col,t),op:+this._num(mm.op,t).toFixed(2),
+        glowOp:+glowOp.toFixed(2),glowR:+(r+7).toFixed(1)};
+    });
+
+    // counters
+    const nAbsorbed=Math.round(90*ramp(4.5,7.0));
+    const nNotAbs=Math.round(10*ramp(5.5,7.0));
+    const nLoss=Math.round(60*ramp(7.6,9.6));
+    const nSystemic=Math.round(30*ramp(9.2,11.0));
+    const fPctStr=nSystemic+'%';
+
+    // graph reveal (drug in systemic blood)
+    const gfrac=cl((t-9.7)/8.5);
+    const N=this.ORAL.length;
+    const fx=gfrac*(N-1); const idx=Math.floor(fx); const fr=fx-idx;
+    const interp=(arr)=>{const a=arr[Math.min(idx,N-1)],b=arr[Math.min(idx+1,N-1)];return {x:a.x+(b.x-a.x)*fr,y:a.y+(b.y-a.y)*fr};};
+    const penO=interp(this.ORAL);
+    let oralD='M '+this.ORAL[0].x.toFixed(1)+' '+this.ORAL[0].y.toFixed(1);
+    for(let k=1;k<=idx;k++) oralD+=' L '+this.ORAL[k].x.toFixed(1)+' '+this.ORAL[k].y.toFixed(1);
+    oralD+=' L '+penO.x.toFixed(1)+' '+penO.y.toFixed(1);
+    let aucD='M '+this.ORAL[0].x.toFixed(1)+' '+this.gyB;
+    for(let k=0;k<=idx;k++) aucD+=' L '+this.ORAL[k].x.toFixed(1)+' '+this.ORAL[k].y.toFixed(1);
+    aucD+=' L '+penO.x.toFixed(1)+' '+penO.y.toFixed(1)+' L '+penO.x.toFixed(1)+' '+this.gyB+' Z';
+    // onset / duration reveal + above-MEC therapeutic shade
+    const revF=gfrac*(N-1);
+    const onShown=revF>=this.onsetF;
+    const durShown=revF>=this.offsetF;
+    let mecShade='';
+    if(onShown){
+      const i0=Math.ceil(this.onsetF);
+      const i1= durShown? Math.floor(this.offsetF) : idx;
+      mecShade='M '+this.onsetX.toFixed(1)+' '+this.mecY.toFixed(1);
+      for(let k=i0;k<=i1;k++) mecShade+=' L '+this.ORAL[k].x.toFixed(1)+' '+this.ORAL[k].y.toFixed(1);
+      const ex= durShown? this.offsetX : penO.x;
+      const ey= durShown? this.mecY : penO.y;
+      mecShade+=' L '+ex.toFixed(1)+' '+ey.toFixed(1)+' L '+ex.toFixed(1)+' '+this.mecY.toFixed(1)+' Z';
+    }
+
+    // phase caption — correct ADME order with first-pass inside Absorption
+    let phaseLabel;
+    if(t<3.4) phaseLabel='① กลืนเม็ดยา → กระเพาะ — ยาแตกตัว (disintegration)';
+    else if(t<9.7) phaseLabel='② A — Absorption: ลำไส้ดูดซึม + ผ่านตับ first-pass สกัด ~60% ก่อนเข้าระบบ';
+    else if(t<12.8) phaseLabel='③ D — Distribution: ยา ~30% กระจายไปจับตัวรับเป้าหมาย';
+    else if(t<15.6) phaseLabel='④ M — Metabolism: ยากระจายตัวไปที่ตับ แล้วถูกเปลี่ยนรูปเป็นเมแทบอไลต์';
+    else if(t<18.4) phaseLabel='⑤ E — Excretion: ไตขับยา/เมแทบอไลต์ออกทางปัสสาวะ';
+    else phaseLabel='✓ ครบวงจร ADME — Bioavailability (F) ≈ 30% ของขนาดที่กิน';
+
+    // budget bar
+    const PX=5.0;
+    const wSys=nSystemic*PX, wFp=nLoss*PX, wNa=nNotAbs*PX;
+    const fpX=636+wSys, naX=636+wSys+wFp;
+
+    return {
+      progW:+((t/L)*1168).toFixed(1),
+      phaseLabel,
+      playLabel: this.state.playing?'⏸ หยุด':'▶ เล่น',
+      togglePlay: ()=>this.setState(s=>({playing:!s.playing})),
+      replay: ()=>{ this.elapsed=0; this.last=performance.now(); this.setState({t:0,playing:true}); },
+
+      capTransform, capOp:+capOp.toFixed(2),
+      particles,
+
+      // organ active highlights (liver lights for first-pass during A, and again for M)
+      gStom:+(0.30*win(1.8,3.4)).toFixed(2),
+      gInt:+(0.26*win(3.4,7.6)).toFixed(2),
+      gLiv:+(0.30*((t>=7.6&&t<9.7)||(t>=13.5&&t<15.6)?1:0)).toFixed(2),
+      gHeart:+(0.26*win(9.7,12.8)).toFixed(2),
+      gKid:+(0.26*win(15.6,18.4)).toFixed(2),
+
+      // ADME badges — correct order A -> D -> M -> E
+      aBadge:+(t>=3.4&&t<9.7?1:0.34).toFixed(2),
+      dBadge:+(t>=9.7&&t<12.8?1:0.34).toFixed(2),
+      mBadge:+(t>=12.8&&t<15.6?1:0.34).toFixed(2),
+      eBadge:+(t>=15.6&&t<18.4?1:0.34).toFixed(2),
+      returnOp:+(t>=12.6&&t<15.6?1:0).toFixed(2),
+      targetGlow:+(0.5+0.5*Math.sin(t*6)).toFixed(2),
+
+      // budget
+      fPctStr,
+      sysLabel:'เข้าเลือด '+nSystemic, fpLabel:'first-pass '+nLoss, naLabel:'ไม่ดูดซึม '+nNotAbs,
+      wSys:+wSys.toFixed(1), wFp:+wFp.toFixed(1), wNa:+wNa.toFixed(1),
+      fpX:+fpX.toFixed(1), naX:+naX.toFixed(1),
+      sysLabelX:+(636+wSys/2).toFixed(1),
+      fpLabelX:+(fpX+wFp/2).toFixed(1),
+      naLabelX:+(naX+wNa/2).toFixed(1),
+      sysOp:+cl((t-9.2)/0.5).toFixed(2),
+      fpOp:+cl((t-7.6)/0.5).toFixed(2),
+      naOp:+cl((t-5.5)/0.5).toFixed(2),
+
+      // graph
+      curveOp: gfrac>0.005?1:0,
+      penOp: gfrac>0.01&&gfrac<0.999?1:0,
+      oralD,aucD,mecShade,
+      penOX:+penO.x.toFixed(1), penOY:+penO.y.toFixed(1),
+      mecY:+this.mecY.toFixed(1),
+      mecLabelY:+(this.mecY-6).toFixed(1),
+      onsetX:+this.onsetX.toFixed(1),
+      offsetX:+this.offsetX.toFixed(1),
+      durMidX:+(((this.onsetX+this.offsetX)/2)).toFixed(1),
+      durArrowY:+(this.mecY+18).toFixed(1),
+      durLabelY:+(this.mecY+35).toFixed(1),
+      onsetLabelY:456,
+      onsetOp: onShown?1:0,
+      durOp: durShown?1:0
+    };
+  }
+}
+</script>
+</body>
+</html>
