@@ -168,7 +168,7 @@
       <b>ประเด็นที่ควรสังเกตขณะใช้เครื่องมือ</b>
       <ul style="margin:6px 0 0; padding-left:1.2em;">
         <li>เลือก "ยาเม็ด IR" แล้ว "ยาเม็ด ER" เปรียบเทียบกัน สังเกตว่า AUC ใกล้เคียงกัน แต่ C<sub>max</sub> และ t<sub>max</sub> ต่างกัน</li>
-        <li>เพิ่มค่า k<sub>a</sub> (ดูดซึมเร็วขึ้น) โดยคง F ไว้ สังเกตว่า t<sub>max</sub> ลดลง C<sub>max</sub> เพิ่มขึ้น แต่ AUC คงเดิม</li>
+        <li>ดูดซึมเร็วขึ้น โดยคง F ไว้ สังเกตว่า t<sub>max</sub> ลดลง C<sub>max</sub> เพิ่มขึ้น แต่ AUC คงเดิม</li>
         <li>ปรับค่า F สังเกตว่า C<sub>max</sub> และ AUC เปลี่ยนไปพร้อมกัน (ปริมาณการดูดซึม)</li>
         <li>สังเกตว่า onset และ duration เปลี่ยนอย่างไรเมื่อเส้นกราฟตัดเส้น MEC และเข้าใกล้/เกินเส้น MTC</li>
       </ul>
@@ -193,10 +193,11 @@
           <div class="pk2-cell"><div class="v" id="pk2-dur">–</div><div class="k">duration เหนือ MEC (ชม.)</div></div>
         </div>
         <p class="pk2-status" id="pk2-status"></p>
+        <p class="pk2-status" id="pk2-ref" style="display:none; font-weight:600;"></p>
 
         <div class="fp-gates">
           <div class="fp-gate" style="border-color:#6366f144;">
-            <div class="fp-gate-head"><span><b>ค่าคงที่อัตราการดูดซึม</b></span></div>
+            <div class="fp-gate-head"><span><b>ค่าคงที่อัตราการดูดซึม</b></span><span class="fp-pill" id="pk2-ka-val" style="background:#6366F1;">6.00</span></div>
             <input type="range" id="pk2-ka" min="0.1" max="8" step="0.05" value="6" style="accent-color:#6366F1;">
             <div style="display:flex; justify-content:space-between; font-size:.74rem; color:var(--sub); margin-top:2px;"><span>น้อย</span><span>มาก</span></div>
           </div>
@@ -249,11 +250,18 @@
     presets:{
       iv:{ label:"IV (อ้างอิง)", color:"#0EA5A4", mode:"iv",   dose:10, F:1.00, ka:6.0 },
       ir:{ label:"ยาเม็ด IR",   color:"#6366F1", mode:"oral", dose:30, F:0.30, ka:6.0 },
-      er:{ label:"ยาเม็ด ER",   color:"#A855F7", mode:"oral", dose:30, F:0.30, ka:0.5 }
+      er:{ label:"ยาเม็ด ER",   color:"#A855F7", mode:"oral", dose:30, F:0.30, ka:0.5 },
+      hypo:{ label:"ยาสมมุติ",  color:"#A855F7", mode:"oral", dose:30, F:0.30, ka:4.0, vd:140, ke:0.35 }
     }
   };
-  var ORDER = ["iv","ir","er"];
+  var ORDER = ["iv","ir","er","hypo"];
   var cur = "ir";
+
+  // เส้นกราฟอ้างอิง (คงที่ ไม่เปลี่ยนตามสไลเดอร์)
+  // REF (ดำ) สำหรับแท็บ IR = ยามาตรฐานชุดเดียวกับ IR/ER (Vd, ke ปกติ)
+  var REF = { mode:"oral", dose:30, Vd:P2.Vd, ke:P2.ke, ka:6.0, F:0.30, color:"#111827" };
+  // REF_HYPO (ส้ม) สำหรับแท็บ "ยาสมมุติ" = ยาตัวเดียวกับเส้นปรับได้ในแท็บนี้ (Vd, ke เฉพาะ ต่างจากยาใน ER)
+  var REF_HYPO = { mode:"oral", dose:30, Vd:140, ke:0.35, ka:1.5, F:0.30, color:"#EA580C" };
 
   var svg   = document.getElementById("pk2-svg");
   var btns  = document.getElementById("pk2-btns");
@@ -263,7 +271,8 @@
 
   function params(){
     var p = P2.presets[cur];
-    return { mode:p.mode, dose:p.dose, Vd:P2.Vd, ke:P2.ke,
+    return { mode:p.mode, dose:p.dose,
+             Vd:(p.vd!=null ? p.vd : P2.Vd), ke:(p.ke!=null ? p.ke : P2.ke),
              ka:parseFloat(kaIn.value), F:parseFloat(FIn.value), color:p.color };
   }
   function conc(t, q){
@@ -291,10 +300,19 @@
     return { onset:onset, offset:offset };
   }
 
-  function buildSVG(q){
+  function curveD(q, xOf, yOf, tEnd){
+    var N=160, path="";
+    for(var i=0;i<=N;i++){ var tt=(i/N)*tEnd; var cc=conc(tt,q);
+      path += (i===0?"M":"L") + xOf(tt).toFixed(1) + " " + yOf(cc).toFixed(1) + " ";
+    }
+    return path;
+  }
+
+  function buildSVG(q, refQ, hideMain){
     var L=58, R=544, T=18, B=320, tEnd=P2.tEnd;
     var tm=tmaxOf(q), cmax=conc(tm,q);
-    var yMaxC = Math.max(P2.MTC*1.25, cmax*1.15, 35);
+    var refCmax = refQ ? conc(tmaxOf(refQ), refQ) : 0;
+    var yMaxC = Math.max(P2.MTC*1.25, cmax*1.15, refCmax*1.15, 35);
     yMaxC = Math.ceil(yMaxC/10)*10;
     var step = Math.ceil(yMaxC/5/10)*10; if(step<10) step=10;
     function xOf(t){ return L + (t/tEnd)*(R-L); }
@@ -329,25 +347,44 @@
     s += '<line x1="'+L+'" y1="'+yMTC.toFixed(1)+'" x2="'+R+'" y2="'+yMTC.toFixed(1)+'" stroke="#b81c43" stroke-width="1.4" stroke-dasharray="6 4"/>';
     s += '<text x="'+(R-2)+'" y="'+(yMTC-4).toFixed(1)+'" text-anchor="end" font-size="10" font-weight="600" fill="#b81c43">MTC '+P2.MTC+'</text>';
 
-    // แถบช่วง duration เหนือ MEC
-    var od = onsetDur(q);
-    if(od.onset !== null){
-      var x1=xOf(od.onset), x2=xOf(Math.min(od.offset===null?tEnd:od.offset, tEnd));
-      s += '<rect x="'+x1.toFixed(1)+'" y="'+yMEC.toFixed(1)+'" width="'+(x2-x1).toFixed(1)+'" height="'+(B-yMEC).toFixed(1)+'" fill="'+q.color+'" opacity="0.10"/>';
-    }
-
-    // เส้นกราฟ
-    var N=160, path="";
-    for(var i=0;i<=N;i++){ var tt=(i/N)*tEnd; var cc=conc(tt,q);
-      path += (i===0?"M":"L") + xOf(tt).toFixed(1) + " " + yOf(cc).toFixed(1) + " ";
-    }
-    s += '<path d="'+path+'" fill="none" stroke="'+q.color+'" stroke-width="2.6" stroke-linejoin="round"/>';
-
-    // จุด Cmax + เส้นชี้ tmax
-    if(tm>=0 && tm<=tEnd){
-      var xc=xOf(tm), yc=yOf(cmax);
-      s += '<line x1="'+xc.toFixed(1)+'" y1="'+yc.toFixed(1)+'" x2="'+xc.toFixed(1)+'" y2="'+B+'" stroke="'+q.color+'" stroke-width="1" stroke-dasharray="3 3" opacity="0.6"/>';
-      s += '<circle cx="'+xc.toFixed(1)+'" cy="'+yc.toFixed(1)+'" r="4.5" fill="'+q.color+'"/>';
+    if(refQ){
+      // ===== มีเส้นอ้างอิง (คงที่) + เส้นหลัก (ปรับได้ตามสไลเดอร์) =====
+      var rcol = refQ.color;
+      var rtm=tmaxOf(refQ), rcmax=conc(rtm,refQ), rod=onsetDur(refQ);
+      // แถบ duration ของเส้นอ้างอิง (สีอ่อนของเส้นอ้างอิง)
+      if(rod.onset !== null){
+        var rx1=xOf(rod.onset), rx2=xOf(Math.min(rod.offset===null?tEnd:rod.offset, tEnd));
+        s += '<rect x="'+rx1.toFixed(1)+'" y="'+yMEC.toFixed(1)+'" width="'+(rx2-rx1).toFixed(1)+'" height="'+(B-yMEC).toFixed(1)+'" fill="'+rcol+'" opacity="0.08"/>';
+      }
+      // เส้นอ้างอิง + จุด Cmax + เส้นชี้ tmax + ป้าย
+      s += '<path d="'+curveD(refQ,xOf,yOf,tEnd)+'" fill="none" stroke="'+rcol+'" stroke-width="2.4" stroke-linejoin="round"/>';
+      if(rtm>=0 && rtm<=tEnd){
+        var rxc=xOf(rtm), ryc=yOf(rcmax);
+        s += '<line x1="'+rxc.toFixed(1)+'" y1="'+ryc.toFixed(1)+'" x2="'+rxc.toFixed(1)+'" y2="'+B+'" stroke="'+rcol+'" stroke-width="1" stroke-dasharray="3 3" opacity="0.55"/>';
+        s += '<circle cx="'+rxc.toFixed(1)+'" cy="'+ryc.toFixed(1)+'" r="4.5" fill="'+rcol+'"/>';
+        s += '<text x="'+(rxc+6).toFixed(1)+'" y="'+(ryc-6).toFixed(1)+'" font-size="10" font-weight="700" fill="'+rcol+'">อ้างอิง</text>';
+      }
+      // เส้นหลัก (สีของ preset) ปรับตามสไลเดอร์
+      s += '<path d="'+curveD(q,xOf,yOf,tEnd)+'" fill="none" stroke="'+q.color+'" stroke-width="2.6" stroke-linejoin="round"/>';
+      // โชว์จุด Cmax/tmax ของเส้นหลักเมื่อไม่ใช่โหมดฝึก (hideMain=false) เช่นแท็บ IR
+      if(!hideMain && tm>=0 && tm<=tEnd){
+        var mxc=xOf(tm), myc=yOf(cmax);
+        s += '<line x1="'+mxc.toFixed(1)+'" y1="'+myc.toFixed(1)+'" x2="'+mxc.toFixed(1)+'" y2="'+B+'" stroke="'+q.color+'" stroke-width="1" stroke-dasharray="3 3" opacity="0.6"/>';
+        s += '<circle cx="'+mxc.toFixed(1)+'" cy="'+myc.toFixed(1)+'" r="4.5" fill="'+q.color+'"/>';
+      }
+    } else {
+      // ===== โหมดปกติ: เส้นเดียว + จุด Cmax =====
+      var od = onsetDur(q);
+      if(od.onset !== null){
+        var x1=xOf(od.onset), x2=xOf(Math.min(od.offset===null?tEnd:od.offset, tEnd));
+        s += '<rect x="'+x1.toFixed(1)+'" y="'+yMEC.toFixed(1)+'" width="'+(x2-x1).toFixed(1)+'" height="'+(B-yMEC).toFixed(1)+'" fill="'+q.color+'" opacity="0.10"/>';
+      }
+      s += '<path d="'+curveD(q,xOf,yOf,tEnd)+'" fill="none" stroke="'+q.color+'" stroke-width="2.6" stroke-linejoin="round"/>';
+      if(tm>=0 && tm<=tEnd){
+        var xc=xOf(tm), yc=yOf(cmax);
+        s += '<line x1="'+xc.toFixed(1)+'" y1="'+yc.toFixed(1)+'" x2="'+xc.toFixed(1)+'" y2="'+B+'" stroke="'+q.color+'" stroke-width="1" stroke-dasharray="3 3" opacity="0.6"/>';
+        s += '<circle cx="'+xc.toFixed(1)+'" cy="'+yc.toFixed(1)+'" r="4.5" fill="'+q.color+'"/>';
+      }
     }
     return s;
   }
@@ -356,24 +393,45 @@
 
   function recompute(){
     var q = params();
-    svg.innerHTML = buildSVG(q);
+    var isHypo = (cur === "hypo");
+    var showRef = (cur === "hypo" || cur === "ir");   // แสดงเส้นอ้างอิงในแท็บ ยาสมมุติ + ยาเม็ด IR
+    var refQ = (cur === "hypo") ? REF_HYPO : ((cur === "ir") ? REF : null);
+    svg.innerHTML = buildSVG(q, refQ, isHypo);   // hideMain=true เฉพาะยาสมมุติ (ให้นิสิตอ่านเอง)
 
     var tm=tmaxOf(q), cmax=conc(tm,q), auc=aucOf(q), od=onsetDur(q);
-    document.getElementById("pk2-tmax").textContent = (q.mode==="iv") ? "0 (IV)" : fmt(tm,2);
-    document.getElementById("pk2-cmax").textContent = fmt(cmax,1);
+    // โหมดยาสมมุติ: ซ่อนค่า 4 กล่อง ให้นิสิตอ่านจากกราฟเอง (ขึ้น "?")
+    document.getElementById("pk2-tmax").textContent = isHypo ? "?" : ((q.mode==="iv") ? "0 (IV)" : fmt(tm,2));
+    document.getElementById("pk2-cmax").textContent = isHypo ? "?" : fmt(cmax,1);
     document.getElementById("pk2-auc").textContent  = Math.round(auc);
     document.getElementById("pk2-f").textContent    = Math.round(q.F*100) + "%";
-    document.getElementById("pk2-onset").textContent = (od.onset===null) ? "ไม่ถึง MEC" : fmt(od.onset,2);
-    document.getElementById("pk2-dur").textContent   =
-      (od.onset===null || od.offset===null) ? "–" : fmt(od.offset-od.onset,2);
+    document.getElementById("pk2-onset").textContent = isHypo ? "?" : ((od.onset===null) ? "ไม่ถึง MEC" : fmt(od.onset,2));
+    document.getElementById("pk2-dur").textContent   = isHypo ? "?" :
+      ((od.onset===null || od.offset===null) ? "–" : fmt(od.offset-od.onset,2));
 
     // ป้ายค่า slider
     var kaVal = document.getElementById("pk2-ka-val"); if(kaVal) kaVal.textContent = fmt(q.ka,2);
     document.getElementById("pk2-F-val").textContent  = Math.round(q.F*100) + "%";
 
+    // กล่องค่าของเส้นอ้างอิง (แสดงเมื่อมีเส้นอ้างอิง = ยาสมมุติ หรือ IR)
+    var refEl = document.getElementById("pk2-ref");
+    if(showRef){
+      var rtm=tmaxOf(refQ), rcmax=conc(rtm,refQ), rod=onsetDur(refQ);
+      var rOnset = (rod.onset===null) ? "ไม่ถึง MEC" : fmt(rod.onset,2);
+      var rDur   = (rod.onset===null || rod.offset===null) ? "–" : fmt(rod.offset-rod.onset,2);
+      refEl.style.display = "block";
+      refEl.style.color = refQ.color;
+      refEl.innerHTML = "เส้นอ้างอิง (คงที่): t<sub>max</sub> " + fmt(rtm,2) + " ชม. · C<sub>max</sub> " + fmt(rcmax,1)
+        + " ng/mL · onset " + rOnset + " ชม. · duration " + rDur + " ชม.";
+    } else {
+      refEl.style.display = "none";
+    }
+
     // สถานะ
     var st = document.getElementById("pk2-status");
-    if(cmax > P2.MTC){ st.textContent = "⚠ Cmax เกิน MTC — เสี่ยงเกิดพิษจากยา"; st.style.color = "#b81c43"; }
+    if(isHypo){
+      st.textContent = "โหมดฝึก: เลื่อนสไลเดอร์เปลี่ยนเส้นม่วง แล้วอ่านค่า t_max · C_max · onset · duration จากกราฟเอง (เทียบกับเส้นอ้างอิงสีดำ)";
+      st.style.color = "#7C3AED";
+    } else if(cmax > P2.MTC){ st.textContent = "⚠ Cmax เกิน MTC — เสี่ยงเกิดพิษจากยา"; st.style.color = "#b81c43"; }
     else if(od.onset === null){ st.textContent = "ระดับยาไม่ถึง MEC — ไม่ออกฤทธิ์ในการรักษา"; st.style.color = "#6B6486"; }
     else { st.textContent = "ระดับยาขึ้นถึงช่วงการรักษา (เหนือ MEC และไม่เกิน MTC)"; st.style.color = "#0f9d6b"; }
   }
@@ -428,7 +486,7 @@
   "use strict";
 
   var QUESTIONS = [
-    { q:"ถ้าเพิ่มค่า ka (ดูดซึมเร็วขึ้น) โดยคง F ไว้ ค่า tmax และ Cmax จะเปลี่ยนอย่างไร?",
+    { q:"ถ้าดูดซึมเร็วขึ้น โดยคง F ไว้ ค่า tmax และ Cmax จะเปลี่ยนอย่างไร?",
       kind:"ทำนายผล",
       options:["tmax ลดลง, Cmax เพิ่มขึ้น","tmax เพิ่มขึ้น, Cmax ลดลง","ไม่เปลี่ยนทั้งคู่"],
       answer:0,

@@ -41,12 +41,14 @@
     --bg1:#FDF4FF; --bg2:#EFFBFF; --line:#E7DEF4;
   }
   *{box-sizing:border-box}
+  html{ -webkit-text-size-adjust:100%; text-size-adjust:100%; }
   html,body{height:100%; margin:0;}
   body{
     color:var(--ink);
     font-family:'Sarabun',system-ui,sans-serif;
     background:linear-gradient(160deg,var(--bg1) 0%,var(--bg2) 100%);
     display:flex; flex-direction:column; height:100dvh;
+    overflow-x:hidden; -webkit-tap-highlight-color:transparent;
   }
   header{
     flex:0 0 auto;
@@ -95,6 +97,15 @@
     align-items:center; justify-content:center;
     color:var(--sub); font-family:'Mitr',sans-serif; font-size:.95rem;
   }
+
+  /* ---- จอเล็ก (โทรศัพท์) : ย่อหัวเรื่อง/แท็บให้เหลือพื้นที่เนื้อหามากขึ้น ---- */
+  @media (max-width:480px){
+    .brand{ font-size:.95rem; padding:10px 12px 2px; }
+    .brand small{ display:block; font-size:.72rem; margin-top:2px; }
+    .credit{ font-size:.7rem; padding:0 12px 2px; }
+    .tabbar{ padding:6px 10px 10px; gap:6px; }
+    .tab-btn{ font-size:.86rem; padding:7px 13px; }
+  }
 </style>
 </head>
 <body>
@@ -119,7 +130,7 @@
     { id:"abs",   label:"การดูดซึม และชีวประสิทธิผล", full:"กราฟความเข้มข้น–เวลา · อัตราเร็ว/ปริมาณการดูดซึม · F · MEC/MTC · onset/duration", file:"absorption.html" },
     { id:"fp",    label:"First-pass metabolism", full:"First-pass metabolism และชีวประสิทธิผลของยาที่รับประทาน (fa · Fg · Fh · F)",   file:"First-pass%20metabolism.html" },
     { id:"ss",    label:"การให้ยาซ้ำและการปรับขนาดยา", full:"การให้ยาซ้ำ · steady state (5×t½) · peak/trough · ไตบกพร่อง · AUC₂₄ vancomycin", file:"%E0%B8%81%E0%B8%B2%E0%B8%A3%E0%B9%83%E0%B8%AB%E0%B9%89%E0%B8%A2%E0%B8%B2%E0%B8%8B%E0%B9%89%E0%B8%B3%E0%B9%81%E0%B8%A5%E0%B8%B0%E0%B8%81%E0%B8%B2%E0%B8%A3%E0%B8%9B%E0%B8%A3%E0%B8%B1%E0%B8%9A%E0%B8%82%E0%B8%99%E0%B8%B2%E0%B8%94%E0%B8%A2%E0%B8%B2.html" },
-    { id:"tmpl",  label:"หัวข้อใหม่ (ตัวอย่าง)", full:"หน้าตัวอย่างเปล่า สำหรับเริ่มหัวข้อใหม่",                                       file:"template.html" }
+    { id:"ehc",   label:"Enterohepatic recirculation", full:"การหมุนเวียนยากลับผ่านตับ–ลำไส้ (enterohepatic recirculation)", file:"EHC.dc.html" }
   ];
   // =============================================================
 
