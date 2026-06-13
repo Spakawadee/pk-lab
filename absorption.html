@@ -196,9 +196,9 @@
 
         <div class="fp-gates">
           <div class="fp-gate" style="border-color:#6366f144;">
-            <div class="fp-gate-head"><span><b>k<sub>a</sub></b><small>อัตราการดูดซึม</small></span><span class="fp-pill" id="pk2-ka-val" style="background:#6366F1;">6.00</span></div>
+            <div class="fp-gate-head"><span><b>ค่าคงที่อัตราการดูดซึม</b></span></div>
             <input type="range" id="pk2-ka" min="0.1" max="8" step="0.05" value="6" style="accent-color:#6366F1;">
-            <p class="fp-help">ค่าคงที่อัตราการดูดซึม (h⁻¹) — มากขึ้น = ดูดซึมเร็วขึ้น (ไม่ใช้กับวิถี IV)</p>
+            <div style="display:flex; justify-content:space-between; font-size:.74rem; color:var(--sub); margin-top:2px;"><span>น้อย</span><span>มาก</span></div>
           </div>
           <div class="fp-gate" style="border-color:#F43F5E44;">
             <div class="fp-gate-head"><span><b>F</b><small>ชีวประสิทธิผล</small></span><span class="fp-pill" id="pk2-F-val" style="background:#F43F5E;">30%</span></div>
@@ -368,7 +368,7 @@
       (od.onset===null || od.offset===null) ? "–" : fmt(od.offset-od.onset,2);
 
     // ป้ายค่า slider
-    document.getElementById("pk2-ka-val").textContent = fmt(q.ka,2);
+    var kaVal = document.getElementById("pk2-ka-val"); if(kaVal) kaVal.textContent = fmt(q.ka,2);
     document.getElementById("pk2-F-val").textContent  = Math.round(q.F*100) + "%";
 
     // สถานะ
