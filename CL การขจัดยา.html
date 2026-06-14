@@ -435,12 +435,14 @@
     s += '<line x1="'+L+'" y1="'+yCss.toFixed(1)+'" x2="'+R+'" y2="'+yCss.toFixed(1)+'" stroke="#F43F5E" stroke-width="1.4" stroke-dasharray="6 4"/>';
     s += '<text x="'+(L+6)+'" y="'+(yCss-5).toFixed(1)+'" font-size="10" font-weight="600" fill="#b81c43">Css = '+q.css.toFixed(1)+' mg/L</text>';
 
-    // เส้นเวลา ~90% Css (เห็นผลของ Vd ต่อความเร็ว)
-    if(q.t90 <= TMAX){
-      var x90=xOf(q.t90);
-      s += '<line x1="'+x90.toFixed(1)+'" y1="'+T+'" x2="'+x90.toFixed(1)+'" y2="'+B+'" stroke="#A855F7" stroke-width="0.9" stroke-dasharray="3 3" opacity="0.55"/>';
-      s += '<text x="'+x90.toFixed(1)+'" y="'+(T+11)+'" text-anchor="middle" font-size="9" fill="#9333ea">~90% Css</text>';
-    }
+    // เส้นเวลาเข้าสู่ Css: 3×t½ (87.5% Css) และ 5×t½ (97% Css) — เห็นผลของ Vd ต่อความเร็ว
+    [[3*q.thalf,"3t½ (87.5% Css)"],[5*q.thalf,"5t½ (97% Css)"]].forEach(function(m){
+      if(m[0] <= TMAX){
+        var xm=xOf(m[0]);
+        s += '<line x1="'+xm.toFixed(1)+'" y1="'+T+'" x2="'+xm.toFixed(1)+'" y2="'+B+'" stroke="#A855F7" stroke-width="0.9" stroke-dasharray="3 3" opacity="0.55"/>';
+        s += '<text x="'+xm.toFixed(1)+'" y="'+(T+11)+'" text-anchor="middle" font-size="9" fill="#9333ea">'+m[1]+'</text>';
+      }
+    });
 
     // เส้นโค้ง C(t) = Css·(1 − e^(−ke·t))
     var Np=240, path="";
