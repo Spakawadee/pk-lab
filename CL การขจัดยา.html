@@ -224,7 +224,7 @@
           <div class="pk2-cell"><div class="v" id="cl-css">–</div><div class="k">Css = R₀/CL (mg/L)</div></div>
           <div class="pk2-cell"><div class="v" id="cl-thalf">–</div><div class="k">t½ (ชม.)</div></div>
           <div class="pk2-cell"><div class="v" id="cl-auc">–</div><div class="k">AUC₂₄,ss (mg·ชม./L)</div></div>
-          <div class="pk2-cell"><div class="v" id="cl-t90">–</div><div class="k">เวลาถึง ~90% Css (ชม.)</div></div>
+          <div class="pk2-cell"><div class="v" id="cl-t90">–</div><div class="k">เวลาถึง 3t½ / 5t½ (ชม.)</div></div>
         </div>
 
         <p id="cl-hint" style="font-size:.84rem; color:var(--ink); background:#F5F3FF; border:1px solid #E3DCEF; border-radius:12px; padding:8px 10px; margin:8px 0 2px;">–</p>
@@ -462,7 +462,7 @@
     document.getElementById("cl-css").textContent   = q.css.toFixed(1);
     document.getElementById("cl-thalf").textContent = q.thalf.toFixed(1);
     document.getElementById("cl-auc").textContent   = Math.round(q.css*24);
-    document.getElementById("cl-t90").textContent   = q.t90.toFixed(1);
+    document.getElementById("cl-t90").textContent   = (3*q.thalf).toFixed(1) + " / " + (5*q.thalf).toFixed(1);
     document.getElementById("cl-cl-val").textContent = q.cl.toFixed(1);
     document.getElementById("cl-vd-val").textContent = Math.round(q.vd);
     document.getElementById("cl-r0-val").textContent = Math.round(q.r0);
@@ -523,7 +523,7 @@
       kind:"เลือกตอบ",
       options:["Css เท่าเดิม แต่ t½ ยาวขึ้นและเข้าสู่ Css ช้าลง","Css เพิ่มขึ้นและ t½ ยาวขึ้น","Css ลดลงแต่ t½ เท่าเดิม"],
       answer:0,
-      why:"Css = R₀/CL ขึ้นกับ CL เท่านั้น ไม่ขึ้นกับ Vd; ส่วน t½ = 0.693·Vd/CL เพิ่มตาม Vd ทำให้เข้าสู่ steady state ช้าลง — สังเกตเส้น ~90% Css ขยับเมื่อเลื่อน Vd" },
+      why:"Css = R₀/CL ขึ้นกับ CL เท่านั้น ไม่ขึ้นกับ Vd; ส่วน t½ = 0.693·Vd/CL เพิ่มตาม Vd ทำให้เข้าสู่ steady state ช้าลง — สังเกตเส้น 3t½/5t½ ขยับเมื่อเลื่อน Vd" },
 
     { q:"ต้องการให้ Css เป้าหมาย = 10 mg/L ในผู้ป่วยที่มี CL = 3 L/h ควรตั้งอัตราการให้ยา (R₀) เท่าใด?",
       kind:"เลือกตอบ",
