@@ -161,7 +161,7 @@
 
         <div class="pk2-plot">
           <svg id="hl-svg" viewBox="0 0 560 360" style="width:100%; height:auto; font-family:'Mitr','Sarabun',sans-serif;"></svg>
-          <p class="pk2-cap">เส้นทึบ = ระดับยา · เส้นไกด์แนวนอน = ครึ่งของค่าก่อนหน้า (%) · เส้นไกด์แนวตั้ง = ทุก 1×t½</p>
+          <p class="pk2-cap" id="hl-cap">เส้นทึบ = ระดับยา · เส้นไกด์แนวนอน = ครึ่งของค่าก่อนหน้า (%) · เส้นไกด์แนวตั้ง = ทุก 1×t½</p>
         </div>
 
         <div class="pk2-readouts" style="grid-template-columns:repeat(3,1fr);">
@@ -191,10 +191,12 @@
         </div>
 
         <div class="fp-foot">
-          <p style="margin:0 0 6px;"><b>ที่มาของค่า:</b> paracetamol t½ ≈ 2 ชม. (ผู้ใหญ่; ช่วง 1.9–2.5 ชม.; V<sub>d</sub> ≈ 0.9 L/kg, CL ≈ 0.3 L/h/kg ≈ 21 L/h ที่ 70 kg)<sup>1</sup> · vancomycin t½ ≈ 6–7 ชม. (V<sub>d</sub> ≈ 49 L, CL ≈ 5 L/h)<sup>2</sup> · แบบจำลอง one-compartment IV (bolus) เพื่อการสอน — ค่าทั้งหมดมีความแปรปรวนระหว่างบุคคลสูง</p>
+          <p style="margin:0 0 6px;"><b>ที่มาของค่า:</b> paracetamol t½ ≈ 2 ชม. (ผู้ใหญ่; ช่วง 1.9–2.5 ชม.; V<sub>d</sub> ≈ 0.9 L/kg, CL ≈ 0.3 L/h/kg ≈ 21 L/h ที่ 70 kg)<sup>1</sup> · vancomycin t½ ≈ 6–7 ชม. (V<sub>d</sub> ≈ 49 L, CL ≈ 5 L/h)<sup>2</sup> · แบบจำลอง one-compartment IV (bolus) เพื่อการสอน — ค่าทั้งหมดมีความแปรปรวนระหว่างบุคคลสูง<br><b>ช่วงการรักษา (แถบเขียว):</b> paracetamol ~4–20 mg/L<sup>3</sup> · vancomycin (trough) ~10–20 mg/L<sup>4</sup> · ยาสมมุติ ~3–30 mg/L (สมมุติขึ้นเพื่อการฝึก)</p>
           <p style="margin:0;"><b>เอกสารอ้างอิง</b><br>
           1. Forrest JA, Clements JA, Prescott LF. Clinical pharmacokinetics of paracetamol. Clin Pharmacokinet. 1982;7(2):93–107. <a href="https://pubmed.ncbi.nlm.nih.gov/7039926/" target="_blank" rel="noopener">PMID 7039926</a>. <a href="https://doi.org/10.2165/00003088-198207020-00001" target="_blank" rel="noopener">[DOI]</a><br>
-          2. Matzke GR, Zhanel GG, Guay DR. Clinical pharmacokinetics of vancomycin. Clin Pharmacokinet. 1986;11(4):257–282. <a href="https://pubmed.ncbi.nlm.nih.gov/3530582/" target="_blank" rel="noopener">PMID 3530582</a>. <a href="https://doi.org/10.2165/00003088-198611040-00001" target="_blank" rel="noopener">[DOI]</a></p>
+          2. Matzke GR, Zhanel GG, Guay DR. Clinical pharmacokinetics of vancomycin. Clin Pharmacokinet. 1986;11(4):257–282. <a href="https://pubmed.ncbi.nlm.nih.gov/3530582/" target="_blank" rel="noopener">PMID 3530582</a>. <a href="https://doi.org/10.2165/00003088-198611040-00001" target="_blank" rel="noopener">[DOI]</a><br>
+          3. Gibb IA, Anderson BJ. Paracetamol (acetaminophen) pharmacodynamics: interpreting the plasma concentration. Arch Dis Child. 2007;93(3):241–7. <a href="https://doi.org/10.1136/adc.2007.126896" target="_blank" rel="noopener">[DOI]</a><br>
+          4. Rybak M, Lomaestro B, Rotschafer JC, et al. Therapeutic monitoring of vancomycin in adult patients: a consensus review of the ASHP, IDSA, and SIDP. Am J Health Syst Pharm. 2009;66(1):82–98. <a href="https://doi.org/10.2146/ajhp080434" target="_blank" rel="noopener">[DOI]</a></p>
         </div>
       </div>
     </div>
@@ -222,9 +224,11 @@
 
   // ค่ายาจริง (อ้างอิงในเชิงอรรถใต้เครื่องมือ) — paracetamol t½≈2h, vancomycin t½≈6.8h
   var PRESETS = {
-    para:  { label:"paracetamol (t½≈2 ชม.)",  dose:1000, vd:60, cl:21 },
-    vanco: { label:"vancomycin (t½≈6.8 ชม.)", dose:1000, vd:49, cl:5  }
+    para:  { label:"paracetamol",  dose:1000, vd:60, cl:21, lo:4,  hi:20 },
+    vanco: { label:"vancomycin", dose:1000, vd:49, cl:5,  lo:10, hi:20 },
+    hypo:  { label:"ยาสมมุติ", dose:2000, vd:78, cl:1.5, lo:3, hi:30, hypo:true }   // t½ ≈ 36 ชม. (ฝึกอ่านค่าจากกราฟ)
   };
+  var curKey = "para";     // preset ที่เลือกอยู่ (ใช้เช็คโหมดยาสมมุติ)
   var yscale = "linear";   // "linear" | "log"
 
   var svg      = document.getElementById("hl-svg");
@@ -255,7 +259,9 @@
     var H = NT*q.thalf;
     function xOf(t){ return L + (t/H)*(R-L); }
 
-    var yMax = q.c0*1.06;
+    var Pth=PRESETS[curKey], thLo=(Pth&&Pth.lo!=null)?Pth.lo:null, thHi=(Pth&&Pth.hi!=null)?Pth.hi:null;
+    var isHypo=!!(Pth&&Pth.hypo);
+    var yMax = Math.max(q.c0*1.06, (thHi!=null?thHi*1.06:0));
     var LOGMIN = Math.max(q.c0/200, 0.01);
     var logBot = Math.log(LOGMIN)/Math.LN10, logTop = Math.log(yMax)/Math.LN10;
     function yOf(c){
@@ -267,6 +273,12 @@
     }
 
     var s="";
+    // แถบช่วงการรักษา (สีเขียว)
+    if(thLo!=null && thHi!=null){
+      var yhi=yOf(thHi), ylo=yOf(thLo);
+      s += '<rect x="'+L+'" y="'+yhi.toFixed(1)+'" width="'+(R-L)+'" height="'+(ylo-yhi).toFixed(1)+'" fill="#34D399" opacity="0.15"/>';
+      s += '<text x="'+(L+4)+'" y="'+(yhi+11).toFixed(1)+'" text-anchor="start" font-size="9" fill="#0f9d6b">ช่วงการรักษา '+thLo+'–'+thHi+' mg/L</text>';
+    }
     // แกน
     s += '<line x1="'+L+'" y1="'+B+'" x2="'+R+'" y2="'+B+'" stroke="#C9BEE0" stroke-width="1.2"/>';
     s += '<line x1="'+L+'" y1="'+T+'" x2="'+L+'" y2="'+B+'" stroke="#C9BEE0" stroke-width="1.2"/>';
@@ -283,7 +295,7 @@
         for(var m=1;m<10;m++){
           var cv=base*m; if(cv<LOGMIN-1e-9 || cv>yMax+1e-9) continue;
           var yy=yOf(cv), major=(m===1);
-          s += '<line x1="'+L+'" y1="'+yy.toFixed(1)+'" x2="'+R+'" y2="'+yy.toFixed(1)+'" stroke="#EEE9F6" stroke-width="'+(major?1:0.5)+'"/>';
+          s += '<line x1="'+L+'" y1="'+yy.toFixed(1)+'" x2="'+R+'" y2="'+yy.toFixed(1)+'" stroke="'+(major?"#B9ABD6":"#D7CDEC")+'" stroke-width="'+(major?1:0.7)+'"/>';
           if(major){ var lbl=(cv<1?cv:Math.round(cv));
             s += '<text x="'+(L-6)+'" y="'+(yy+3).toFixed(1)+'" text-anchor="end" font-size="10" fill="#6B6486">'+lbl+'</text>'; }
         }
@@ -295,33 +307,48 @@
         s += '<text x="'+(L-6)+'" y="'+(yy+3).toFixed(1)+'" text-anchor="end" font-size="10" fill="#6B6486">'+(Math.round(cv*10)/10)+'</text>';
       }
     }
-    // ----- เส้นไกด์ครึ่งชีวิต (แนวนอน) + ป้าย % ทางขวา + ÷2 -----
-    for(var n=0;n<=NT;n++){
-      var yy2=yOf(levels[n]);
-      s += '<line x1="'+L+'" y1="'+yy2.toFixed(1)+'" x2="'+R+'" y2="'+yy2.toFixed(1)+'" stroke="#0EA5A4" stroke-width="1.1" stroke-dasharray="5 4" opacity="0.6"/>';
-      var pct=100/Math.pow(2,n);
-      var plab=(pct>=10? Math.round(pct) : pct.toFixed(1))+"%";
-      s += '<text x="'+(R+6)+'" y="'+(yy2+3).toFixed(1)+'" text-anchor="start" font-size="10" fill="#0e7d7b">'+plab+'</text>';
+    // ----- เส้นไกด์ครึ่งชีวิต (แนวนอน) + ป้าย % ทางขวา + ÷2 ----- (ซ่อนในโหมดยาสมมุติ)
+    if(!isHypo){
+      for(var n=0;n<=NT;n++){
+        var yy2=yOf(levels[n]);
+        s += '<line x1="'+L+'" y1="'+yy2.toFixed(1)+'" x2="'+R+'" y2="'+yy2.toFixed(1)+'" stroke="#0EA5A4" stroke-width="1.1" stroke-dasharray="5 4" opacity="0.6"/>';
+        var pct=100/Math.pow(2,n);
+        var plab=(pct>=10? Math.round(pct) : pct.toFixed(1))+"%";
+        s += '<text x="'+(R+6)+'" y="'+(yy2+3).toFixed(1)+'" text-anchor="start" font-size="10" fill="#0e7d7b">'+plab+'</text>';
+      }
+      for(var n2=0;n2<NT;n2++){
+        var ymid=(yOf(levels[n2])+yOf(levels[n2+1]))/2;
+        s += '<text x="'+(R+30)+'" y="'+(ymid+3).toFixed(1)+'" font-size="9" fill="#94a3b8">÷2</text>';
+      }
+      s += '<text x="'+(R+6)+'" y="'+(T-4)+'" font-size="9.5" fill="#0e7d7b">% ของ C₀</text>';
     }
-    for(var n=0;n<NT;n++){
-      var ymid=(yOf(levels[n])+yOf(levels[n+1]))/2;
-      s += '<text x="'+(R+30)+'" y="'+(ymid+3).toFixed(1)+'" font-size="9" fill="#94a3b8">÷2</text>';
-    }
-    s += '<text x="'+(R+6)+'" y="'+(T-4)+'" font-size="9.5" fill="#0e7d7b">% ของ C₀</text>';
 
-    // เส้นไกด์แนวตั้งที่ n×t½ + ป้ายเวลา/จำนวน t½
-    for(var n=1;n<=NT;n++){
-      var tt=n*q.thalf, xx=xOf(tt);
-      s += '<line x1="'+xx.toFixed(1)+'" y1="'+T+'" x2="'+xx.toFixed(1)+'" y2="'+B+'" stroke="#A855F7" stroke-width="0.8" stroke-dasharray="3 3" opacity="0.45"/>';
-      s += '<text x="'+xx.toFixed(1)+'" y="'+(B+14)+'" text-anchor="middle" font-size="10" fill="#6B6486">'+tt.toFixed(1)+'</text>';
-      s += '<text x="'+xx.toFixed(1)+'" y="'+(B+26)+'" text-anchor="middle" font-size="9" fill="#9333ea">'+n+'×t½</text>';
+    // แกนเวลา (x)
+    if(isHypo){
+      // ยาสมมุติ: เส้น grid แนวตั้งแบบประ สีเทาอ่อน ทุก 12 ชม. (ช่วยลากอ่านค่าลงแกนเวลา — ไม่ตรงกับจุดครึ่งชีวิตพอดี)
+      for(var tv=0; tv<=H+1e-6; tv+=12){
+        var xv=xOf(tv);
+        s += '<line x1="'+xv.toFixed(1)+'" y1="'+T+'" x2="'+xv.toFixed(1)+'" y2="'+B+'" stroke="#CFC6E6" stroke-width="1" stroke-dasharray="4 4"/>';
+      }
+      // ตัวเลขเวลาทุก 12 ชม. (ไม่แสดง "จำนวนเท่าของ t½" — ให้นิสิตอ่าน t½ เอง)
+      for(var tg=0; tg<=H+1e-6; tg+=12){
+        s += '<text x="'+xOf(tg).toFixed(1)+'" y="'+(B+14)+'" text-anchor="middle" font-size="9" fill="#6B6486">'+tg+'</text>';
+      }
+    } else {
+      // เส้นไกด์แนวตั้งที่ n×t½ + ป้ายเวลา/จำนวน t½
+      for(var n=1;n<=NT;n++){
+        var tt=n*q.thalf, xx=xOf(tt);
+        s += '<line x1="'+xx.toFixed(1)+'" y1="'+T+'" x2="'+xx.toFixed(1)+'" y2="'+B+'" stroke="#A855F7" stroke-width="0.8" stroke-dasharray="3 3" opacity="0.45"/>';
+        s += '<text x="'+xx.toFixed(1)+'" y="'+(B+14)+'" text-anchor="middle" font-size="10" fill="#6B6486">'+tt.toFixed(1)+'</text>';
+        s += '<text x="'+xx.toFixed(1)+'" y="'+(B+26)+'" text-anchor="middle" font-size="9" fill="#9333ea">'+n+'×t½</text>';
+      }
     }
     // ป้ายแกน
     s += '<text x="'+((L+R)/2)+'" y="'+(B+40)+'" text-anchor="middle" font-size="11" fill="#2A2150">เวลา (ชั่วโมง)</text>';
     s += '<text transform="rotate(-90 16 '+((T+B)/2)+')" x="16" y="'+((T+B)/2)+'" text-anchor="middle" font-size="11" fill="#2A2150">ระดับยา (mg/L)'+(yscale==="log"?" — log":"")+'</text>';
 
-    // ไฮไลต์ 5×t½
-    if(NT>=5){
+    // ไฮไลต์ 5×t½ (ซ่อนในโหมดยาสมมุติ เพราะอ้างถึง t½)
+    if(!isHypo && NT>=5){
       var x5=xOf(5*q.thalf);
       s += '<rect x="'+(x5-2).toFixed(1)+'" y="'+T+'" width="4" height="'+(B-T)+'" fill="#F43F5E" opacity="0.10"/>';
       s += '<text x="'+x5.toFixed(1)+'" y="'+(T+11)+'" text-anchor="middle" font-size="9.5" font-weight="600" fill="#b81c43">5×t½: เหลือ ~3%</text>';
@@ -333,13 +360,23 @@
       path += (i===0?"M":"L") + xOf(t).toFixed(1) + " " + yOf(c).toFixed(1) + " "; }
     s += '<path d="'+path+'" fill="none" stroke="#6366F1" stroke-width="2.4" stroke-linejoin="round"/>';
 
-    // จุดวงกลมที่ n×t½ + ป้ายค่าความเข้มข้น (mg/L) ให้เห็นการลดครึ่งบนกราฟ
-    for(var n=0;n<=NT;n++){
-      var dx=xOf(n*q.thalf), dyy=yOf(levels[n]), cval=levels[n];
-      s += '<circle cx="'+dx.toFixed(1)+'" cy="'+dyy.toFixed(1)+'" r="3.6" fill="#fff" stroke="#6366F1" stroke-width="1.8"/>';
-      var ctxt=(cval>=1? cval.toFixed(1) : cval.toFixed(2));
-      if(n===NT){ s += '<text x="'+(dx-6).toFixed(1)+'" y="'+(dyy-5).toFixed(1)+'" text-anchor="end" font-size="9" font-weight="600" fill="#4f46e5">'+ctxt+'</text>'; }
-      else { s += '<text x="'+(dx+6).toFixed(1)+'" y="'+(dyy-5).toFixed(1)+'" text-anchor="start" font-size="9" font-weight="600" fill="#4f46e5">'+ctxt+'</text>'; }
+    // จุดวงกลมบนเส้นโค้ง + ป้ายค่าความเข้มข้น
+    if(isHypo){
+      // ยาสมมุติ: จุดวงกลมที่เวลาที่กำหนด (ช่วงต้นถี่; หลัง 48 ชม. ทุก 24 ชม.) — ไม่มีป้ายตัวเลข ให้นิสิตอ่านเอง
+      var MT=[1,2,3,6,8,12,18,24,36,48,72,96,120,144,168,192,216];
+      for(var mi=0; mi<MT.length; mi++){
+        var tm=MT[mi]; if(tm>H+1e-6) continue;
+        var mx=xOf(tm), my=yOf(q.c0*Math.exp(-q.ke*tm));
+        s += '<circle cx="'+mx.toFixed(1)+'" cy="'+my.toFixed(1)+'" r="3.6" fill="#fff" stroke="#6366F1" stroke-width="1.8"/>';
+      }
+    } else {
+      for(var n=0;n<=NT;n++){
+        var dx=xOf(n*q.thalf), dyy=yOf(levels[n]), cval=levels[n];
+        s += '<circle cx="'+dx.toFixed(1)+'" cy="'+dyy.toFixed(1)+'" r="3.6" fill="#fff" stroke="#6366F1" stroke-width="1.8"/>';
+        var ctxt=(cval>=1? cval.toFixed(1) : cval.toFixed(2));
+        if(n===NT){ s += '<text x="'+(dx-6).toFixed(1)+'" y="'+(dyy-5).toFixed(1)+'" text-anchor="end" font-size="9" font-weight="600" fill="#4f46e5">'+ctxt+'</text>'; }
+        else { s += '<text x="'+(dx+6).toFixed(1)+'" y="'+(dyy-5).toFixed(1)+'" text-anchor="start" font-size="9" font-weight="600" fill="#4f46e5">'+ctxt+'</text>'; }
+      }
     }
     return s;
   }
@@ -367,10 +404,17 @@
 
   function recompute(){
     var q=vals();
+    var isHypo = !!(PRESETS[curKey] && PRESETS[curKey].hypo);
     svg.innerHTML = buildSVG(q);
-    if(tableBox) tableBox.innerHTML = buildTable(q);
-    document.getElementById("hl-thalf").textContent = q.thalf.toFixed(2);
-    document.getElementById("hl-ke").textContent    = q.ke.toFixed(3);
+    var cap=document.getElementById("hl-cap");
+    if(cap) cap.textContent = isHypo
+      ? "เส้นทึบ = ระดับยาในเลือด · แถบเขียว = ช่วงการรักษา"
+      : "เส้นทึบ = ระดับยา · เส้นไกด์แนวนอน = ครึ่งของค่าก่อนหน้า (%) · เส้นไกด์แนวตั้ง = ทุก 1×t½";
+    if(tableBox) tableBox.innerHTML = isHypo
+      ? '<p style="font-size:.82rem; color:#6B6486; margin:6px 0;">โหมดฝึก: อ่านค่า t½ จากกราฟเอง — ดูว่าระดับยาลดลงเหลือครึ่งหนึ่ง (เส้นไกด์ 50%) ใช้เวลาประมาณกี่ชั่วโมงจากแกนเวลา</p>'
+      : buildTable(q);
+    document.getElementById("hl-thalf").textContent = isHypo ? "?" : q.thalf.toFixed(2);
+    document.getElementById("hl-ke").textContent    = isHypo ? "?" : q.ke.toFixed(3);
     document.getElementById("hl-c0").textContent    = q.c0.toFixed(1);
     document.getElementById("hl-dose-val").textContent = Math.round(q.dose);
     document.getElementById("hl-vd-val").textContent   = Math.round(q.vd);
@@ -379,6 +423,7 @@
 
   function setPreset(key){
     var p=PRESETS[key]; if(!p) return;
+    curKey=key;
     doseIn.value=p.dose; vdIn.value=p.vd; clIn.value=p.cl;
     Array.prototype.forEach.call(presetBox.children, function(b){
       var on=(b.getAttribute("data-preset")===key);
