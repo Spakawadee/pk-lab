@@ -123,8 +123,7 @@ function drawEx1(){
   aS.innerHTML=s;
   document.getElementById("anote").innerHTML=
     '<b>แบบฝึกหัดที่ 1.1 — paracetamol ฉีดเข้าหลอดเลือดดำ 1000 mg (รูปที่ 1):</b> '
-    +'<span class="k" style="background:#6366F1"></span>อาสาสมัครสุขภาพดี (C₀ 16.0 · k 0.292 h⁻¹ · t½ 2.52 h) · '
-    +'ระดับยาในเลือดลดลงแบบ <b>first-order</b> — สลับเป็นสเกล log จะเห็นเป็นเส้นตรง'
+    +'<span class="k" style="background:#6366F1"></span>อาสาสมัครสุขภาพดี (C₀ 16.0 · k 0.292 h⁻¹ · t½ 2.52 h)'
     +'<br><small>เส้นโค้งสร้างจากพารามิเตอร์ใน Table 1 (C₀ และ K<sub>el</sub>) ของรูปที่ 1 · หน่วย µg/ml ≡ mg/L · '
     +'อ้างอิง: Perucca E, Richens A. Paracetamol disposition in normal subjects and in patients treated with antiepileptic drugs. Br J Clin Pharmacol. 1979;7(2):201–6. '
     +'<a href="https://doi.org/10.1111/j.1365-2125.1979.tb00922.x" target="_blank" rel="noopener">doi:10.1111/j.1365-2125.1979.tb00922.x</a></small>';
@@ -184,7 +183,7 @@ function drawB(){
   var bn=document.getElementById("bnote"),cTxt=isFinite(cv)?cv.toFixed(1)+" mg/L":"พุ่งสูงมาก (อิ่มตัว)";
   if(D.ty==="nl") bn.innerHTML='<span class="k" style="background:'+D.col+'"></span>phenytoin: '+Math.round(Rv)+' mg/วัน → Css ≈ '+cTxt+' '
     +'<span class="k" style="background:#6B6486"></span>เส้นประ = ถ้าเป็นเชิงเส้น · <b>เพิ่มขนาดยานิดเดียวใกล้จุดอิ่มตัว → Css พุ่งเกินช่วงอ้างอิงจนเป็นพิษ (nonlinear)</b>';
-  else if(cur==="para") bn.innerHTML='<span class="k" style="background:'+D.col+'"></span>paracetamol: '+Math.round(Rv)+' mg/วัน → C<sub>ss,avg</sub> ≈ '+cTxt+' · <b>เส้นตรง (linear) — เพิ่มขนาดยา 2 เท่า Css เพิ่ม 2 เท่า เป็นสัดส่วนตรง</b>'
+  else if(cur==="para") bn.innerHTML='<span class="k" style="background:'+D.col+'"></span>paracetamol: '+Math.round(Rv)+' mg/วัน → C<sub>ss,avg</sub> ≈ '+cTxt
     +'<br><small>PK (CL, F) จาก: Perucca E, Richens A. Br J Clin Pharmacol. 1979;7(2):201–6. <a href="https://doi.org/10.1111/j.1365-2125.1979.tb00922.x" target="_blank" rel="noopener">[DOI]</a> · ช่วงการรักษา ~4–20 mg/L, MEC ระงับปวด ~10 mg/L จาก: Gibb IA, Anderson BJ. Paracetamol (acetaminophen) pharmacodynamics: interpreting the plasma concentration. Arch Dis Child. 2007;93(3):241–7. <a href="https://doi.org/10.1136/adc.2007.126896" target="_blank" rel="noopener">[DOI]</a></small>';
   else bn.innerHTML='<span class="k" style="background:'+D.col+'"></span>levetiracetam: '+Math.round(Rv)+' mg/วัน → Css ≈ '+cTxt+' · <b>เส้นตรง — เพิ่มขนาดยา 2 เท่า Css เพิ่ม 2 เท่า เป็นสัดส่วนตรง (linear)</b>';
 }
