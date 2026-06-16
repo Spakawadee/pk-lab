@@ -164,15 +164,16 @@
           <p class="pk2-cap" id="hl-cap">เส้นทึบ = ระดับยา · เส้นไกด์แนวนอน = ครึ่งของค่าก่อนหน้า (%) · เส้นไกด์แนวตั้ง = ทุก 1×t½</p>
         </div>
 
-        <div class="pk2-readouts" style="grid-template-columns:repeat(3,1fr);">
-          <div class="pk2-cell"><div class="v" id="hl-thalf">–</div><div class="k">t½ (ชม.)</div></div>
-          <div class="pk2-cell"><div class="v" id="hl-ke">–</div><div class="k">k<sub>e</sub> (ต่อ ชม.)</div></div>
-          <div class="pk2-cell"><div class="v" id="hl-c0">–</div><div class="k">C₀ (mg/L)</div></div>
+        <div class="pk2-readouts" id="hl-readouts" style="grid-template-columns:repeat(3,1fr);">
+          <div class="pk2-cell"><div class="v" id="hl-thalf">–</div><div class="k" id="hl-thalf-k">t½ (ชม.)</div></div>
+          <div class="pk2-cell"><div class="v" id="hl-ke">–</div><div class="k" id="hl-ke-k">k<sub>e</sub> (ต่อ ชม.)</div></div>
+          <div class="pk2-cell"><div class="v" id="hl-c0">–</div><div class="k" id="hl-c0-k">C₀ (mg/L)</div></div>
+          <div class="pk2-cell" id="hl-cell4" style="display:none;"><div class="v" id="hl-cl2">–</div><div class="k" id="hl-cl2-k">paracetamol CL (L/h)</div></div>
         </div>
 
         <div id="hl-table" style="margin:10px 0 2px; overflow-x:auto;"></div>
 
-        <div class="fp-gates">
+        <div class="fp-gates" id="hl-gates-pk">
           <div class="fp-gate" style="border-color:#6366f144;">
             <div class="fp-gate-head"><span><b>ขนาดยา</b><small>Dose</small></span><span class="fp-pill" id="hl-dose-val" style="background:#6366F1;">1000</span></div>
             <input type="range" id="hl-dose" min="250" max="2000" step="50" value="1000" style="accent-color:#6366F1;">
@@ -190,8 +191,16 @@
           </div>
         </div>
 
+        <div class="fp-gates" id="hl-gates-renal" style="display:none; grid-template-columns:1fr;">
+          <div class="fp-gate" style="border-color:#6366f144;">
+            <div class="fp-gate-head"><span><b>การทำงานของไต</b><small>renal function</small></span><span class="fp-pill" id="hl-renal-val" style="background:#6366F1;">100</span></div>
+            <input type="range" id="hl-renal" min="10" max="100" step="5" value="100" style="accent-color:#6366F1;">
+            <p class="fp-help">ร้อยละการทำงานของไต — เลื่อนลงเพื่อจำลองผู้ป่วยโรคไต</p>
+          </div>
+        </div>
+
         <div class="fp-foot">
-          <p style="margin:0 0 6px;"><b>ที่มาของค่า:</b> paracetamol t½ ≈ 2 ชม. (ผู้ใหญ่; ช่วง 1.9–2.5 ชม.; V<sub>d</sub> ≈ 0.9 L/kg, CL ≈ 0.3 L/h/kg ≈ 21 L/h ที่ 70 kg)<sup>1</sup> · vancomycin t½ ≈ 6–7 ชม. (V<sub>d</sub> ≈ 49 L, CL ≈ 5 L/h)<sup>2</sup> · แบบจำลอง one-compartment IV (bolus) เพื่อการสอน — ค่าทั้งหมดมีความแปรปรวนระหว่างบุคคลสูง<br><b>ช่วงการรักษา (แถบเขียว):</b> paracetamol ~4–20 mg/L<sup>3</sup> · vancomycin (trough) ~10–20 mg/L<sup>4</sup> · ยาสมมุติ ~3–30 mg/L (สมมุติขึ้นเพื่อการฝึก)</p>
+          <p style="margin:0 0 6px;"><b>ที่มาของค่า:</b> paracetamol t½ ≈ 2 ชม. (ผู้ใหญ่; ช่วง 1.9–2.5 ชม.; V<sub>d</sub> ≈ 0.9 L/kg, CL ≈ 0.3 L/h/kg ≈ 21 L/h ที่ 70 kg)<sup>1</sup> · vancomycin t½ ≈ 6–7 ชม. (V<sub>d</sub> ≈ 49 L, CL ≈ 5 L/h)<sup>2</sup> · แบบจำลอง one-compartment IV (bolus) เพื่อการสอน — ค่าทั้งหมดมีความแปรปรวนระหว่างบุคคลสูง<br><b>ช่วงการรักษา (แถบเขียว):</b> paracetamol ~4–20 mg/L<sup>3</sup> · vancomycin (trough) ~10–20 mg/L<sup>4</sup> · ยา C ~3–30 mg/L (สมมุติขึ้นเพื่อการฝึก)</p>
           <p style="margin:0;"><b>เอกสารอ้างอิง</b><br>
           1. Forrest JA, Clements JA, Prescott LF. Clinical pharmacokinetics of paracetamol. Clin Pharmacokinet. 1982;7(2):93–107. <a href="https://pubmed.ncbi.nlm.nih.gov/7039926/" target="_blank" rel="noopener">PMID 7039926</a>. <a href="https://doi.org/10.2165/00003088-198207020-00001" target="_blank" rel="noopener">[DOI]</a><br>
           2. Matzke GR, Zhanel GG, Guay DR. Clinical pharmacokinetics of vancomycin. Clin Pharmacokinet. 1986;11(4):257–282. <a href="https://pubmed.ncbi.nlm.nih.gov/3530582/" target="_blank" rel="noopener">PMID 3530582</a>. <a href="https://doi.org/10.2165/00003088-198611040-00001" target="_blank" rel="noopener">[DOI]</a><br>
@@ -226,7 +235,13 @@
   var PRESETS = {
     para:  { label:"paracetamol",  dose:1000, vd:60, cl:21, lo:4,  hi:20 },
     vanco: { label:"vancomycin", dose:1000, vd:49, cl:5,  lo:10, hi:20 },
-    hypo:  { label:"แบบฝึกหัด", dose:2000, vd:78, cl:1.5, lo:3, hi:30, hypo:true }   // t½ ≈ 36 ชม. (ฝึกอ่านค่าจากกราฟ)
+    hypo:  { label:"แบบฝึกหัด: Drug C", dose:2000, vd:78, cl:1.5, lo:3, hi:30, hypo:true },   // t½ ≈ 36 ชม. (ฝึกอ่านค่าจากกราฟ)
+    renal: { label:"แบบฝึกหัดผู้ป่วยโรคไต", renal:true }   // กราฟ 2 เส้น (vancomycin/paracetamol) + สไลเดอร์การทำงานของไต
+  };
+  // ค่าคงที่ของยาในโหมดผู้ป่วยโรคไต (ขับไต vs ขับตับ)
+  var RENAL = {
+    vanco: { vd:49, clNorm:5,  col:"#6366F1" },   // vancomycin: CL = 5 L/h ที่ไตปกติ → CL = clNorm × (ไต%) , Vd คงที่
+    para:  { vd:60, cl:21,     col:"#F5A524" }    // paracetamol: CL คงที่ (ขับทางตับ)
   };
   var curKey = "para";     // preset ที่เลือกอยู่ (ใช้เช็คโหมดยาสมมุติ)
   var yscale = "linear";   // "linear" | "log"
@@ -238,6 +253,9 @@
   var vdIn     = document.getElementById("hl-vd");
   var clIn     = document.getElementById("hl-cl");
   var tableBox = document.getElementById("hl-table");
+  var renalIn  = document.getElementById("hl-renal");
+  var gatesPk  = document.getElementById("hl-gates-pk");
+  var gatesRen = document.getElementById("hl-gates-renal");
   if(!svg || !doseIn || !vdIn || !clIn) return;
 
   function vals(){
@@ -402,7 +420,71 @@
     return h;
   }
 
+  // ----- โหมดผู้ป่วยโรคไต: กราฟ 2 เส้น (vancomycin/paracetamol) เทียบกันที่ % ของระดับยาเริ่มต้น -----
+  function renalVals(renalPct){
+    var rf=renalPct/100;
+    var clV=RENAL.vanco.clNorm*rf, keV=clV/RENAL.vanco.vd, t12V=Math.LN2/keV;   // vancomycin (เปลี่ยนตามไต)
+    var keP=RENAL.para.cl/RENAL.para.vd, t12P=Math.LN2/keP;                       // paracetamol (คงที่)
+    return { rf:rf, clV:clV, keV:keV, t12V:t12V, keP:keP, t12P:t12P };
+  }
+  function drawRenal(renalPct){
+    var L=66, R=502, T=18, B=312, H=48;     // หน้าต่างเวลา 0–48 ชม. (คงที่ เพื่อเทียบรูปร่างเส้น)
+    var v=renalVals(renalPct), yMax=100;
+    function xOf(t){ return L+(t/H)*(R-L); }
+    function yOf(p){ return B-(Math.min(p,yMax)/yMax)*(B-T); }
+    var s="";
+    // แกน
+    s += '<line x1="'+L+'" y1="'+B+'" x2="'+R+'" y2="'+B+'" stroke="#C9BEE0" stroke-width="1.2"/>';
+    s += '<line x1="'+L+'" y1="'+T+'" x2="'+L+'" y2="'+B+'" stroke="#C9BEE0" stroke-width="1.2"/>';
+    // กริด+ป้ายแกน Y (0–100%)
+    for(var g=0; g<=100; g+=20){ var yy=yOf(g);
+      s += '<line x1="'+L+'" y1="'+yy.toFixed(1)+'" x2="'+R+'" y2="'+yy.toFixed(1)+'" stroke="#EEE9F6" stroke-width="1"/>';
+      s += '<text x="'+(L-6)+'" y="'+(yy+3).toFixed(1)+'" text-anchor="end" font-size="10" fill="#6B6486">'+g+'</text>';
+    }
+    // ป้ายแกน X (ทุก 6 ชม.)
+    for(var t=0; t<=H; t+=6){
+      s += '<text x="'+xOf(t).toFixed(1)+'" y="'+(B+14)+'" text-anchor="middle" font-size="10" fill="#6B6486">'+t+'</text>';
+    }
+    s += '<text x="'+((L+R)/2)+'" y="'+(B+34)+'" text-anchor="middle" font-size="11" fill="#2A2150">เวลา (ชั่วโมง)</text>';
+    s += '<text transform="rotate(-90 16 '+((T+B)/2)+')" x="16" y="'+((T+B)/2)+'" text-anchor="middle" font-size="11" fill="#2A2150">% ของระดับยาเริ่มต้น</text>';
+    // เส้นโค้ง (เริ่มที่ 100% ทั้งคู่)
+    function curve(ke,col,w){ var p=""; for(var i=0;i<=240;i++){ var tt=(i/240)*H, pc=100*Math.exp(-ke*tt);
+      p+=(i===0?"M":"L")+xOf(tt).toFixed(1)+" "+yOf(pc).toFixed(1)+" "; }
+      return '<path d="'+p+'" fill="none" stroke="'+col+'" stroke-width="'+w+'" stroke-linejoin="round"/>'; }
+    s += curve(v.keP, RENAL.para.col, 2.4);    // paracetamol (อ้างอิง คงที่)
+    s += curve(v.keV, RENAL.vanco.col, 2.6);   // vancomycin (เปลี่ยนตามไต)
+    // legend
+    var lx=R-176, ly=T+8;
+    s += '<rect x="'+(lx-8)+'" y="'+(ly-2)+'" width="180" height="40" rx="8" fill="#fff" opacity="0.86" stroke="#EADCF7"/>';
+    s += '<line x1="'+lx+'" y1="'+(ly+9)+'" x2="'+(lx+20)+'" y2="'+(ly+9)+'" stroke="'+RENAL.vanco.col+'" stroke-width="2.6"/>';
+    s += '<text x="'+(lx+26)+'" y="'+(ly+12)+'" font-size="9.5" fill="#2A2150">vancomycin (กำจัดทางไตเป็นหลัก)</text>';
+    s += '<line x1="'+lx+'" y1="'+(ly+26)+'" x2="'+(lx+20)+'" y2="'+(ly+26)+'" stroke="'+RENAL.para.col+'" stroke-width="2.6"/>';
+    s += '<text x="'+(lx+26)+'" y="'+(ly+29)+'" font-size="9.5" fill="#2A2150">paracetamol (กำจัดทางตับเป็นหลัก)</text>';
+    return s;
+  }
+
   function recompute(){
+    var isRenal = !!(PRESETS[curKey] && PRESETS[curKey].renal);
+    // คืนป้ายกล่องอ่านค่ากลับค่าเริ่มต้น (เผื่อเพิ่งสลับออกจากโหมดไต)
+    var kT=document.getElementById("hl-thalf-k"), kK=document.getElementById("hl-ke-k"), kC=document.getElementById("hl-c0-k");
+    if(isRenal){
+      var rp=parseFloat(renalIn.value), v=renalVals(rp);
+      svg.innerHTML = drawRenal(rp);
+      document.getElementById("hl-renal-val").textContent = rp;
+      if(kT) kT.innerHTML="vancomycin t½ (ชม.)"; document.getElementById("hl-thalf").textContent = v.t12V.toFixed(1);
+      if(kK) kK.innerHTML="paracetamol t½ (ชม.)"; document.getElementById("hl-ke").textContent = v.t12P.toFixed(1);
+      if(kC) kC.innerHTML="vancomycin CL (L/h)"; document.getElementById("hl-c0").textContent = v.clV.toFixed(1);
+      var c4=document.getElementById("hl-cell4"); if(c4) c4.style.display="";
+      document.getElementById("hl-cl2").textContent = RENAL.para.cl.toFixed(1);
+      var ro=document.getElementById("hl-readouts"); if(ro) ro.style.gridTemplateColumns="repeat(2,1fr)";
+      var cap=document.getElementById("hl-cap");
+      if(cap) cap.textContent = "น้ำเงิน = vancomycin (กำจัดทางไตเป็นหลัก) · ส้ม = paracetamol (กำจัดทางตับเป็นหลัก)";
+      if(tableBox) tableBox.innerHTML = "";
+      return;
+    }
+    if(kT) kT.innerHTML="t½ (ชม.)"; if(kK) kK.innerHTML="k<sub>e</sub> (ต่อ ชม.)"; if(kC) kC.innerHTML="C₀ (mg/L)";
+    var c4b=document.getElementById("hl-cell4"); if(c4b) c4b.style.display="none";
+    var rob=document.getElementById("hl-readouts"); if(rob) rob.style.gridTemplateColumns="repeat(3,1fr)";
     var q=vals();
     var isHypo = !!(PRESETS[curKey] && PRESETS[curKey].hypo);
     svg.innerHTML = buildSVG(q);
@@ -424,7 +506,10 @@
   function setPreset(key){
     var p=PRESETS[key]; if(!p) return;
     curKey=key;
-    doseIn.value=p.dose; vdIn.value=p.vd; clIn.value=p.cl;
+    var isRenal=!!p.renal;
+    if(gatesPk)  gatesPk.style.display  = isRenal ? "none" : "";
+    if(gatesRen) gatesRen.style.display = isRenal ? "" : "none";
+    if(!isRenal){ doseIn.value=p.dose; vdIn.value=p.vd; clIn.value=p.cl; }
     Array.prototype.forEach.call(presetBox.children, function(b){
       var on=(b.getAttribute("data-preset")===key);
       b.style.background=on?"#2A2150":"#fff"; b.style.color=on?"#fff":"#2A2150";
@@ -459,6 +544,7 @@
   });
 
   [doseIn,vdIn,clIn].forEach(function(el){ el.addEventListener("input", recompute); });
+  if(renalIn) renalIn.addEventListener("input", recompute);
 
   function init(){ setScale("linear"); setPreset("para"); }
   if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
