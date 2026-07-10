@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>แบบฝึกหัด PK — interactive</title>
+
+<!--
+  ===========================================================================
+  quiz-pk-principles.html — แบบฝึกหัดเภสัชจลนศาสตร์แบบ interactive
+  ปรับจาก "ข้อสอบ PKprin2565" (บรรยาย 24 ข้อ + ปฏิบัติการ 10 ข้อ = 34 ข้อ)
+  เฉลยดึงจากไฮไลต์สีเหลืองในไฟล์ Word ต้นฉบับของอาจารย์
+
+  • ไฟล์ standalone — เปิดเดี่ยวได้ และถูกเรียกผ่านแท็บใน index.html
+  • prefix id: qpk-
+  • รูปแบบ: กดเลือก → เฉลยทันที + คำอธิบายเชิงวิชาการ + นับคะแนน
+
+  หมายเหตุที่ต้องให้อาจารย์ยืนยัน (ค้นด้วยคำว่า REVIEW ในไฟล์นี้):
+    1) ข้อบรรยาย #7  — โจทย์หายในไฟล์ Word ต้นฉบับ → ดิฉันร่างโจทย์ให้ (รออนุมัติ)
+    2) ข้อบรรยาย #8  — ion trapping ที่กระเพาะ: เฉลยในไฟล์ = กรดอ่อน แต่หลักมาตรฐาน
+                        ควรเป็นด่างอ่อน → ใส่ธงรอยืนยัน
+  ===========================================================================
+-->
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mitr:wght@400;500;600&family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --ink:#2A2150; --sub:#6B6486; --indigo:#6366F1; --purple:#A855F7;
+    --bg1:#FDF4FF; --bg2:#EFFBFF; --line:#E7DEF4;
+    --ok:#16A34A; --okbg:#ECFDF3; --okline:#A7F3D0;
+    --no:#DC2626; --nobg:#FEF2F2; --noline:#FECACA;
+    --warn:#B45309; --warnbg:#FFFBEB; --warnline:#FDE68A;
+  }
+  *{box-sizing:border-box}
+  html{ -webkit-text-size-adjust:100%; text-size-adjust:100%; }
+  body{
+    margin:0; color:var(--ink);
+    font-family:'Sarabun',system-ui,sans-serif;
+    background:linear-gradient(160deg,var(--bg1) 0%,var(--bg2) 100%);
+    line-height:1.55;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .wrap{ max-width:820px; margin:0 auto; padding:20px 16px 80px; }
+
+  .head h1{
+    font-family:'Mitr',sans-serif; font-weight:600;
+    font-size:1.32rem; margin:0 0 4px; color:var(--ink);
+  }
+  .head p{ color:var(--sub); font-size:.9rem; margin:0 0 2px; }
+
+  /* แถบคะแนนแบบลอย */
+  .scorebar{
+    position:sticky; top:0; z-index:20;
+    display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+    background:rgba(255,255,255,.9); backdrop-filter:blur(8px);
+    border:1px solid var(--line); border-radius:14px;
+    padding:10px 14px; margin:14px 0 6px;
+    box-shadow:0 4px 16px rgba(99,102,241,.10);
+  }
+  .scorebar .big{
+    font-family:'Mitr',sans-serif; font-weight:600; font-size:1.05rem; color:var(--indigo);
+  }
+  .scorebar .meta{ font-size:.82rem; color:var(--sub); }
+  .scorebar .track{ flex:1 1 140px; height:8px; background:#EEE7F8; border-radius:99px; overflow:hidden; min-width:120px; }
+  .scorebar .fill{ height:100%; width:0%; background:linear-gradient(90deg,var(--indigo),var(--purple)); transition:width .3s ease; }
+  .scorebar button{
+    font-family:'Mitr',sans-serif; font-size:.82rem; color:var(--sub);
+    background:#fff; border:1px solid var(--line); border-radius:99px;
+    padding:6px 12px; cursor:pointer;
+  }
+  .scorebar button:hover{ color:var(--indigo); border-color:var(--indigo); }
+
+  .sec-title{
+    font-family:'Mitr',sans-serif; font-weight:600; font-size:1.06rem;
+    color:var(--purple); margin:26px 0 4px;
+    display:flex; align-items:baseline; gap:8px;
+  }
+  .sec-title .cnt{ font-family:'Sarabun'; font-weight:400; font-size:.82rem; color:var(--sub); }
+
+  .card{
+    background:#fff; border:1px solid var(--line); border-radius:16px;
+    padding:16px 16px 6px; margin:14px 0;
+    box-shadow:0 2px 10px rgba(42,33,80,.05);
+  }
+  .qnum{
+    font-family:'Mitr',sans-serif; font-weight:500; font-size:.78rem;
+    color:#fff; background:var(--indigo);
+    border-radius:8px; padding:2px 9px; display:inline-block; margin-bottom:8px;
+  }
+  .flag{
+    font-size:.72rem; color:var(--warn); background:var(--warnbg);
+    border:1px solid var(--warnline); border-radius:8px;
+    padding:2px 8px; margin-left:6px; display:inline-block;
+  }
+  .stem{ font-weight:600; font-size:1rem; margin:0 0 4px; }
+  .stem .desc{ display:block; font-weight:400; font-size:.92rem; color:var(--sub); margin-top:6px; }
+  .subitems{ margin:6px 0 2px; padding-left:2px; }
+  .subitems div{ font-size:.9rem; color:#463c6e; margin:3px 0; padding-left:14px; text-indent:-14px; }
+
+  .opts{ list-style:none; margin:10px 0 6px; padding:0; }
+  .opt{
+    display:flex; align-items:flex-start; gap:10px;
+    border:1px solid var(--line); border-radius:12px;
+    padding:10px 12px; margin:7px 0; cursor:pointer;
+    background:#fff; transition:all .12s ease; font-size:.95rem;
+  }
+  .opt:hover{ border-color:var(--indigo); background:#FBF9FF; }
+  .opt .mk{
+    flex:0 0 auto; width:22px; height:22px; border-radius:99px;
+    border:1.5px solid var(--line); display:flex; align-items:center; justify-content:center;
+    font-family:'Mitr',sans-serif; font-size:.78rem; color:var(--sub); background:#fff;
+  }
+  .opt.correct{ border-color:var(--okline); background:var(--okbg); }
+  .opt.correct .mk{ border-color:var(--ok); background:var(--ok); color:#fff; }
+  .opt.wrong{ border-color:var(--noline); background:var(--nobg); }
+  .opt.wrong .mk{ border-color:var(--no); background:var(--no); color:#fff; }
+  .opts.locked .opt{ cursor:default; }
+  .opts.locked .opt:hover{ background:#fff; border-color:var(--line); }
+  .opts.locked .opt.correct:hover{ background:var(--okbg); border-color:var(--okline); }
+  .opts.locked .opt.wrong:hover{ background:var(--nobg); border-color:var(--noline); }
+
+  .explain{
+    display:none; margin:4px 2px 12px; padding:12px 14px;
+    background:var(--okbg); border:1px solid var(--okline); border-radius:12px;
+    font-size:.92rem; color:#14532d;
+  }
+  .explain.show{ display:block; }
+  .explain b{ color:var(--ok); }
+  .explain .ans{ font-weight:700; }
+
+  /* กราฟ SVG */
+  .graph{ margin:10px 0 4px; text-align:center; }
+  .graph svg{ max-width:100%; height:auto; }
+
+  .footnote{ color:var(--sub); font-size:.8rem; margin-top:30px; text-align:center; }
+
+  @media (max-width:480px){
+    .wrap{ padding:14px 12px 70px; }
+    .head h1{ font-size:1.15rem; }
+    .opt{ font-size:.9rem; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="head">
+    <h1>🧪 แบบฝึกหัดเภสัชจลนศาสตร์</h1>
+    <p>ปรนัย 34 ข้อ · แบ่งเป็นส่วนบรรยาย 24 ข้อ และปฏิบัติการ 10 ข้อ</p>
+    <p>เลือกคำตอบเพื่อดูเฉลยและคำอธิบายทันที — เน้นเรียนรู้ ไม่นับเป็นเกรด</p>
+  </div>
+
+  <div class="scorebar" id="qpk-scorebar">
+    <span class="big" id="qpk-score">คะแนน 0 / 34</span>
+    <span class="meta" id="qpk-meta">ตอบแล้ว 0 ข้อ</span>
+    <span class="track"><span class="fill" id="qpk-fill"></span></span>
+    <button id="qpk-reset" type="button">เริ่มใหม่</button>
+  </div>
+
+  <div id="qpk-quiz"></div>
+
+  <p class="footnote">พัฒนาโดย ผศ.ดร. ภัควดี เสริมสรรพสุข คณะเภสัชศาสตร์ ม.นเรศวร — เฉลยอ้างอิงจากต้นฉบับการเรียน</p>
+</div>
+
+<script>
+/* =========================================================================
+   ชุดแบบฝึกหัด — แก้เนื้อหา/เฉลย/คำอธิบายได้ที่นี่ที่เดียว
+   โครงแต่ละข้อ:
+     { stem, desc?, sub?[], opts:[...], answer: <index เริ่มที่ 0>, ex, flag? }
+   answer = ตำแหน่งตัวเลือกที่ถูก (0 = ตัวแรก)
+   ========================================================================= */
+
+var GRAPH_L = ''
++ '<div class="graph"><svg viewBox="0 0 430 270" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="กราฟความเข้มข้นยา L เทียบเวลา">'
++ '<rect x="0" y="0" width="430" height="270" fill="#fff"/>'
+// แกน
++ '<line x1="40" y1="220" x2="410" y2="220" stroke="#B7ABD6" stroke-width="1.5"/>'
++ '<line x1="40" y1="220" x2="40" y2="20" stroke="#B7ABD6" stroke-width="1.5"/>'
+// ticks แกน x (ทุก 2 ชม.: 0..12)  x = 40 + t*30
++ '<g font-family="Sarabun" font-size="10" fill="#6B6486" text-anchor="middle">'
++ '<line x1="100" y1="220" x2="100" y2="224" stroke="#B7ABD6"/><text x="100" y="236">2</text>'
++ '<line x1="160" y1="220" x2="160" y2="224" stroke="#B7ABD6"/><text x="160" y="236">4</text>'
++ '<line x1="220" y1="220" x2="220" y2="224" stroke="#B7ABD6"/><text x="220" y="236">6</text>'
++ '<line x1="280" y1="220" x2="280" y2="224" stroke="#B7ABD6"/><text x="280" y="236">8</text>'
++ '<line x1="340" y1="220" x2="340" y2="224" stroke="#B7ABD6"/><text x="340" y="236">10</text>'
++ '<line x1="400" y1="220" x2="400" y2="224" stroke="#B7ABD6"/><text x="400" y="236">12</text>'
++ '<text x="40" y="236">0</text>'
++ '<text x="225" y="256">เวลา (ชั่วโมง)</text>'
++ '</g>'
+// ticks แกน y (mg/L 1..4)  y = 220 - c*40
++ '<g font-family="Sarabun" font-size="10" fill="#6B6486" text-anchor="end">'
++ '<line x1="36" y1="180" x2="40" y2="180" stroke="#B7ABD6"/><text x="34" y="184">1</text>'
++ '<line x1="36" y1="140" x2="40" y2="140" stroke="#B7ABD6"/><text x="34" y="144">2</text>'
++ '<line x1="36" y1="100" x2="40" y2="100" stroke="#B7ABD6"/><text x="34" y="104">3</text>'
++ '<line x1="36" y1="60"  x2="40" y2="60"  stroke="#B7ABD6"/><text x="34" y="64">4</text>'
++ '</g>'
++ '<text x="14" y="130" font-family="Sarabun" font-size="10" fill="#6B6486" transform="rotate(-90 14 130)" text-anchor="middle">ความเข้มข้น (mg/L)</text>'
+// เส้น MEC = 1.5 → y = 220 - 1.5*40 = 160
++ '<line x1="40" y1="160" x2="410" y2="160" stroke="#DC2626" stroke-width="1.3" stroke-dasharray="6 4"/>'
++ '<text x="405" y="154" font-family="Sarabun" font-size="10" fill="#DC2626" text-anchor="end">MEC = 1.5 mg/L</text>'
+// เส้นโค้งความเข้มข้น (Bateman-like)
++ '<polyline fill="none" stroke="#6366F1" stroke-width="2.4" points="'
++ '40,220 55,204 70,180 79,160 100,116 130,84 160,92 190,112 220,140 244,160 280,180 340,200 400,210" />'
+// จุดตัด MEC ขึ้น (onset) t=1.3 → x=79 ; ลง (offset) t=6.8 → x=244
++ '<line x1="79" y1="160" x2="79" y2="220" stroke="#16A34A" stroke-width="1" stroke-dasharray="3 3"/>'
++ '<line x1="244" y1="160" x2="244" y2="220" stroke="#16A34A" stroke-width="1" stroke-dasharray="3 3"/>'
++ '<circle cx="79" cy="160" r="3.5" fill="#16A34A"/>'
++ '<circle cx="244" cy="160" r="3.5" fill="#16A34A"/>'
++ '<text x="79" y="214" font-family="Sarabun" font-size="9.5" fill="#16A34A" text-anchor="middle">1.3 h</text>'
++ '<text x="244" y="214" font-family="Sarabun" font-size="9.5" fill="#16A34A" text-anchor="middle">6.8 h</text>'
++ '<text x="150" y="40" font-family="Mitr" font-size="12" fill="#6366F1" text-anchor="middle">ยา L</text>'
++ '</svg></div>';
+
+var SECTIONS = [
+{
+  title: 'ส่วนที่ 1 — การเรียนบรรยาย',
+  qs: [
+    { stem:'ถ้าหากให้ยา X โดยการรับประทาน 100 mg ครั้งเดียว แล้วไม่เกิดผลในการรักษา แสดงว่า',
+      opts:['ระดับยาต่ำกว่า MEC','ยามี %Foral น้อยกว่าค่าขอบล่างของช่วงในการรักษา','ยากระจายตัวเข้าสู่เซลล์ไขมันซึ่งสะสมยาได้น้อย','ค่า AUC มีค่าต่ำกว่า MTC','ยามีค่า CL ลดต่ำลง'],
+      answer:0,
+      ex:'การให้ยาครั้งเดียวแล้วไม่ออกฤทธิ์ แปลว่าระดับยา ณ ตำแหน่งออกฤทธิ์ยังไม่ถึง <b>MEC (minimum effective concentration)</b> จึงไม่เห็นผลการรักษา ส่วน MTC คือขอบบน (ขอบพิษ) การที่ AUC ต่ำกว่า MTC เป็นเรื่องปกติของยาที่ปลอดภัย ไม่ได้บอกว่าไม่ออกฤทธิ์' },
+
+    { stem:'ยาควรมีคุณสมบัติอย่างไร จึงจะมี permeability ที่สูงในการเคลื่อนที่ผ่านเซลล์ด้วยวิธี passive diffusion',
+      opts:['เป็น substrate ของ OCT','เป็น peptide','ยามีขนาดโมเลกุล > 1000 g/mol','ยาละลายไขมันได้ดี','ยามี % ionization สูง'],
+      answer:3,
+      ex:'passive diffusion ผ่านเยื่อหุ้มเซลล์ (lipid bilayer) ได้ดีเมื่อยา <b>ละลายไขมันได้ดี (lipophilic)</b> ขนาดโมเลกุลเล็ก และอยู่ในรูปไม่แตกตัว ส่วน substrate ของ OCT หรือ peptide ต้องอาศัยตัวพา (carrier-mediated) ไม่ใช่ passive; โมเลกุลใหญ่ > 1000 และ ionization สูง ยิ่งผ่านยาก' },
+
+    { stem:'ถ้ายามี %Foral ~30 แสดงว่า',
+      opts:['ยามี enterohepatic recirculation','ยามี First pass loss สูง','ยามีค่า Clearance ต่ำ','ยามีดูดซึมได้เร็ว','ยาออกฤทธิ์ได้นาน'],
+      answer:1,
+      ex:'ชีวประสิทธิผลทางปาก (F) เพียง ~30% แสดงว่ายาส่วนใหญ่สูญเสียก่อนถึงระบบไหลเวียนใหญ่ = <b>first-pass loss สูง</b> (ที่ผนังลำไส้/ตับ) ส่วน EHC จะทำให้ t½ ยาวขึ้น และ CL ต่ำจะทำให้ F <i>สูงขึ้น</i>ด้วยซ้ำ' },
+
+    { stem:'การให้ยาด้วยวิธีการใดสามารถหลีกเลี่ยงการเกิด first-pass metabolism ได้',
+      opts:['การรับประทานยาในรูปแบบ solution','การรับประทานยาในรูปแบบ enteric coated tablet','การรับประทานยาในรูปแบบ sustained-release tablet','การรับประทานยาในรูปแบบ sugar coated tablet','การอมใต้ลิ้นยาในรูปแบบ plain tablet'],
+      answer:4,
+      ex:'การ<b>อมใต้ลิ้น (sublingual)</b> ยาดูดซึมเข้าหลอดเลือดดำใต้ลิ้นสู่ systemic circulation โดยตรง ไม่ผ่านตับก่อน จึงเลี่ยง hepatic first-pass ได้ ส่วนยารับประทานทุกชนิดถูกดูดซึมเข้า portal vein ผ่านตับก่อนเสมอ' },
+
+    { stem:'ถ้าให้ยาชนิดเดียวกันในขนาดที่เท่ากัน การให้ยาใน dosage form ใด จะให้ Tmax ต่ำสุด และ Cmax สูงสุด (กำหนดให้ absolute oral bioavailability ของทุก dosage form เท่ากัน)',
+      opts:['Solution','Suspension','Capsule','Tablet','Enteric coated tablet'],
+      answer:0,
+      ex:'ยาในรูป <b>solution</b> ละลายอยู่แล้ว พร้อมดูดซึมทันที ไม่ต้องผ่านขั้น disintegration/dissolution จึงดูดซึมเร็วที่สุด → <b>Tmax สั้นสุด, Cmax สูงสุด</b> ลำดับอัตราเร็วการดูดซึม: solution &gt; suspension &gt; capsule &gt; tablet &gt; enteric coated' },
+
+    { stem:'การเปรียบเทียบสัดส่วนของปริมาณยาที่ถูกดูดซึมระหว่างยาเม็ดที่ทำเลียนแบบ (generic) กับยาเม็ดต้นแบบ เป็นการศึกษาเพื่อหาค่าอะไร',
+      opts:['Onset','Duration of action','Therapeutic index','Absolute bioavailability','Relative bioavailability'],
+      answer:4,
+      ex:'การเทียบปริมาณดูดซึมของยา 2 ผลิตภัณฑ์ที่ให้ทางเดียวกัน (generic เทียบต้นแบบ ทั้งคู่รับประทาน) = <b>relative bioavailability</b> ส่วน absolute bioavailability คือการเทียบกับการให้ทางหลอดเลือดดำ (IV, F = 100%)' },
+
+    { stem:'ถ้าให้ยาพร้อมอาหาร (โดยเฉพาะอาหารที่มีไขมันสูง) จะมีผลต่อการดูดซึมยาอย่างไร',
+      opts:['ยาอาจจะถูกดูดซึมได้เพิ่มขึ้น','ยาอาจจะถูกดูดซึมได้ช้าลง','ยาอาจจะออกฤทธิ์ได้เร็วขึ้น','ยาอาจจะออกฤทธิ์ได้นานขึ้น','ยาอาจจะเกิด enterohepatic recirculation ได้น้อยลง'],
+      answer:1,
+      ex:'อาหารชะลอการบีบตัวของกระเพาะ (delayed gastric emptying) ทำให้ยาลงสู่ลำไส้เล็กช้าลง → <b>อัตราการดูดซึมช้าลง</b> Tmax ยาวขึ้น (แม้บางกรณีปริมาณดูดซึมรวมอาจเพิ่ม แต่ "อัตราเร็ว" ช้าลง)' },
+
+    { stem:'ยาที่มีคุณสมบัติใดต่อไปนี้เกิด ion trapping ได้ที่เซลล์เยื่อบุกระเพาะอาหาร',
+      opts:['ยาที่เป็นกรดแก่','ยาที่เป็นด่างแก่','ยาที่เป็นกรดอ่อนมี pKa 4','ยาที่เป็นด่างอ่อนมี pKa 4','ยาที่ละลายในไขมันได้ดีมาก'],
+      answer:2,
+      ex:'พิจารณา ion trapping <b>เข้าสู่เซลล์เยื่อบุกระเพาะ</b> (เทียบ lumen กรด pH~2 กับภายในเซลล์ pH~6.8): ยา<b>กรดอ่อน pKa 4</b> ในกระเพาะ (pH 2) ส่วนใหญ่อยู่ในรูป <b>unionized ~99%</b> จึงผ่านเยื่อเข้าสู่เซลล์ได้ดี เมื่อเข้าไปในเซลล์ (pH 6.8) กลับแตกตัวเป็น <b>ionized ~99%</b> ข้ามเยื่อออกไม่ได้ จึงถูก<b>ดักสะสมอยู่ในเซลล์ (ion trapping)</b> ส่วนด่างอ่อนในกระเพาะจะแตกตัวมาก เข้าเซลล์ได้น้อย จึงไม่ถูกดักในเซลล์' },
+
+    { stem:'การรับประทาน grapefruit juice หรือ ส้มโอ จะมีผลต่อยาที่เป็น substrate ของ CYP3A อย่างไร',
+      opts:['ลด intestinal first-pass metabolism ของยา','เพิ่ม hepatic first-pass metabolism ของยา','ลดการกระจายตัวของยาเข้าสมอง','เพิ่มการ metabolism ของยา','เพิ่มการขับถ่ายของยาทางไต'],
+      answer:0,
+      ex:'สาร furanocoumarin ในเกรปฟรุต/ส้มโอ <b>ยับยั้ง CYP3A4 ที่ผนังลำไส้</b> (intestinal first-pass) → ลดการทำลายยาก่อนดูดซึม → ระดับยาและ bioavailability เพิ่มขึ้น (เสี่ยงพิษ) เป็น enzyme inhibitor ไม่ใช่ inducer' },
+
+    { stem:'ถ้ายามี Vd = 5 L แสดงว่ายาน่าจะกระจายตัวอย่างไร',
+      opts:['ยากระจายตัวอยู่ในเลือดเป็นส่วนใหญ่','ยากระจายตัวอยู่ในเลือดและของเหลวที่อยู่ในช่องว่างระหว่างเซลล์','ยากระจายตัวเข้าอยู่ในของเหลวทั้งภายในและภายนอกเซลล์','ยาสะสมในไขมันได้ดี','ยาน่าจะสะสมที่เยื่อหุ้มเซลล์ที่หัวใจได้ดี'],
+      answer:0,
+      ex:'ปริมาตรพลาสมา ~3 L, เลือดทั้งหมด ~5 L ดังนั้น Vd ≈ 5 L แสดงว่ายา<b>จำกัดอยู่ในกระแสเลือดเป็นหลัก</b> (โมเลกุลใหญ่/จับโปรตีนสูง) ยิ่ง Vd มาก ยิ่งกระจายออกนอกเลือด (ECF ~14 L, TBW ~42 L)' },
+
+    { stem:'ถ้ายาเป็นกรดอ่อน ภาวะใดต่อไปนี้จะมีผลทำให้ยาในรูปอิสระ (free) มีมากขึ้น',
+      opts:['ระดับ albumin ในเลือดต่ำ','ระดับ α1-acid glycoprotein ต่ำลง','ระดับ globulin ต่ำ','ระดับเม็ดเลือดแดงต่ำ','ระดับ fibrinogen ต่ำ'],
+      answer:0,
+      ex:'ยาที่เป็น<b>กรดอ่อนจับกับ albumin</b> เป็นหลัก เมื่อ albumin ต่ำ (เช่น ตับ/ไตเสีย ทุพโภชนาการ) → ที่จับยาลดลง → <b>ยาอิสระเพิ่ม</b> ส่วน α1-acid glycoprotein จับยาที่เป็นด่างเป็นหลัก' },
+
+    { stem:'ถ้ายาเป็น substrate ของ transporter ชนิดใดต่อไปนี้ จะมีผลทำให้ยากระจายตัวเข้าสู่สมองได้ไม่ดี',
+      opts:['P-glycoprotein','OATP1A2','OCT','PEPT','OAT1'],
+      answer:0,
+      ex:'<b>P-glycoprotein (P-gp)</b> เป็น efflux transporter ที่ blood–brain barrier คอยปั๊มยาออกจากสมองกลับสู่เลือด → ยาที่เป็น substrate ของ P-gp จึงเข้าสมองได้น้อย ส่วน OATP/OCT/PEPT/OAT เป็น uptake transporter' },
+
+    { stem:'ยาที่มีคุณสมบัติใดต่อไปนี้น่าจะมี loading dose ในผู้ป่วยโรคอ้วนมากกว่าคนผอม',
+      opts:['ยามี %plasma protein binding สูง','ยามี hydrophilicity และ Vd = 5 L','ยามี lipophilicity และ Vd 180 L','ยามี hydrophilicity และ Vd 400 L','ยาเป็นกรดอ่อนและจับกับ albumin'],
+      answer:2,
+      ex:'Loading dose = Vd × Cp เป้าหมาย ยา<b>ละลายไขมัน (lipophilic) และ Vd ใหญ่ (180 L)</b> จะกระจายเข้าเนื้อเยื่อไขมันที่เพิ่มขึ้นในคนอ้วน → Vd จริงเพิ่ม → ต้องใช้ loading dose มากกว่า ส่วนยา hydrophilic จะจำกัดอยู่ในน้ำ ไม่เข้าไขมัน (Vd 400 L สำหรับ hydrophilic ไม่สมเหตุผล)' },
+
+    { stem:'จากข้อมูลต่อไปนี้ ยาตัวใดคือ Prodrug',
+      sub:['Aspirin ถูก metabolized เป็น salicylic acid โดย aspirin ยับยั้ง COX-1 ส่วน salicylic acid ยับยั้งทั้ง COX-1 และ COX-2',
+           'Levodopa ใช้รักษาพาร์กินสัน ถูกเปลี่ยนเป็น dopamine โดยเอนไซม์ในสมอง',
+           'Ethinylestradiol (active) ถูก metabolized เป็น ethinylestradiol glucuronide (inactive)'],
+      opts:['Aspirin','Salicylic acid','Levodopa','Dopamine','Ethinylestradiol'],
+      answer:2,
+      ex:'<b>Prodrug</b> คือยาที่ให้ในรูปไม่ออกฤทธิ์ แล้วถูกเปลี่ยนเป็น active metabolite ในร่างกาย → <b>Levodopa</b> (inactive) ถูก decarboxylate เป็น dopamine (active) ที่สมอง ส่วน aspirin เองก็ออกฤทธิ์ (ไม่ใช่ prodrug แท้), ethinylestradiol เป็น active ที่ถูกเปลี่ยนเป็น inactive' },
+
+    { stem:'ข้อใดต่อไปนี้คือปฏิกิริยาใน Phase II',
+      opts:['Oxidation','Reduction','Glucuronidation','Hydrolysis','Alcohol dehydrogenation'],
+      answer:2,
+      ex:'<b>Phase II = conjugation</b> เช่น glucuronidation, sulfation, acetylation, glutathione conjugation ทำให้ยาละลายน้ำมากขึ้นเพื่อขับออก ส่วน oxidation/reduction/hydrolysis/dehydrogenation เป็น Phase I (functionalization)' },
+
+    { stem:'ผู้ป่วยวัยใดที่มีความบกพร่องของเอนไซม์ Phase I มากที่สุด',
+      opts:['เด็กอายุ 2 ปี','เด็กอายุ 8 ปี','วัยรุ่น','ผู้ใหญ่','ผู้สูงอายุ'],
+      answer:4,
+      ex:'ใน<b>ผู้สูงอายุ</b> ปฏิกิริยา Phase I (oxidation ผ่าน CYP) ลดลงชัดเจนตามมวลตับและเลือดไปเลี้ยงตับที่ลดลง ขณะที่ Phase II มักคงอยู่ได้ดีกว่า จึงมักต้องระวังยาที่ถูกกำจัดด้วย Phase I เป็นหลัก' },
+
+    { stem:'เอนไซม์ชนิดใดที่มีส่วนร่วมในการ metabolism ของยามากชนิดที่สุด',
+      opts:['CYP1A2','CYP2D6','CYP2C9','CYP2C19','CYP3A4'],
+      answer:4,
+      ex:'<b>CYP3A4</b> เกี่ยวข้องกับการ metabolism ยาถึง ~50% ของยาที่ใช้ทางคลินิก และพบมากทั้งที่ตับและผนังลำไส้ จึงเป็นเอนไซม์ที่สำคัญที่สุดในเรื่อง drug interaction' },
+
+    { stem:'ยา Cyclosporine เป็นยาที่มีช่วงการรักษาแคบ เพื่อระวังพิษ ควรหลีกเลี่ยงการรับประทานร่วมกับยาที่มีคุณสมบัติอย่างไร',
+      opts:['CYP1A2 inducer','CYP2D6 inhibitor','CYP3A4 inhibitor','CYP2E1 inhibitor','CYP3A4 inducer'],
+      answer:2,
+      ex:'Cyclosporine ถูก metabolize ด้วย CYP3A4 การให้ร่วมกับ <b>CYP3A4 inhibitor</b> จะลดการกำจัด → ระดับยาสูงขึ้น → เสี่ยงพิษ (เช่น nephrotoxicity) ส่วน inducer จะลดระดับยาจนอาจไม่ได้ผล' },
+
+    { stem:'ข้อใดคือคุณสมบัติของ transporter ใน superfamily ABC',
+      opts:['Bidirection','ต้องการ ATP','Facilitated diffusion','OAT เป็นหนึ่งใน family ของ ABC','จัดเป็น uptake transporter'],
+      answer:1,
+      ex:'<b>ABC = ATP-Binding Cassette</b> เป็น primary active transport ที่<b>ต้องใช้ ATP</b> ทำงานทิศทางเดียว (มักเป็น efflux เช่น P-gp, MRP, BCRP) ส่วน OAT/OCT อยู่ใน superfamily SLC ซึ่งเป็น uptake/facilitated' },
+
+    { stem:'"การที่ยาถูกดูดซึมจากทางเดินอาหาร ขับออกทางน้ำดี และถูกดูดซึมกลับจากทางเดินอาหารเป็นวงจรซ้ำๆ โดยยาที่มีกระบวนการนี้มักมีค่าครึ่งชีวิตยาว" ประโยคนี้แสดงถึงกระบวนการใด',
+      opts:['Absorption','First-pass metabolism','Enterohepatic recirculation','Permeability','Bile excretion'],
+      answer:2,
+      ex:'วงจรตับ–น้ำดี–ลำไส้–ดูดซึมกลับ คือ <b>enterohepatic recirculation (EHC)</b> ทำให้ยาอยู่ในร่างกายนานขึ้น (t½ ยาว) เช่น การให้ activated charcoal หรือยาปฏิชีวนะฆ่าเชื้อในลำไส้อาจรบกวนวงจรนี้' },
+
+    { stem:'ค่าครึ่งชีวิต (t½) จะมีค่าเพิ่มขึ้นเมื่อ',
+      opts:['ทานยาในขนาดสูงขึ้น','ยาถูกดูดซึมช้าลง','ยามีการกระจายตัวลดลง','อวัยวะในการกำจัดยาบกพร่อง','ได้รับยาที่เป็น enzyme inducer ร่วมด้วย'],
+      answer:3,
+      ex:'t½ = 0.693 × Vd / CL เมื่อ<b>อวัยวะกำจัดยา (ตับ/ไต) บกพร่อง → CL ลดลง → t½ ยาวขึ้น</b> ส่วนขนาดยาไม่เปลี่ยน t½ (ในยา linear), Vd ลด → t½ สั้นลง, enzyme inducer → CL เพิ่ม → t½ สั้นลง' },
+
+    { stem:'ถ้าหากยามีการอิ่มตัวของเอนไซม์ที่ใช้ในการกำจัดยา ข้อใดคือคุณสมบัติของยา',
+      opts:['nonlinear pharmacokinetics แบบเพิ่มมากกว่าสัดส่วนโดยตรง','nonlinear pharmacokinetics แบบเพิ่มน้อยกว่าสัดส่วนโดยตรง','มีการกำจัดยาแบบ first order','มีการกำจัดยาแบบ second order','มี first-pass metabolism'],
+      answer:0,
+      ex:'เมื่อเอนไซม์อิ่มตัว (capacity-limited) ความสามารถกำจัดยาถูกจำกัด เพิ่มขนาดยาเล็กน้อย ระดับยากลับ<b>เพิ่มขึ้นมากกว่าสัดส่วน (disproportionate increase)</b> = nonlinear PK เช่น phenytoin เป็นเหตุให้เสี่ยงพิษได้ง่าย' },
+
+    { stem:'พารามิเตอร์ใดเป็นตัวบ่งชี้ความสามารถของร่างกายในการกำจัดยาที่แท้จริง',
+      opts:['AUC','F','Vd','CL','T1/2'],
+      answer:3,
+      ex:'<b>Clearance (CL)</b> คือปริมาตรเลือด/พลาสมาที่ถูกกำจัดยาจนหมดต่อหน่วยเวลา เป็นตัวชี้ความสามารถกำจัดยาที่แท้จริงและเป็นอิสระ ส่วน t½ เป็นค่าที่ขึ้นกับทั้ง CL และ Vd (t½ = 0.693·Vd/CL)' },
+
+    { stem:'คุณสมบัติทางเภสัชจลนศาสตร์ของยาในข้อใดที่บ่งชี้ว่ายาน่าจะให้วันละครั้งได้',
+      opts:['%Foral = 90','Tmax = 3 h','Onset time = 4 h','T1/2 = 36 h','%plasma protein binding = 65'],
+      answer:3,
+      ex:'ยาที่มี <b>t½ ยาว (36 ชม.)</b> จะคงระดับยาในช่วงการรักษาได้นาน จึงให้วันละครั้งได้ ส่วน %F, Tmax, onset, %protein binding ไม่ได้บอกความถี่ในการให้ยาโดยตรง' }
+  ]
+},
+{
+  title: 'ส่วนที่ 2 — การเรียนปฏิบัติการ',
+  qs: [
+    { stem:'ค่า %Foral ของยา Y จะเพิ่มขึ้นได้ในกรณีใด (กำหนดให้ยา Y มีคุณสมบัติ acid labile, เป็น substrate ของ CYP3A4 และ P-glycoprotein และมี enterohepatic recirculation)',
+      opts:['ทานยา Y พร้อมเครื่องดื่มน้ำอัดลม coca-cola','ทานยา Y พร้อมยา rifampicin','ทานยา Y พร้อมยาฆ่าเชื้อ broad spectrum','ทานยา Y พร้อมยา verapamil','ทานยา Y พร้อมอาหาร'],
+      answer:3,
+      ex:'<b>Verapamil</b> เป็นทั้ง CYP3A4 inhibitor และ P-gp inhibitor → ลด first-pass และลดการปั๊มยาออก → <b>%F เพิ่ม</b> ส่วน coca-cola (กรด) ทำลายยา acid labile; rifampicin เป็น inducer ลด F; ยาฆ่าเชื้อ broad spectrum ฆ่าแบคทีเรียในลำไส้ → รบกวน EHC → ลด F' },
+
+    { stem:'ให้ยาชนิดเดียวกันในขนาดเท่ากันที่ผลิตจากคนละบริษัท ยาในข้อใดมีอัตราการดูดซึมและปริมาณยาที่ถูกดูดซึมน้อยที่สุด',
+      opts:['Tmax 0.5 h, Cmax 10 ng/mL, AUC 100 ng·h/mL','Tmax 0.25 h, Cmax 20 ng/mL, AUC 80 ng·h/mL','Tmax 0.25 h, Cmax 18 ng/mL, AUC 170 ng·h/mL','Tmax 1 h, Cmax 6 ng/mL, AUC 90 ng·h/mL','Tmax 1 h, Cmax 10 ng/mL, AUC 160 ng·h/mL'],
+      answer:3,
+      ex:'อัตราการดูดซึมดูจาก Tmax/Cmax (ยิ่ง Tmax ยาว + Cmax ต่ำ = ยิ่งช้า) และปริมาณดูดซึมดูจาก AUC ข้อนี้ <b>Tmax 1 h (ช้าสุด), Cmax 6 (ต่ำสุด)</b> และ AUC 90 (ค่อนข้างต่ำ) จึงมีทั้งอัตราเร็วและปริมาณดูดซึมน้อยที่สุดโดยรวม' },
+
+    { stem:'จากรูป ค่า onset และ duration of action ของยา L มีค่าเท่าไร (กำหนดให้ MEC = 1.5 mg/L)',
+      graph:true,
+      opts:['Onset = 0.5 h, duration = 13 h','Onset = 1.3 h, duration = 5.5 h','Onset = 1.3 h, duration = 13 h','Onset = 1.3 h, duration = 4 h','Onset = 2.3 h, duration = 8 h'],
+      answer:1,
+      ex:'<b>Onset</b> = เวลาที่ความเข้มข้นขึ้นแตะ MEC ครั้งแรก ≈ <b>1.3 ชม.</b> <b>Duration of action</b> = ช่วงเวลาที่ความเข้มข้นอยู่เหนือ MEC = ตั้งแต่ขึ้นแตะ MEC (1.3 h) จนตกลงต่ำกว่า MEC (≈6.8 h) = <b>~5.5 ชม.</b>' },
+
+    { stem:'ถ้ายาผ่าน metabolism phase I ตามด้วย phase II ได้ inactive metabolite โดยพบยาในรูปเดิม 2% และ metabolites ในอุจจาระมากกว่า 97% ของขนาดยา ยามีโอกาสต้องปรับขนาดในผู้ป่วยโรคใดมากที่สุด',
+      opts:['โรคไตล้มเหลว','โรคตับแข็ง','โรคอัลไซเมอร์','โรคนิ่วในกระเพาะปัสสาวะ','โรคปอดบวม'],
+      answer:1,
+      ex:'ยาถูกกำจัดโดย<b>ตับ</b>เป็นหลัก (metabolize เกือบทั้งหมด, ขับทางน้ำดี/อุจจาระ >97%, ในรูปเดิมทางไตแค่ 2%) ดังนั้นเมื่อ<b>ตับแข็ง (cirrhosis)</b> การกำจัดลดลง → ต้องปรับขนาด ส่วนไตมีบทบาทน้อย (แค่ 2%)' },
+
+    { stem:'ถ้าฉีดยา X 500 mg ทุก 8 ชั่วโมงต่อเนื่อง วัดระดับยาเฉลี่ยที่ steady state (Css) = 12 mg/L ซึ่งสูงกว่า therapeutic range (5–10 mg/L) หากยา X มี linear pharmacokinetics จงปรับขนาดยาให้อยู่ในช่วงการรักษา',
+      opts:['65 mg ทุก 8 ชั่วโมง','125 mg ทุก 8 ชั่วโมง','250 mg ทุก 8 ชั่วโมง','1000 mg ทุก 8 ชั่วโมง','1500 mg ทุก 8 ชั่วโมง'],
+      answer:2,
+      ex:'ยา linear: Css แปรผันตรงกับขนาดยา (Css ∝ dose) จาก 500 mg → 12 mg/L ดังนั้น <b>250 mg → Css = 12 × 250/500 = 6 mg/L</b> อยู่ในช่วง 5–10 พอดี ส่วน 125 mg → 3 mg/L (ต่ำไป), 65 mg → 1.6 mg/L (ต่ำมาก)' },
+
+    { stem:'ถ้าให้ยาที่เป็น MATE1 inhibitor ร่วมกับ metformin (ถูกขับทางไตด้วย active transport) จะส่งผลต่อ metformin อย่างไร',
+      opts:['เพิ่ม Vd','ลด CL','ลด t1/2','ลดการออกฤทธิ์ของยา','ขัดขวางการเกิด enterohepatic recirculation'],
+      answer:1,
+      ex:'MATE1 เป็น transporter ที่ช่วยขับ metformin ออกทางท่อไต (tubular secretion) การให้ <b>MATE1 inhibitor จะลดการขับออก → ลด CL</b> → ระดับ metformin สูงขึ้น (t½ ยาวขึ้น เสี่ยง lactic acidosis)' },
+
+    { stem:'ยาฆ่าเชื้อชนิดใดต่อไปนี้ สามารถนำมาใช้สำหรับฆ่าเชื้อในทางเดินปัสสาวะได้',
+      opts:['Inactive metabolite ถูกขับออกทางปัสสาวะ 95%','Active metabolite ถูกขับออกทางปัสสาวะ 5%','ยาถูกขับออกทางปัสสาวะในรูปเดิม 90%','ยาถูกขับออกทางน้ำดีในรูปเดิม 90%','Active metabolite ถูกขับออกทางน้ำดี 90%'],
+      answer:2,
+      ex:'การฆ่าเชื้อในทางเดินปัสสาวะต้องมี<b>ยาในรูปที่ยังออกฤทธิ์ (active) ความเข้มข้นสูงในปัสสาวะ</b> ดังนั้นยาที่<b>ขับออกทางปัสสาวะในรูปเดิม (unchanged) 90%</b> จึงเหมาะสม ส่วน inactive metabolite ไม่ฆ่าเชื้อ และการขับทางน้ำดีไม่ไปที่ทางเดินปัสสาวะ' },
+
+    { stem:'ถ้ายา Y ละลายไขมันได้ดีมาก และเป็น substrate ของ P-glycoprotein เมื่อฉีดเข้ากระแสเลือด อวัยวะใดที่ยา Y น่าจะกระจายเข้าไปสะสมได้ช้า แต่สะสมได้ในปริมาณมากที่สุด',
+      opts:['หัวใจ','ปอด','สมอง','กล้ามเนื้อ','ไขมัน'],
+      answer:4,
+      ex:'<b>เนื้อเยื่อไขมัน</b>มีเลือดไปเลี้ยงน้อย (perfusion ต่ำ) จึงกระจายเข้าไป<b>ช้า</b> แต่เพราะยา lipophilic มากและไขมันมีความจุสูง จึง<b>สะสมได้ปริมาณมากที่สุด</b> (เป็น reservoir) ส่วน P-gp ทำให้เข้าสมองได้น้อย' },
+
+    { stem:'หากยามีค่า t1/2 = 8 h ภายหลังฉีดยาเข้าสู่ร่างกาย นานกี่ชั่วโมงยาจึงจะถูกกำจัดจนเหลือในร่างกาย ~3%',
+      opts:['18 h','24 h','40 h','45 h','56 h'],
+      answer:2,
+      ex:'ทุก 1 ครึ่งชีวิตยาเหลือครึ่งหนึ่ง เมื่อผ่าน <b>5 × t½</b> จะเหลือ ~3% (1→50→25→12.5→6.25→3.125%) ดังนั้น 5 × 8 = <b>40 ชั่วโมง</b>' },
+
+    { stem:'ถ้ายามีขั้วสูง ละลายในไขมันได้ไม่ดี ยาควรมีคุณสมบัติอย่างไรจึงจะเคลื่อนที่เข้าสู่เซลล์ตับได้ดี',
+      opts:['เป็น substrate ของ P-glycoprotein','เป็น substrate ของ MRP-1','เป็น substrate ของ OCT1','เป็น substrate ของ CYP3A4','เป็น substrate ของ β-glucuronidase'],
+      answer:2,
+      ex:'ยาขั้วสูง (hydrophilic) ผ่านเยื่อหุ้มเซลล์แบบ passive ไม่ได้ ต้องอาศัย <b>uptake transporter</b> ที่ตับ → <b>OCT1</b> (organic cation transporter 1) ช่วยพายาเข้าเซลล์ตับ ส่วน P-gp/MRP-1 เป็น efflux (ปั๊มออก), CYP3A4 เป็นเอนไซม์, β-glucuronidase เป็นเอนไซม์ในลำไส้' }
+  ]
+}
+];
+
+/* ===================== ตัวสร้างหน้า + ตรรกะโต้ตอบ ===================== */
+(function(){
+  var quiz = document.getElementById('qpk-quiz');
+  var TOTAL = SECTIONS.reduce(function(s,sec){ return s + sec.qs.length; }, 0);
+  var answered = 0, correct = 0;
+  var gi = 0; // running question index
+
+  var elScore = document.getElementById('qpk-score');
+  var elMeta  = document.getElementById('qpk-meta');
+  var elFill  = document.getElementById('qpk-fill');
+
+  function esc(s){ return s; } // เนื้อหาเป็นข้อความที่เราคุมเอง อนุญาต markup ใน stem/ex
+
+  function updateBar(){
+    elScore.textContent = 'คะแนน ' + correct + ' / ' + TOTAL;
+    elMeta.textContent  = 'ตอบแล้ว ' + answered + ' ข้อ' + (answered===TOTAL ? ' — ครบแล้ว 🎉' : '');
+    elFill.style.width  = (answered/TOTAL*100) + '%';
+  }
+
+  SECTIONS.forEach(function(sec){
+    var h = document.createElement('div');
+    h.className = 'sec-title';
+    h.innerHTML = esc(sec.title) + ' <span class="cnt">(' + sec.qs.length + ' ข้อ)</span>';
+    quiz.appendChild(h);
+
+    sec.qs.forEach(function(q){
+      gi++;
+      var card = document.createElement('div');
+      card.className = 'card';
+
+      var head = '<span class="qnum">ข้อ ' + gi + '</span>';
+      if (q.flag){ head += '<span class="flag">⚠️ ' + q.flag + '</span>'; }
+
+      var stem = '<div class="stem">' + q.stem;
+      if (q.desc){ stem += '<span class="desc">' + q.desc + '</span>'; }
+      stem += '</div>';
+
+      var sub = '';
+      if (q.sub){
+        sub = '<div class="subitems">';
+        q.sub.forEach(function(s,i){ sub += '<div>' + (i+1) + '. ' + s + '</div>'; });
+        sub += '</div>';
+      }
+
+      var graph = q.graph ? GRAPH_L : '';
+
+      card.innerHTML = head + stem + sub + graph;
+
+      var ul = document.createElement('ul');
+      ul.className = 'opts';
+      var letters = ['ก','ข','ค','ง','จ'];
+      q.opts.forEach(function(txt, i){
+        var li = document.createElement('li');
+        li.className = 'opt';
+        li.innerHTML = '<span class="mk">' + (letters[i]||(i+1)) + '</span><span>' + txt + '</span>';
+        li.onclick = function(){ choose(); };
+        function choose(){
+          if (ul.classList.contains('locked')) return;
+          ul.classList.add('locked');
+          answered++;
+          var isRight = (i === q.answer);
+          if (isRight) correct++;
+          li.classList.add(isRight ? 'correct' : 'wrong');
+          if (!isRight){
+            // ไฮไลต์ข้อที่ถูกให้เห็นด้วย
+            ul.children[q.answer].classList.add('correct');
+          }
+          ex.classList.add('show');
+          updateBar();
+        }
+        ul.appendChild(li);
+      });
+      card.appendChild(ul);
+
+      var ex = document.createElement('div');
+      ex.className = 'explain';
+      var ansTxt = q.opts[q.answer];
+      ex.innerHTML = '<span class="ans">✓ เฉลย: ' + (letters[q.answer]||'') + '. ' + ansTxt + '</span><br>' + q.ex;
+      card.appendChild(ex);
+
+      quiz.appendChild(card);
+    });
+  });
+
+  updateBar();
+
+  document.getElementById('qpk-reset').onclick = function(){
+    if (confirm('ล้างคำตอบทั้งหมดและเริ่มทำใหม่?')) location.reload();
+  };
+})();
+</script>
+</body>
+</html>
